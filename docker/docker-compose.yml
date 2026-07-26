@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  toolkit:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: universal-file-toolkit
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - MAX_FILE_SIZE=10737418240
+      - UPLOAD_DIR=/app/uploads
+      - OUTPUT_DIR=/app/output
+      - TEMP_DIR=/app/temp
+    volumes:
+      - uft-uploads:/app/uploads
+      - uft-output:/app/output
+
+volumes:
+  uft-uploads:
+  uft-output:

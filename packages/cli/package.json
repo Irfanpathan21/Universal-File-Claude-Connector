@@ -1,0 +1,30 @@
+{
+  "name": "@uft/cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Universal File Toolkit — Command Line Interface",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "uft": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uft/shared": "workspace:*",
+    "commander": "^12.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "tsx": "^4.19.0",
+    "rimraf": "^6.0.0",
+    "@types/node": "^22.0.0"
+  }
+}

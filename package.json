@@ -1,0 +1,39 @@
+{
+  "name": "universal-file-toolkit",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A production-ready, open-source Universal File Toolkit with Web App, REST API, MCP Server, and CLI",
+  "license": "MIT",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:backend": "turbo run dev --filter=@uft/backend",
+    "dev:frontend": "turbo run dev --filter=@uft/frontend",
+    "dev:web": "turbo run dev --filter=@uft/backend --filter=@uft/frontend",
+    "build": "turbo run build",
+    "build:shared": "turbo run build --filter=@uft/shared",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "clean": "turbo run clean && rimraf node_modules",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "mcp": "node packages/mcp-server/dist/index.js",
+    "cli": "node packages/cli/dist/index.js",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "turbo": "^2.1.0",
+    "prettier": "^3.3.0",
+    "rimraf": "^6.0.0",
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0"
+}

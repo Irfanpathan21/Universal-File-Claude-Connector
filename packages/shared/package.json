@@ -1,0 +1,56 @@
+{
+  "name": "@uft/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared processing library for Universal File Toolkit",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "archiver": "^8.0.0",
+    "docx": "^8.5.0",
+    "exceljs": "^4.4.0",
+    "fast-xml-parser": "^4.4.0",
+    "file-type": "^19.4.0",
+    "js-yaml": "^4.1.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.8.0",
+    "marked": "^14.0.0",
+    "mime-types": "^2.1.35",
+    "nanoid": "^5.0.0",
+    "papaparse": "^5.4.0",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "pino": "^9.4.0",
+    "sharp": "^0.33.0",
+    "tesseract.js": "^7.0.0",
+    "turndown": "^7.2.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/archiver": "^8.0.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/mime-types": "^2.1.4",
+    "@types/papaparse": "^5.3.14",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/turndown": "^5.0.5",
+    "rimraf": "^6.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}
