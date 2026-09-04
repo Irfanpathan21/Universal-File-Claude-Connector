@@ -2413,31 +2413,24 @@ async function main() {
         return;
       }
 
-      const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
-
-      // Ensure Claude's expected accept header is populated if missing
-      if (req.method === 'POST' && (!req.headers['accept'] || req.headers['accept'] === '*/*')) {
-        req.headers['accept'] = 'application/json, text/event-stream';
-      }
-
-      // Streamable HTTP & SSE endpoints (/mcp, /sse, /messages, and POST /)
-      if (
-        url.pathname === '/mcp' ||
-        url.pathname === '/sse' ||
-        url.pathname === '/messages' ||
-        (url.pathname === '/' && (req.method === 'POST' || req.headers['accept']?.includes('text/event-stream')))
-      ) {
-        await streamableTransport.handleRequest(req, res);
+      if (req.method === 'HEAD') {
+        res.writeHead(200);
+        res.end();
         return;
       }
 
-      if (url.pathname === '/' || url.pathname === '/health') {
+      const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
+      const acceptsSse = req.headers['accept']?.includes('text/event-stream');
+
+      // If a client sends a GET request without asking for an SSE stream (like Claude testing connectivity or health)
+      if (req.method === 'GET' && !acceptsSse) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           status: 'ok',
           service: 'Universal File Toolkit MCP Server',
           version: '1.0.0',
-          transports: ['Streamable HTTP', 'SSE'],
+          auth: 'none',
+          transports: ['streamable-http', 'sse'],
           endpoints: {
             mcp: '/mcp',
             sse: '/sse',
@@ -2450,8 +2443,19 @@ async function main() {
         return;
       }
 
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not Found', endpoints: ['/mcp', '/sse', '/messages', '/health'] }));
+      // Ensure Claude's expected accept header is populated if missing for POST requests
+      if (req.method === 'POST') {
+        req.headers['accept'] = 'application/json, text/event-stream';
+        const idx = req.rawHeaders.findIndex(h => h.toLowerCase() === 'accept');
+        if (idx !== -1) {
+          req.rawHeaders[idx + 1] = 'application/json, text/event-stream';
+        } else {
+          req.rawHeaders.push('Accept', 'application/json, text/event-stream');
+        }
+      }
+
+      // Streamable HTTP & SSE endpoints (/mcp, /sse, /messages, and root /)
+      await streamableTransport.handleRequest(req, res);
     });
 
     httpServer.listen(port, host, () => {
