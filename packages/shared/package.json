@@ -40,7 +40,9 @@
     "sharp": "^0.33.0",
     "tesseract.js": "^7.0.0",
     "turndown": "^7.2.0",
-    "zod": "^3.23.0"
+    "zod": "^3.23.0",
+    "typescript": "^5.5.0",
+    "rimraf": "^6.0.0"
   },
   "devDependencies": {
     "@types/archiver": "^8.0.0",
@@ -49,8 +51,6 @@
     "@types/papaparse": "^5.3.14",
     "@types/pdf-parse": "^1.1.4",
     "@types/turndown": "^5.0.5",
-    "rimraf": "^6.0.0",
-    "typescript": "^5.5.0",
     "vitest": "^2.0.0"
   }
 }

@@ -11,6 +11,9 @@
     "dev:web": "turbo run dev --filter=@uft/backend --filter=@uft/frontend",
     "build": "turbo run build",
     "build:shared": "turbo run build --filter=@uft/shared",
+    "build:backend": "pnpm --filter @uft/shared build && pnpm --filter @uft/backend build",
+    "build:mcp": "pnpm --filter @uft/shared build && pnpm --filter @uft/mcp-server build",
+    "build:frontend": "pnpm --filter @uft/shared build && pnpm --filter @uft/frontend build",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "test:integration": "turbo run test:integration",
@@ -24,9 +27,11 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },
-  "devDependencies": {
-    "typescript": "^5.5.0",
+  "dependencies": {
     "turbo": "^2.1.0",
+    "typescript": "^5.5.0"
+  },
+  "devDependencies": {
     "prettier": "^3.3.0",
     "rimraf": "^6.0.0",
     "@types/node": "^22.0.0"
