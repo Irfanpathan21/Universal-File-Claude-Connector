@@ -29,8 +29,9 @@ services:
         value: production
 
   # 3. Web App Frontend (Static Site - Free)
-  - type: static
+  - type: web
     name: uft-frontend-app
+    runtime: static
     branch: main
     buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @uft/frontend build
     staticPublishPath: packages/frontend/dist
