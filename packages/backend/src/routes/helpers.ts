@@ -172,12 +172,13 @@ export async function sendProcessingResult(
  */
 export function handleRouteError(reply: FastifyReply, error: unknown): void {
   if (error instanceof FileToolkitError) {
-    reply.status(error.statusCode).send({
+    const fileError = error as FileToolkitError;
+    reply.status(fileError.statusCode).send({
       success: false,
       error: {
-        code: error.code,
-        message: error.message,
-        details: error.details,
+        code: fileError.code,
+        message: fileError.message,
+        details: fileError.details,
       },
     });
   } else {

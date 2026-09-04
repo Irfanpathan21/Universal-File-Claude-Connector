@@ -2194,7 +2194,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
         contents: [{
           uri,
           mimeType: 'application/json',
-          text: JSON.stringify(getTools().map(t => ({
+          text: JSON.stringify(getTools().map((t: any) => ({
             id: t.id,
             name: t.name,
             description: t.description,
@@ -2222,7 +2222,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
           text: JSON.stringify({
             name: 'Universal File Toolkit',
             version: '1.0.0',
-            categories: getActiveCategories().map(c => c.name),
+            categories: getActiveCategories().map((c: any) => c.name),
             totalTools: getTools().length,
           }, null, 2),
         }],
