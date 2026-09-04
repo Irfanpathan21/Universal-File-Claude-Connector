@@ -2387,6 +2387,16 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 
 // ─── Start Server ────────────────────────────────────────────
 
+function cloneServer(source: Server): Server {
+  const s = new Server(
+    { name: 'universal-file-toolkit', version: '1.0.0' },
+    { capabilities: { tools: {}, resources: {}, prompts: {} } }
+  );
+  (s as any)['_requestHandlers'] = new Map((source as any)['_requestHandlers']);
+  (s as any)['_notificationHandlers'] = new Map((source as any)['_notificationHandlers']);
+  return s;
+}
+
 async function main() {
   const isHttp = process.argv.includes('--sse') || process.argv.includes('--http') || process.env.TRANSPORT === 'sse' || process.env.TRANSPORT === 'http' || !!process.env.PORT;
 
@@ -2399,6 +2409,9 @@ async function main() {
       sessionIdGenerator: undefined,
     });
     await server.connect(streamableTransport);
+
+    // Active SSE sessions for legacy SSE clients
+    const sseTransports = new Map<string, SSEServerTransport>();
 
     const httpServer = http.createServer(async (req, res) => {
       // Enable CORS for web MCP clients and Claude
@@ -2422,8 +2435,8 @@ async function main() {
       const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
       const acceptsSse = req.headers['accept']?.includes('text/event-stream');
 
-      // If a client sends a GET request without asking for an SSE stream (like Claude testing connectivity or health)
-      if (req.method === 'GET' && !acceptsSse) {
+      // 1. Health & reachability check (for browsers, monitors, and Claude pre-checks)
+      if ((url.pathname === '/' || url.pathname === '/health' || url.pathname === '/mcp') && req.method === 'GET' && !acceptsSse) {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           status: 'ok',
@@ -2443,7 +2456,32 @@ async function main() {
         return;
       }
 
-      // Ensure Claude's expected accept header is populated if missing for POST requests
+      // 2. Legacy SSE Transport (/sse)
+      if (url.pathname === '/sse' && req.method === 'GET') {
+        const transport = new SSEServerTransport('/messages', res);
+        const clientServer = cloneServer(server);
+        await clientServer.connect(transport);
+        sseTransports.set(transport.sessionId, transport);
+        transport.onclose = () => {
+          sseTransports.delete(transport.sessionId);
+        };
+        return;
+      }
+
+      // 3. Legacy SSE Messages POST (/messages)
+      if (url.pathname === '/messages' && req.method === 'POST') {
+        const sessionId = url.searchParams.get('sessionId');
+        const transport = sessionId ? sseTransports.get(sessionId) : sseTransports.values().next().value;
+        if (transport) {
+          await transport.handlePostMessage(req, res);
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'No active SSE connection found' }));
+        }
+        return;
+      }
+
+      // 4. Streamable HTTP Transport (/mcp or POST /)
       if (req.method === 'POST') {
         req.headers['accept'] = 'application/json, text/event-stream';
         const idx = req.rawHeaders.findIndex(h => h.toLowerCase() === 'accept');
@@ -2454,12 +2492,11 @@ async function main() {
         }
       }
 
-      // Streamable HTTP & SSE endpoints (/mcp, /sse, /messages, and root /)
       await streamableTransport.handleRequest(req, res);
     });
 
     httpServer.listen(port, host, () => {
-      console.log(`🚀 Universal File Toolkit MCP Server running at http://${host}:${port}/mcp`);
+      console.log(`🚀 Universal File Toolkit MCP Server running at http://${host}:${port}`);
       console.log(`📡 Streamable HTTP endpoint: http://${host}:${port}/mcp`);
       console.log(`📡 SSE endpoint: http://${host}:${port}/sse`);
       console.log(`📚 Health check available at http://${host}:${port}/health`);
