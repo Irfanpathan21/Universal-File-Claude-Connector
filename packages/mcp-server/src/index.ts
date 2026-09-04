@@ -18,6 +18,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import http from 'node:http';
 import { exec } from 'node:child_process';
 import {
@@ -2387,19 +2388,24 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 // ─── Start Server ────────────────────────────────────────────
 
 async function main() {
-  const isSse = process.argv.includes('--sse') || process.env.TRANSPORT === 'sse' || !!process.env.PORT;
+  const isHttp = process.argv.includes('--sse') || process.argv.includes('--http') || process.env.TRANSPORT === 'sse' || process.env.TRANSPORT === 'http' || !!process.env.PORT;
 
-  if (isSse) {
+  if (isHttp) {
     const port = parseInt(process.env.PORT || '3002', 10);
     const host = process.env.HOST || '0.0.0.0';
 
-    let sseTransport: SSEServerTransport | null = null;
+    // Streamable HTTP Transport (Official modern transport for Claude Web, Mobile, and Desktop)
+    const streamableTransport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    await server.connect(streamableTransport);
 
     const httpServer = http.createServer(async (req, res) => {
       // Enable CORS for web MCP clients and Claude
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD');
+      res.setHeader('Access-Control-Allow-Headers', '*');
+      res.setHeader('Access-Control-Expose-Headers', '*');
 
       if (req.method === 'OPTIONS') {
         res.writeHead(204);
@@ -2409,19 +2415,19 @@ async function main() {
 
       const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
 
-      if (url.pathname === '/sse' && req.method === 'GET') {
-        sseTransport = new SSEServerTransport('/messages', res);
-        await server.connect(sseTransport);
-        return;
+      // Ensure Claude's expected accept header is populated if missing
+      if (req.method === 'POST' && (!req.headers['accept'] || req.headers['accept'] === '*/*')) {
+        req.headers['accept'] = 'application/json, text/event-stream';
       }
 
-      if (url.pathname === '/messages' && req.method === 'POST') {
-        if (!sseTransport) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'No active SSE connection established yet' }));
-          return;
-        }
-        await sseTransport.handlePostMessage(req, res);
+      // Streamable HTTP & SSE endpoints (/mcp, /sse, /messages, and POST /)
+      if (
+        url.pathname === '/mcp' ||
+        url.pathname === '/sse' ||
+        url.pathname === '/messages' ||
+        (url.pathname === '/' && (req.method === 'POST' || req.headers['accept']?.includes('text/event-stream')))
+      ) {
+        await streamableTransport.handleRequest(req, res);
         return;
       }
 
@@ -2431,9 +2437,13 @@ async function main() {
           status: 'ok',
           service: 'Universal File Toolkit MCP Server',
           version: '1.0.0',
-          transport: 'SSE',
-          sseEndpoint: '/sse',
-          messagesEndpoint: '/messages',
+          transports: ['Streamable HTTP', 'SSE'],
+          endpoints: {
+            mcp: '/mcp',
+            sse: '/sse',
+            messages: '/messages',
+            health: '/health'
+          },
           toolsCount: 108,
           timestamp: new Date().toISOString()
         }));
@@ -2441,11 +2451,13 @@ async function main() {
       }
 
       res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not Found', endpoints: ['/sse', '/messages', '/health'] }));
+      res.end(JSON.stringify({ error: 'Not Found', endpoints: ['/mcp', '/sse', '/messages', '/health'] }));
     });
 
     httpServer.listen(port, host, () => {
-      console.log(`🚀 Universal File Toolkit MCP Server running on SSE at http://${host}:${port}/sse`);
+      console.log(`🚀 Universal File Toolkit MCP Server running at http://${host}:${port}/mcp`);
+      console.log(`📡 Streamable HTTP endpoint: http://${host}:${port}/mcp`);
+      console.log(`📡 SSE endpoint: http://${host}:${port}/sse`);
       console.log(`📚 Health check available at http://${host}:${port}/health`);
     });
   } else {
