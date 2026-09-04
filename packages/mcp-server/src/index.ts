@@ -2468,21 +2468,19 @@ async function main() {
         return;
       }
 
-      // 3. Legacy SSE Messages POST (/messages)
-      if (url.pathname === '/messages' && req.method === 'POST') {
-        const sessionId = url.searchParams.get('sessionId');
-        const transport = sessionId ? sseTransports.get(sessionId) : sseTransports.values().next().value;
-        if (transport) {
-          await transport.handlePostMessage(req, res);
-        } else {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'No active SSE connection found' }));
-        }
-        return;
-      }
-
-      // 4. Streamable HTTP Transport (/mcp or POST /)
+      // Parse POST request body and buffer rawBody for reliable stream conversion
+      let parsedBody: any = undefined;
       if (req.method === 'POST') {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          chunks.push(chunk);
+        }
+        const buffer = Buffer.concat(chunks);
+        (req as any).rawBody = buffer;
+        try {
+          parsedBody = JSON.parse(buffer.toString('utf-8'));
+        } catch {}
+
         req.headers['accept'] = 'application/json, text/event-stream';
         const idx = req.rawHeaders.findIndex(h => h.toLowerCase() === 'accept');
         if (idx !== -1) {
@@ -2492,8 +2490,22 @@ async function main() {
         }
       }
 
+      // 3. Legacy SSE Messages POST (/messages)
+      if (url.pathname === '/messages' && req.method === 'POST') {
+        const sessionId = url.searchParams.get('sessionId');
+        const transport = sessionId ? sseTransports.get(sessionId) : sseTransports.values().next().value;
+        if (transport) {
+          await transport.handlePostMessage(req, res, parsedBody);
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'No active SSE connection found' }));
+        }
+        return;
+      }
+
+      // 4. Streamable HTTP Transport (/mcp, POST /, etc.)
       try {
-        await streamableTransport.handleRequest(req, res);
+        await streamableTransport.handleRequest(req, res, parsedBody);
       } catch (err: any) {
         console.error('streamableTransport error:', err);
         if (!res.headersSent) {
