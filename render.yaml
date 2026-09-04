@@ -6,11 +6,9 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: corepack enable && pnpm install && pnpm build
+    buildCommand: npm install -g pnpm && pnpm install && pnpm build
     startCommand: node packages/mcp-server/dist/index.js --sse
     envVars:
-      - key: PORT
-        value: 3002
       - key: TRANSPORT
         value: sse
       - key: HOST
@@ -24,21 +22,17 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: corepack enable && pnpm install && pnpm build
+    buildCommand: npm install -g pnpm && pnpm install && pnpm build
     startCommand: node packages/backend/dist/index.js
     envVars:
-      - key: PORT
-        value: 3001
       - key: NODE_ENV
         value: production
 
-  # 3. Web App Frontend
-  - type: web
+  # 3. Web App Frontend (Static Site - Free)
+  - type: static
     name: uft-frontend-app
-    runtime: static
-    plan: free
     branch: main
-    buildCommand: corepack enable && pnpm install && cd packages/frontend && npm run build
+    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @uft/frontend build
     staticPublishPath: packages/frontend/dist
     routes:
       - type: rewrite
