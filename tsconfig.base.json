@@ -12,16 +12,14 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "composite": true,
-    "incremental": true,
     "isolatedModules": true,
     "noUnusedLocals": false,
     "noFallthroughCasesInSwitch": true,
     "allowImportingTsExtensions": false,
     "baseUrl": ".",
     "paths": {
-      "@uft/shared": ["./packages/shared/src/index.ts"],
-      "@uft/shared/*": ["./packages/shared/src/*"]
+      "@uft/shared": ["./packages/shared/dist/index.d.ts", "./packages/shared/src/index.ts"],
+      "@uft/shared/*": ["./packages/shared/dist/*", "./packages/shared/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "build", ".turbo"]
