@@ -2492,7 +2492,15 @@ async function main() {
         }
       }
 
-      await streamableTransport.handleRequest(req, res);
+      try {
+        await streamableTransport.handleRequest(req, res);
+      } catch (err: any) {
+        console.error('streamableTransport error:', err);
+        if (!res.headersSent) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err?.message || 'Internal Server Error' }));
+        }
+      }
     });
 
     httpServer.listen(port, host, () => {
