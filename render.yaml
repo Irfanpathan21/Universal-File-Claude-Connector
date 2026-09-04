@@ -6,7 +6,7 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm install -g pnpm && pnpm install && pnpm build
+    buildCommand: npx -y pnpm@9.12.0 install && npx -y pnpm@9.12.0 build
     startCommand: node packages/mcp-server/dist/index.js --sse
     envVars:
       - key: TRANSPORT
@@ -22,7 +22,7 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm install -g pnpm && pnpm install && pnpm build
+    buildCommand: npx -y pnpm@9.12.0 install && npx -y pnpm@9.12.0 build
     startCommand: node packages/backend/dist/index.js
     envVars:
       - key: NODE_ENV
@@ -33,7 +33,7 @@ services:
     name: uft-frontend-app
     runtime: static
     branch: main
-    buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @uft/frontend build
+    buildCommand: npx -y pnpm@9.12.0 install && npx -y pnpm@9.12.0 --filter @uft/frontend build
     staticPublishPath: packages/frontend/dist
     routes:
       - type: rewrite
