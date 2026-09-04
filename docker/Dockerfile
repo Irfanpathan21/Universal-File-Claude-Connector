@@ -25,7 +25,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install system dependencies (FFmpeg, LibreOffice, Tesseract OCR, Ghostscript)
-RUN apk add --no-checked \
+RUN apk add --no-cache \
     ffmpeg \
     libreoffice \
     tesseract-ocr \

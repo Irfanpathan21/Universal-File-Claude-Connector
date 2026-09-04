@@ -435,6 +435,38 @@ export const tools: ToolDefinition[] = [
       { name: 'fit', type: 'select', label: 'Fit Mode', description: 'How to fit the image', required: false, default: 'inside', options: [{ label: 'Inside (fit within)', value: 'inside' }, { label: 'Cover (fill area)', value: 'cover' }, { label: 'Contain (letterbox)', value: 'contain' }] },
     ],
   },
+  {
+    id: 'watermark_image',
+    name: 'Watermark Image',
+    description: 'Add custom text or logo watermark overlay to images',
+    category: 'image',
+    icon: 'droplet',
+    inputFormats: ['.png', '.jpg', '.jpeg', '.webp', '.tiff', '.avif'],
+    outputFormats: ['.png', '.jpg', '.jpeg', '.webp'],
+    maxFiles: 1,
+    maxFileSize: 500 * MB,
+    tags: ['watermark', 'overlay', 'protect', 'copyright'],
+    parameters: [
+      { name: 'text', type: 'string', label: 'Watermark Text', description: 'Text to stamp as watermark', required: true, default: 'CONFIDENTIAL', placeholder: 'CONFIDENTIAL' },
+      { name: 'opacity', type: 'range', label: 'Opacity', description: 'Watermark transparency (0.1 - 1.0)', required: false, default: 0.6, min: 0.1, max: 1.0, step: 0.05 },
+      { name: 'fontSize', type: 'number', label: 'Font Size', description: 'Font size in pixels', required: false, default: 36, min: 12, max: 120 },
+      { name: 'color', type: 'string', label: 'Color', description: 'Hex color code', required: false, default: '#ffffff', placeholder: '#ffffff' },
+      { name: 'position', type: 'select', label: 'Position', description: 'Watermark placement on image', required: false, default: 'center', options: [{ label: 'Center (Diagonal)', value: 'center' }, { label: 'Top-Left', value: 'top-left' }, { label: 'Top-Right', value: 'top-right' }, { label: 'Bottom-Left', value: 'bottom-left' }, { label: 'Bottom-Right', value: 'bottom-right' }] },
+    ],
+  },
+  {
+    id: 'remove_bg',
+    name: 'Remove Background',
+    description: 'Automatically remove image background and make it transparent',
+    category: 'image',
+    icon: 'user-x',
+    inputFormats: ['.png', '.jpg', '.jpeg', '.webp', '.avif'],
+    outputFormats: ['.png', '.webp'],
+    maxFiles: 1,
+    maxFileSize: 500 * MB,
+    tags: ['background', 'transparent', 'cutout', 'remove bg'],
+    parameters: [],
+  },
 
   // ── Data Tools ───────────────────────────────────────────
   {

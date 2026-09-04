@@ -1,0 +1,46 @@
+# Render Blueprint for Universal File Toolkit (100% Free Tier)
+services:
+  # 1. MCP Server (SSE for Claude Web, Mobile & Desktop)
+  - type: web
+    name: uft-mcp-server
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: corepack enable && pnpm install && pnpm build
+    startCommand: node packages/mcp-server/dist/index.js --sse
+    envVars:
+      - key: PORT
+        value: 3002
+      - key: TRANSPORT
+        value: sse
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_ENV
+        value: production
+
+  # 2. Backend REST API
+  - type: web
+    name: uft-api-backend
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: corepack enable && pnpm install && pnpm build
+    startCommand: node packages/backend/dist/index.js
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_ENV
+        value: production
+
+  # 3. Web App Frontend
+  - type: web
+    name: uft-frontend-app
+    runtime: static
+    plan: free
+    branch: main
+    buildCommand: corepack enable && pnpm install && cd packages/frontend && npm run build
+    staticPublishPath: packages/frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

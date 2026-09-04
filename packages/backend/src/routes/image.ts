@@ -4,6 +4,9 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { imageService, ValidationError } from '@uft/shared';
+import { existsSync, createReadStream } from 'node:fs';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { resolve, extname, join, dirname, basename } from 'node:path';
 import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
 
 export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
@@ -332,6 +335,77 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
       const result = await imageService.trimTransparentEdges(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
+  });
+
+  // ── Preview Local Image (for MCP Interactive Visual Cropper Window) ──
+  app.get('/preview-local', async (request, reply) => {
+    const query = request.query as { path?: string };
+    if (!query.path) {
+      reply.status(400).send({ error: 'Missing path parameter' });
+      return;
+    }
+    const resolved = resolve(query.path);
+    if (!existsSync(resolved)) {
+      reply.status(404).send({ error: `File not found: ${resolved}` });
+      return;
+    }
+    const ext = extname(resolved).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.webp': 'image/webp',
+      '.avif': 'image/avif',
+      '.gif': 'image/gif',
+      '.bmp': 'image/bmp',
+      '.tiff': 'image/tiff',
+      '.svg': 'image/svg+xml',
+    };
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    const stream = createReadStream(resolved);
+    reply.header('Content-Type', contentType);
+    return reply.send(stream);
+  });
+
+  // ── Direct Crop from Disk Path (for MCP Interactive Visual Cropper Window) ──
+  app.post('/crop-direct', async (request, reply) => {
+    try {
+      const body = request.body as {
+        file: string;
+        left: number;
+        top: number;
+        width: number;
+        height: number;
+        outputPath?: string;
+      };
+      if (!body.file) {
+        reply.status(400).send({ error: 'Missing file parameter' });
+        return;
+      }
+      const resolved = resolve(body.file);
+      if (!existsSync(resolved)) {
+        reply.status(404).send({ error: `File not found: ${resolved}` });
+        return;
+      }
+      const data = await readFile(resolved);
+      const result = await imageService.cropImage(data, basename(resolved), {
+        left: Math.max(0, Math.round(body.left)),
+        top: Math.max(0, Math.round(body.top)),
+        width: Math.max(1, Math.round(body.width)),
+        height: Math.max(1, Math.round(body.height)),
+      });
+      const finalOut = body.outputPath ? resolve(body.outputPath) : join(dirname(resolved), `${basename(resolved, extname(resolved))}_cropped${result.outputFiles[0].extension}`);
+      await mkdir(dirname(finalOut), { recursive: true });
+      await writeFile(finalOut, result.outputFiles[0].data as Buffer);
+      return reply.send({
+        success: true,
+        message: 'Crop applied successfully',
+        outputPath: finalOut,
+        metadata: result.metadata,
+      });
+    } catch (error: any) {
+      reply.status(500).send({ error: error.message || 'Crop failed' });
+    }
   });
 
   done();

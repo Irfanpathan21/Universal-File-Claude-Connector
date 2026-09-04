@@ -5,3 +5,12 @@ dist/
 .DS_Store
 coverage/
 tmp/
+temp/
+uploads/
+output/
+.env
+.env.*
+*.env
+*.tsbuildinfo
+scratch/
+

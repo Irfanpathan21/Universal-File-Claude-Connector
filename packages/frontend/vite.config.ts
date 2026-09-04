@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@uft/shared': path.resolve(__dirname, '../shared/src/registry/index.ts'),
     },
   },
   server: {

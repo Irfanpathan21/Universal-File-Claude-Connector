@@ -9,7 +9,8 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@uft/shared": ["../shared/src/registry/index.ts"]
     },
     "declaration": false,
     "declarationMap": false,

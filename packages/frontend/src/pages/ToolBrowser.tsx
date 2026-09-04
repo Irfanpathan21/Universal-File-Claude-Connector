@@ -1,187 +1,169 @@
 /**
- * ToolBrowser — Grid/List view of all available tools with search and filter
+ * ToolBrowser — Grid/List view of all 111+ tools with search, domain pills, and iLovePDF theme cards
  */
 
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  Search, FileText, Image, Database, Filter, ArrowRight,
-  FilePlus, Scissors, Minimize2, RotateCw, FileOutput, FileMinus,
-  ArrowUpDown, Droplets, Hash, Lock, Info, Maximize2, Crop,
-  FlipHorizontal, Repeat, EyeOff, Zap, Sliders, Contrast, Shield,
-  Layers, Table, Braces, Code, FileCode, CheckCircle, AlignLeft,
-  Minimize, Globe, Wrench,
-} from 'lucide-react';
-import { fetchTools } from '../lib/api';
-import type { ToolInfo, CategoryInfo } from '../lib/api';
-
-const ICON_MAP: Record<string, any> = {
-  'file-plus': FilePlus,
-  'scissors': Scissors,
-  'minimize-2': Minimize2,
-  'rotate-cw': RotateCw,
-  'file-output': FileOutput,
-  'file-minus': FileMinus,
-  'arrow-up-down': ArrowUpDown,
-  'file-text': FileText,
-  'droplets': Droplets,
-  'hash': Hash,
-  'lock': Lock,
-  'info': Info,
-  'image': Image,
-  'maximize-2': Maximize2,
-  'crop': Crop,
-  'flip-horizontal': FlipHorizontal,
-  'repeat': Repeat,
-  'eye-off': EyeOff,
-  'zap': Zap,
-  'sliders': Sliders,
-  'contrast': Contrast,
-  'shield': Shield,
-  'layers': Layers,
-  'table': Table,
-  'braces': Braces,
-  'code': Code,
-  'file-code': FileCode,
-  'check-circle': CheckCircle,
-  'align-left': AlignLeft,
-  'minimize': Minimize,
-  'globe': Globe,
-  'database': Database,
-};
+import { Search, Wrench, ArrowRight, FileText, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { CATEGORIES_CONFIG } from '../config/categories';
+import { tools as ALL_TOOLS, getCategories } from '@uft/shared';
 
 export function ToolBrowser() {
-  const { category: urlCategory } = useParams<{ category?: string }>();
-  const [tools, setTools] = useState<ToolInfo[]>([]);
-  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeCategoryParam = searchParams.get('category') || 'all';
+
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>(urlCategory || 'all');
-  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>(activeCategoryParam);
 
   useEffect(() => {
-    if (urlCategory) {
-      setSelectedCategory(urlCategory);
+    const cat = searchParams.get('category');
+    if (cat) {
+      setSelectedCategory(cat);
     }
-  }, [urlCategory]);
+  }, [searchParams]);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const catFilter = selectedCategory === 'all' ? undefined : selectedCategory;
-        const res = await fetchTools(search || undefined, catFilter);
-        setTools(res.tools);
-        setCategories(res.categories);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+  const handleCategorySelect = (catId: string) => {
+    setSelectedCategory(catId);
+    if (catId === 'all') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', catId);
     }
-    load();
-  }, [search, selectedCategory]);
+    setSearchParams(searchParams);
+  };
+
+  // Filter tools based on search query and category
+  const filteredTools = ALL_TOOLS.filter((tool) => {
+    const matchesCat = selectedCategory === 'all' || tool.category === selectedCategory;
+    const q = search.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      tool.name.toLowerCase().includes(q) ||
+      tool.description.toLowerCase().includes(q) ||
+      tool.id.toLowerCase().includes(q) ||
+      tool.tags?.some((t) => t.toLowerCase().includes(q)) ||
+      tool.inputFormats.some((f) => f.toLowerCase().includes(q)) ||
+      tool.outputFormats.some((f) => f.toLowerCase().includes(q));
+
+    return matchesCat && matchesSearch;
+  });
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="space-y-8 py-4">
+      
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold mb-2" style={{ color: 'var(--text-primary)' }}>
-          Tool Directory
+      <div className="space-y-2">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          Tool Directory & Directory Browser
         </h1>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Explore 40+ high-performance file manipulation tools
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
+          Search and run 111+ local document, image, spreadsheet, video, audio, and OCR conversion tools.
         </p>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
-        <div className="relative flex-1">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+      {/* Search & Filter Pills */}
+      <div className="space-y-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search tools by name, keyword, or extension..."
+            placeholder="Search 111+ tools by name, description, tags (e.g. merge pdf, resize png, excel to csv, ocr)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="input pl-10"
+            className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-sm"
           />
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+            onClick={() => handleCategorySelect('all')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
               selectedCategory === 'all'
-                ? 'bg-violet-600 text-white shadow-sm'
-                : 'hover:bg-white/5'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
-            style={selectedCategory !== 'all' ? { color: 'var(--text-secondary)', border: '1px solid var(--border-default)' } : {}}
           >
-            All Tools ({tools.length})
+            All Tools ({ALL_TOOLS.length})
           </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                selectedCategory === cat.id
-                  ? 'bg-violet-600 text-white shadow-sm'
-                  : 'hover:bg-white/5'
-              }`}
-              style={selectedCategory !== cat.id ? { color: 'var(--text-secondary)', border: '1px solid var(--border-default)' } : {}}
-            >
-              {cat.name} ({cat.toolCount})
-            </button>
-          ))}
+
+          {Object.entries(CATEGORIES_CONFIG).map(([key, cat]) => {
+            const isSelected = selectedCategory === key;
+            const count = ALL_TOOLS.filter((t) => t.category === key).length;
+
+            return (
+              <button
+                key={key}
+                onClick={() => handleCategorySelect(key)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'text-white shadow-md'
+                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+                style={isSelected ? { backgroundColor: cat.accentColor } : {}}
+              >
+                <span>{cat.name}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Tools Grid */}
-      {loading ? (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="h-32 skeleton rounded-xl" />
-          ))}
-        </div>
-      ) : tools.length === 0 ? (
-        <div className="text-center py-16 rounded-2xl" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-default)' }}>
-          <Wrench size={40} className="mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-          <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>No tools found</h3>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Try adjusting your search query or filter</p>
+      {filteredTools.length === 0 ? (
+        <div className="text-center py-16 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+          <Wrench size={40} className="mx-auto text-slate-400" />
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">No tools found matching your query</h3>
+          <p className="text-xs text-slate-500">Try adjusting your search filters or clearing the category selection</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {tools.map((tool, i) => {
-            const IconComponent = ICON_MAP[tool.icon] || Wrench;
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTools.map((tool, i) => {
+            const cat = CATEGORIES_CONFIG[tool.category] || CATEGORIES_CONFIG.pdf;
+
             return (
               <motion.div
                 key={tool.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.02 }}
+                transition={{ duration: 0.2, delay: Math.min(i * 0.02, 0.3) }}
               >
-                <Link to={`/tool/${tool.id}`} className="tool-card block h-full no-underline flex flex-col justify-between">
+                <Link
+                  to={`/tools/${tool.id}`}
+                  className="group flex flex-col justify-between h-full p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200 no-underline"
+                >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                        style={{ background: 'rgba(124, 58, 237, 0.1)', color: 'var(--color-brand-400)' }}>
-                        <IconComponent size={18} />
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-2xs group-hover:scale-105 transition-transform"
+                        style={{ backgroundColor: cat.accentColor }}
+                      >
+                        {tool.name.charAt(0)}
                       </div>
-                      <span className="badge badge-brand text-[10px] uppercase font-bold tracking-wider">
-                        {tool.category}
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cat.badgeBg} ${cat.badgeText}`}>
+                        {cat.shortName}
                       </span>
                     </div>
-                    <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {tool.name}
                     </h3>
-                    <p className="text-xs line-clamp-2 mb-3" style={{ color: 'var(--text-secondary)' }}>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
                       {tool.description}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t text-[11px]" style={{ borderColor: 'var(--border-default)', color: 'var(--text-muted)' }}>
-                    <span>In: {tool.inputFormats.join(', ')}</span>
-                    <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-[11px] font-medium text-slate-400">
+                    <span className="truncate max-w-[180px]">
+                      In: {tool.inputFormats.slice(0, 3).join(', ')}
+                    </span>
+                    <span className="text-blue-600 dark:text-blue-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                      Run <ArrowRight size={12} />
+                    </span>
                   </div>
                 </Link>
               </motion.div>
@@ -189,6 +171,7 @@ export function ToolBrowser() {
           })}
         </div>
       )}
+
     </div>
   );
 }

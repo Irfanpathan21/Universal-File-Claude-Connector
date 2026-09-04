@@ -17,6 +17,9 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import http from 'node:http';
+import { exec } from 'node:child_process';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -368,18 +371,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'crop_image',
-        description: 'Crop an image to specific dimensions and position',
+        description: 'Crop an image visually or with specific dimensions. When left/top/width/height are omitted or visual=true, automatically pops up an interactive visible cropping window on screen for direct manipulation with Rule-of-Thirds grid and aspect ratio presets.',
         inputSchema: {
           type: 'object' as const,
           properties: {
             file: { type: 'string', description: 'Path to the image file' },
-            left: { type: 'number', description: 'Left offset in pixels' },
-            top: { type: 'number', description: 'Top offset in pixels' },
-            width: { type: 'number', description: 'Crop width' },
-            height: { type: 'number', description: 'Crop height' },
-            outputPath: { type: 'string' },
+            left: { type: 'number', description: 'Left offset in pixels (optional - omit to open visual cropping window)' },
+            top: { type: 'number', description: 'Top offset in pixels (optional - omit to open visual cropping window)' },
+            width: { type: 'number', description: 'Crop width in pixels (optional - omit to open visual cropping window)' },
+            height: { type: 'number', description: 'Crop height in pixels (optional - omit to open visual cropping window)' },
+            visual: { type: 'boolean', description: 'Set to true to launch the visible interactive cropping window' },
+            outputPath: { type: 'string', description: 'Target output path for the cropped file (optional)' },
           },
-          required: ['file', 'left', 'top', 'width', 'height'],
+          required: ['file'],
         },
       },
       {
@@ -1453,16 +1457,49 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'crop_image': {
-        const data = await readInputFile(args.file as string);
-        const result = await imageService.cropImage(data, basename(args.file as string), {
-          left: args.left as number,
-          top: args.top as number,
-          width: args.width as number,
-          height: args.height as number,
-        });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, `_cropped${result.outputFiles[0].extension}`);
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Cropped → ${outputPath}` }] };
+        const filePath = resolve(args.file as string);
+        const outputPath = (args.outputPath as string) || getOutputPath(filePath, '_cropped.png');
+
+        // Check if coordinates were supplied or if visual mode is requested
+        const hasCoords = args.left !== undefined && args.top !== undefined && args.width !== undefined && args.height !== undefined;
+
+        if (hasCoords && !args.visual) {
+          const data = await readInputFile(filePath);
+          const result = await imageService.cropImage(data, basename(filePath), {
+            left: Math.max(0, Math.round(args.left as number)),
+            top: Math.max(0, Math.round(args.top as number)),
+            width: Math.max(1, Math.round(args.width as number)),
+            height: Math.max(1, Math.round(args.height as number)),
+          });
+          await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
+          return { content: [{ type: 'text', text: `✅ Cropped → ${outputPath}\nResolution: ${result.metadata?.width}x${result.metadata?.height} px` }] };
+        }
+
+        // Visual Window Mode: Pop up visible window on user's screen
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const popupUrl = `${frontendUrl}/editor/crop?file=${encodeURIComponent(filePath)}&out=${encodeURIComponent(outputPath)}`;
+
+        // Launch OS window
+        try {
+          if (process.platform === 'win32') {
+            exec(`start "" "${popupUrl}"`);
+          } else if (process.platform === 'darwin') {
+            exec(`open "${popupUrl}"`);
+          } else {
+            exec(`xdg-open "${popupUrl}"`);
+          }
+        } catch {
+          // Ignored if headless
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `✂️ **Visible Cropper Window Opened!**\n\nA dedicated visual cropping window has popped up on your screen.\n\n👉 **Click here if the window did not open automatically:**\n[**Open Visual Crop Window**](${popupUrl})\n\n**File:** \`${filePath}\`\n**Output Path:** \`${outputPath}\`\n\n**Instructions:**\n1. In the popup window, drag the 8 corner & edge handles to set your crop box.\n2. Choose an aspect ratio preset (\`1:1 Square\`, \`16:9 Landscape\`, \`4:3\`, or \`Freeform\`).\n3. Click **"Confirm Crop & Apply to Claude"**.\n4. The cropped image will be saved directly to your disk!`,
+            },
+          ],
+        };
       }
 
       case 'convert_image': {
@@ -2209,6 +2246,29 @@ server.setRequestHandler(ListPromptsRequestSchema, async () => {
         ],
       },
       {
+        name: 'interactive-crop-guide',
+        description: 'Guided interactive image cropping with aspect ratios',
+        arguments: [
+          { name: 'imagePath', description: 'Path to target image file to crop', required: true },
+          { name: 'aspectRatio', description: 'Target aspect ratio (1:1, 4:3, 16:9, 9:16)', required: false },
+        ],
+      },
+      {
+        name: 'interactive-watermark-guide',
+        description: 'Guided image/PDF watermarking workflow with visual position',
+        arguments: [
+          { name: 'filePath', description: 'Path to source image or PDF', required: true },
+          { name: 'text', description: 'Watermark overlay text', required: true },
+        ],
+      },
+      {
+        name: 'interactive-pdf-reorder',
+        description: 'Guided PDF page thumbnail reordering and rotation workflow',
+        arguments: [
+          { name: 'pdfPath', description: 'Path to target PDF file', required: true },
+        ],
+      },
+      {
         name: 'batch-resize-images',
         description: 'Resize all images in a directory',
         arguments: [
@@ -2249,6 +2309,39 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
           content: {
             type: 'text' as const,
             text: `Please merge all PDF files${args?.directory ? ` in the directory "${args.directory}"` : ''} into a single PDF. Use the merge_pdf tool. List the files first, then merge them in alphabetical order.`,
+          },
+        }],
+      };
+
+    case 'interactive-crop-guide':
+      return {
+        messages: [{
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text: `Please help crop the image "${args?.imagePath}". Use the crop_image tool with left, top, width, height parameters matching ${args?.aspectRatio || '1:1'} ratio bounds.`,
+          },
+        }],
+      };
+
+    case 'interactive-watermark-guide':
+      return {
+        messages: [{
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text: `Apply watermark text "${args?.text || 'CONFIDENTIAL'}" to "${args?.filePath}". Use add_watermark or add_watermark_image with opacity 0.6 and center placement.`,
+          },
+        }],
+      };
+
+    case 'interactive-pdf-reorder':
+      return {
+        messages: [{
+          role: 'user' as const,
+          content: {
+            type: 'text' as const,
+            text: `Inspect and reorder PDF pages for "${args?.pdfPath}". Use rearrange_pages or rotate_pdf to visually adjust orientation and page sequence.`,
           },
         }],
       };
@@ -2294,9 +2387,73 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 // ─── Start Server ────────────────────────────────────────────
 
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error('Universal File Toolkit MCP Server running on STDIO');
+  const isSse = process.argv.includes('--sse') || process.env.TRANSPORT === 'sse' || !!process.env.PORT;
+
+  if (isSse) {
+    const port = parseInt(process.env.PORT || '3002', 10);
+    const host = process.env.HOST || '0.0.0.0';
+
+    let sseTransport: SSEServerTransport | null = null;
+
+    const httpServer = http.createServer(async (req, res) => {
+      // Enable CORS for web MCP clients and Claude
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
+      const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
+
+      if (url.pathname === '/sse' && req.method === 'GET') {
+        sseTransport = new SSEServerTransport('/messages', res);
+        await server.connect(sseTransport);
+        return;
+      }
+
+      if (url.pathname === '/messages' && req.method === 'POST') {
+        if (!sseTransport) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'No active SSE connection established yet' }));
+          return;
+        }
+        await sseTransport.handlePostMessage(req, res);
+        return;
+      }
+
+      if (url.pathname === '/' || url.pathname === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          status: 'ok',
+          service: 'Universal File Toolkit MCP Server',
+          version: '1.0.0',
+          transport: 'SSE',
+          sseEndpoint: '/sse',
+          messagesEndpoint: '/messages',
+          toolsCount: 108,
+          timestamp: new Date().toISOString()
+        }));
+        return;
+      }
+
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not Found', endpoints: ['/sse', '/messages', '/health'] }));
+    });
+
+    httpServer.listen(port, host, () => {
+      console.log(`🚀 Universal File Toolkit MCP Server running on SSE at http://${host}:${port}/sse`);
+      console.log(`📚 Health check available at http://${host}:${port}/health`);
+    });
+  } else {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error('Universal File Toolkit MCP Server running on STDIO');
+  }
 }
 
 main().catch(console.error);
+

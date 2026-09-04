@@ -5,13 +5,17 @@ import { Layout } from './components/layout/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { ToolBrowser } from './pages/ToolBrowser';
 import { ToolPage } from './pages/ToolPage';
+import { ImageHub } from './pages/ImageHub';
+import { DocsPage } from './pages/DocsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { useUIStore } from './stores/ui';
+
+import { InteractiveCropPopup } from './pages/InteractiveCropPopup';
 
 export default function App() {
   const theme = useUIStore((s) => s.theme);
 
-  // Initialize theme on mount
+  // Initialize theme on mount & theme toggle update
   useEffect(() => {
     document.documentElement.classList.remove('dark', 'light');
     document.documentElement.classList.add(theme);
@@ -47,12 +51,23 @@ export default function App() {
         }}
       />
       <Routes>
+        {/* Dedicated Standalone Visible Editor Window for Claude MCP */}
+        <Route path="/editor/crop" element={<InteractiveCropPopup />} />
+
         <Route element={<Layout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/tools" element={<ToolBrowser />} />
-          <Route path="/tools/:category" element={<ToolBrowser />} />
+          <Route path="/tools/image" element={<ImageHub />} />
+          <Route path="/tools/category/:category" element={<ToolBrowser />} />
+          <Route path="/tools/:id" element={<ToolPage />} />
           <Route path="/tool/:id" element={<ToolPage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/privacy" element={<DocsPage />} />
+          <Route path="/terms" element={<DocsPage />} />
+          <Route path="/security" element={<DocsPage />} />
+          <Route path="/help" element={<DocsPage />} />
+          <Route path="/contact" element={<DocsPage />} />
         </Route>
       </Routes>
     </>
