@@ -2456,8 +2456,8 @@ async function main() {
         return;
       }
 
-      // 2. Legacy SSE Transport (/sse)
-      if (url.pathname === '/sse' && req.method === 'GET') {
+      // 2. SSE Transport (handles /sse, /, or any path when client requests SSE)
+      if ((url.pathname === '/sse' || url.pathname === '/' || acceptsSse) && req.method === 'GET') {
         const transport = new SSEServerTransport('/messages', res);
         const clientServer = cloneServer(server);
         await clientServer.connect(transport);
