@@ -142,7 +142,33 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(registerAiRoutes, { prefix: '/api/ai' });
   await app.register(registerUtilityRoutes, { prefix: '/api' });
 
-  // ── Health check ──────────────────────────────────────────
+  // ── Root & Health check ───────────────────────────────────
+  app.get('/', async (req, reply) => {
+    return {
+      service: 'Universal File Toolkit REST API',
+      status: 'ok',
+      version: '1.0.0',
+      documentation: '/docs',
+      health: '/health',
+      endpoints: {
+        pdf: '/api/pdf',
+        image: '/api/image',
+        data: '/api/data',
+        document: '/api/document',
+        spreadsheet: '/api/spreadsheet',
+        presentation: '/api/presentation',
+        text: '/api/text',
+        archive: '/api/archive',
+        audio: '/api/audio',
+        video: '/api/video',
+        ocr: '/api/ocr',
+        ai: '/api/ai',
+        utility: '/api',
+      },
+      timestamp: new Date().toISOString(),
+    };
+  });
+
   app.get('/health', async () => ({
     status: 'ok',
     version: '1.0.0',
