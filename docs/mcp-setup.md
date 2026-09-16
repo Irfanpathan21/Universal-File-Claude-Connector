@@ -1,10 +1,33 @@
 # MCP Client Configuration Guide
 
-The Universal File Toolkit includes a fully compliant Model Context Protocol (MCP) server exposing 40+ file manipulation tools over STDIO.
+The **Universal File Toolkit** provides a fully compliant Model Context Protocol (MCP) server exposing **111 active file processing tools** across 13 categories (PDF, Image, Spreadsheets, Word Documents, PowerPoint, Audio, Video, Archives, OCR, AI Intelligence, and Data Interchange).
 
-## Claude Desktop
+---
+
+## 🌐 Claude Web (claude.ai) & Claude Mobile (iOS / Android)
+
+Claude Web connects to remote MCP servers via **Streamable HTTP** (or legacy **SSE**).
+
+1. Go to **claude.ai** ➔ **Settings** ➔ **Integrations** / **Connectors** (or Custom MCP settings).
+2. Click **Add custom integration** / **Add Server**:
+   - **Name**: `Universal File Toolkit`
+   - **URL**: `https://uft-mcp-server.onrender.com/mcp`
+   - **Authentication**: None (`auth: none`)
+3. Click **Add** / **Save**.
+4. All **111 tools** will automatically be accessible in your conversations.
+
+> **Note on Claude Web File Uploads**:
+> Files uploaded in a chat session reside in Claude's internal container (`/mnt/user-data/...`). Because remote servers cannot read local container paths, Claude encodes files as base64 and passes the data directly to the tool. Output images are rendered directly inside your Claude chat, and generated documents are attached as downloadable resources.
+
+---
+
+## 💻 Claude Desktop (Windows / macOS)
+
+### Option A: Local STDIO (Runs 100% locally on your computer)
 
 Add the following to your `claude_desktop_config.json`:
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -12,24 +35,41 @@ Add the following to your `claude_desktop_config.json`:
     "universal-file-toolkit": {
       "command": "node",
       "args": [
-        "/path/to/universal-file-toolkit/packages/mcp-server/dist/index.js"
+        "/absolute/path/to/universal-file-toolkit/packages/mcp-server/dist/index.js"
       ]
     }
   }
 }
 ```
 
-## Cursor
+### Option B: Remote Server (No local Node.js installation needed)
+
+```json
+{
+  "mcpServers": {
+    "universal-file-toolkit": {
+      "url": "https://uft-mcp-server.onrender.com/mcp"
+    }
+  }
+}
+```
+
+---
+
+## 🖱️ Cursor
 
 Go to **Settings > Cursor Settings > Features > MCP**, and click **+ Add New MCP Server**:
 
 - **Name**: `universal-file-toolkit`
-- **Type**: `command`
-- **Command**: `node /path/to/universal-file-toolkit/packages/mcp-server/dist/index.js`
+- **Type**: `command` (or `sse`)
+- **Command**: `node /absolute/path/to/universal-file-toolkit/packages/mcp-server/dist/index.js`
+- **URL (if remote)**: `https://uft-mcp-server.onrender.com/sse`
 
-## VS Code
+---
 
-In `settings.json`:
+## 📝 VS Code
+
+In `.vscode/settings.json` or user `settings.json`:
 
 ```json
 {
@@ -37,18 +77,31 @@ In `settings.json`:
     "universal-file-toolkit": {
       "command": "node",
       "args": [
-        "/path/to/universal-file-toolkit/packages/mcp-server/dist/index.js"
+        "/absolute/path/to/universal-file-toolkit/packages/mcp-server/dist/index.js"
       ]
     }
   }
 }
 ```
 
-## Exposed MCP Tools Example
+---
 
-- `merge_pdf`: Combine multiple PDFs
-- `split_pdf`: Split PDF by page ranges
-- `resize_image`: Resize image to dimensions
-- `convert_image`: Convert image format (PNG, JPG, WebP, AVIF)
-- `json_to_csv`: Convert JSON array to CSV file
-- `csv_to_json`: Convert CSV file to JSON
+## 📋 Available Tool Categories (111 Tools)
+
+See [`docs/AVAILABLE_TOOLS.md`](./AVAILABLE_TOOLS.md) for the complete directory of all 111 tools with descriptions and supported formats:
+
+| Category | Tools | Highlights |
+| :--- | :---: | :--- |
+| **PDF Professional** | **28** | Merge, split, compress, rotate, watermark, extract images/text, protect, validate, convert |
+| **Image Processing** | **21** | Resize, crop, convert, compress, dominant colors, transparent trim, threshold, filters |
+| **Excel & Spreadsheets** | **12** | Excel ↔ CSV, Excel ↔ JSON, sheet merge, deduplication, password protect, statistics |
+| **Data Interchange** | **12** | JSON ↔ CSV, JSON ↔ XML, JSON ↔ YAML, Markdown ↔ HTML, minify, format |
+| **Word Documents** | **10** | Extract text/images/links, DOCX ↔ HTML, DOCX ↔ Markdown, Word merge, find & replace |
+| **PowerPoint** | **6** | Extract text, notes, images, PPTX ➔ PDF, PPTX ➔ HTML, metadata |
+| **Video Processing (FFmpeg)** | **6** | Video ↔ GIF, thumbnail extraction, compression, trim, mute audio |
+| **Audio Processing** | **5** | Format conversion, extract from video, trim, speed change, waveform image |
+| **Archives** | **5** | Create ZIP, extract ZIP, list contents, GZIP compress / decompress |
+| **AI Document Intelligence** | **3** | Text summarization, keyword extraction, sentiment analysis |
+| **OCR Text Extraction** | **1** | Extract text from scanned images and photos (Tesseract) |
+| **Checksum & Security** | **1** | MD5, SHA1, SHA256, SHA512 file hashing |
+| **Text Analytics** | **1** | Word count, character count, reading time |

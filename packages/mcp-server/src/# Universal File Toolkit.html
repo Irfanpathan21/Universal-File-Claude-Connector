@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal File Toolkit — Available Tools (111 Active Tools)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #090d16;
+        --card: #111827;
+        --card-border: #1f293d;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --text: #f3f4f6;
+        --muted: #9ca3af;
+        --tag-bg: #1e293b;
+        --pill-bg: #1e293b;
+        --pill-active: #3b82f6;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 40px 24px;
+        line-height: 1.5;
+      }
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      header {
+        margin-bottom: 28px;
+        border-bottom: 1px solid var(--card-border);
+        padding-bottom: 24px;
+      }
+      h1 {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+        background: linear-gradient(135deg, #60a5fa, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      p.subtitle {
+        color: var(--muted);
+        font-size: 1.05rem;
+        margin: 0 0 16px 0;
+      }
+      .badges-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        background: #1e3a8a;
+        color: #bfdbfe;
+        border: 1px solid rgba(147, 197, 253, 0.2);
+      }
+      .filter-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: 24px 0 32px 0;
+      }
+      .search-box input {
+        width: 100%;
+        max-width: 600px;
+        padding: 12px 18px;
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .search-box input:focus {
+        border-color: var(--accent);
+      }
+      .category-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: 20px;
+        background: var(--pill-bg);
+        border: 1px solid var(--card-border);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+      }
+      .pill:hover {
+        color: #fff;
+        border-color: var(--accent);
+      }
+      .pill.active {
+        background: var(--pill-active);
+        color: #fff;
+        border-color: var(--pill-active);
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 12px;
+        margin-bottom: 32px;
+      }
+      .stat-card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        padding: 12px 16px;
+        border-radius: 10px;
+      }
+      .stat-card .num {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .stat-card .label {
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-transform: capitalize;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .table-container {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 12px 18px;
+        text-align: left;
+        border-bottom: 1px solid var(--card-border);
+      }
+      th {
+        background: #151e2e;
+        color: var(--muted);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        position: sticky;
+        top: 0;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      code.tool-id {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        background: var(--tag-bg);
+        padding: 3px 8px;
+        border-radius: 6px;
+        color: #93c5fd;
+        cursor: pointer;
+        display: inline-block;
+        transition: background 0.15s;
+      }
+      code.tool-id:hover {
+        background: #2563eb;
+        color: #fff;
+      }
+      .tool-name {
+        font-weight: 600;
+        color: #f9fafb;
+      }
+      .tool-desc {
+        color: #cbd5e1;
+        font-size: 0.9rem;
+      }
+      .format-tag {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 1px 6px;
+        border-radius: 4px;
+        color: #a5b4fc;
+        margin-right: 4px;
+        margin-bottom: 2px;
+      }
+      .category-tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+        font-weight: 500;
+      }
+      .empty-state {
+        padding: 48px 24px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #10b981;
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.25s ease;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🛠️ Universal File Toolkit</h1>
+        <p class="subtitle">Complete Directory of All 111 Active Tools across 13 Categories for Claude Desktop, Claude Web, Cursor, and REST API</p>
+        <div class="badges-row">
+          <span class="badge">111 Active Tools</span>
+          <span class="badge">13 Categories</span>
+          <span class="badge">Model Context Protocol v1.x</span>
+          <span class="badge">Streamable HTTP /mcp</span>
+          <span class="badge">STDIO</span>
+          <span class="badge">OpenAPI /docs</span>
+        </div>
+      </header>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <div class="filter-controls">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search any tool by name, ID, category, or file format (e.g. pdf, csv, resize)..." oninput="applyFilters()" />
+        </div>
+        <div class="category-pills" id="categoryPills"></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 180px;">Tool ID (Click to Copy)</th>
+              <th style="width: 140px;">Category</th>
+              <th style="width: 200px;">Tool Name</th>
+              <th>Description</th>
+              <th style="width: 160px;">Inputs</th>
+              <th style="width: 140px;">Outputs</th>
+            </tr>
+          </thead>
+          <tbody id="toolsTbody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display: none;">
+          No matching tools found. Try clearing your search filters.
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">Tool ID copied to clipboard!</div>
+
+    <script>
+      const TOOLS = [
+        // PDF (28)
+        { id: "merge_pdf", cat: "PDF", name: "Merge PDF", desc: "Combine multiple PDF files into a single document", in: [".pdf"], out: [".pdf"] },
+        { id: "split_pdf", cat: "PDF", name: "Split PDF", desc: "Split a PDF into multiple files by page ranges", in: [".pdf"], out: [".pdf"] },
+        { id: "compress_pdf", cat: "PDF", name: "Compress PDF", desc: "Reduce PDF file size while maintaining quality", in: [".pdf"], out: [".pdf"] },
+        { id: "rotate_pdf", cat: "PDF", name: "Rotate PDF", desc: "Rotate PDF pages by 90°, 180°, or 270°", in: [".pdf"], out: [".pdf"] },
+        { id: "extract_pages", cat: "PDF", name: "Extract Pages", desc: "Extract specific pages from a PDF", in: [".pdf"], out: [".pdf"] },
+        { id: "delete_pages", cat: "PDF", name: "Delete Pages", desc: "Remove specific pages from a PDF", in: [".pdf"], out: [".pdf"] },
+        { id: "rearrange_pages", cat: "PDF", name: "Rearrange Pages", desc: "Reorder pages in a PDF", in: [".pdf"], out: [".pdf"] },
+        { id: "extract_text", cat: "PDF", name: "Extract Text", desc: "Extract all text content from a PDF", in: [".pdf"], out: [".txt"] },
+        { id: "add_watermark", cat: "PDF", name: "Add Watermark", desc: "Add a text watermark to every page of a PDF", in: [".pdf"], out: [".pdf"] },
+        { id: "add_page_numbers", cat: "PDF", name: "Add Page Numbers", desc: "Add page numbers to a PDF document", in: [".pdf"], out: [".pdf"] },
+        { id: "password_protect", cat: "PDF", name: "Password Protect", desc: "Add password protection to a PDF", in: [".pdf"], out: [".pdf"] },
+        { id: "pdf_metadata", cat: "PDF", name: "PDF Metadata", desc: "View and edit PDF metadata (title, author, etc.)", in: [".pdf"], out: [".pdf", ".json"] },
+        { id: "images_to_pdf", cat: "PDF", name: "Images to PDF", desc: "Convert images into a PDF document", in: [".png", ".jpg", ".jpeg"], out: [".pdf"] },
+        { id: "pdf_to_docx", cat: "PDF", name: "PDF to Word (DOCX)", desc: "Convert PDF document to an editable Word DOCX file", in: [".pdf"], out: [".docx"] },
+        { id: "pdf_to_html", cat: "PDF", name: "PDF to HTML", desc: "Convert PDF document content into a styled HTML web page", in: [".pdf"], out: [".html"] },
+        { id: "pdf_to_images", cat: "PDF", name: "PDF to JPG / Images", desc: "Extract embedded photos, graphics, and page images from PDF to JPG/PNG", in: [".pdf"], out: [".jpg", ".png"] },
+        { id: "insert_pages", cat: "PDF", name: "Insert PDF Pages", desc: "Insert pages from a source PDF into another target PDF at a specific page position", in: [".pdf"], out: [".pdf"] },
+        { id: "duplicate_pages", cat: "PDF", name: "Duplicate PDF Pages", desc: "Duplicate specified pages in a PDF document", in: [".pdf"], out: [".pdf"] },
+        { id: "swap_pages", cat: "PDF", name: "Swap PDF Pages", desc: "Swap the position of two pages in a PDF document", in: [".pdf"], out: [".pdf"] },
+        { id: "reverse_pages", cat: "PDF", name: "Reverse PDF Page Order", desc: "Reverse the order of all pages in a PDF document", in: [".pdf"], out: [".pdf"] },
+        { id: "edit_pdf_metadata", cat: "PDF", name: "Edit PDF Metadata", desc: "Modify Title, Author, Subject, Creator, and Producer properties of a PDF", in: [".pdf"], out: [".pdf"] },
+        { id: "flatten_pdf_form", cat: "PDF", name: "Flatten Interactive Form", desc: "Flatten interactive form fields into permanent page content", in: [".pdf"], out: [".pdf"] },
+        { id: "extract_form_fields", cat: "PDF", name: "Extract Form Fields", desc: "Inspect and extract interactive form field names and types from PDF", in: [".pdf"], out: [".json"] },
+        { id: "pdf_to_txt", cat: "PDF", name: "PDF to TXT", desc: "Extract raw text content from PDF into a clean plain text file", in: [".pdf"], out: [".txt"] },
+        { id: "txt_to_pdf", cat: "PDF", name: "TXT to PDF", desc: "Convert plain text (.txt) file into a formatted PDF document", in: [".txt"], out: [".pdf"] },
+        { id: "crop_pdf", cat: "PDF", name: "Crop PDF Margins", desc: "Crop PDF page boundaries and outer whitespace margins", in: [".pdf"], out: [".pdf"] },
+        { id: "resize_pdf_pages", cat: "PDF", name: "Resize PDF Page Size", desc: "Resize or scale PDF pages to standard paper sizes (A4, Letter, A3)", in: [".pdf"], out: [".pdf"] },
+        { id: "validate_pdf", cat: "PDF", name: "Validate PDF File", desc: "Verify structural validity, integrity, and inspect properties of a PDF document", in: [".pdf"], out: [".json"] },
+
+        // Image (21)
+        { id: "resize_image", cat: "Image", name: "Resize Image", desc: "Resize images to specific dimensions while maintaining aspect ratio", in: [".png", ".jpg", ".webp", ".avif"], out: [".png", ".jpg", ".webp"] },
+        { id: "crop_image", cat: "Image", name: "Crop Image", desc: "Crop an image to specific dimensions", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "rotate_image", cat: "Image", name: "Rotate Image", desc: "Rotate an image by any angle", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "flip_image", cat: "Image", name: "Flip Image", desc: "Flip an image horizontally or vertically", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "compress_image", cat: "Image", name: "Compress Image", desc: "Reduce image file size with adjustable quality", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "convert_image", cat: "Image", name: "Convert Image", desc: "Convert images between formats (PNG, JPG, WebP, AVIF, TIFF, GIF)", in: [".png", ".jpg", ".webp", ".gif", ".tiff"], out: [".png", ".jpg", ".webp", ".gif"] },
+        { id: "image_blur", cat: "Image", name: "Blur Image", desc: "Apply Gaussian blur to an image", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "image_sharpen", cat: "Image", name: "Sharpen Image", desc: "Sharpen an image to enhance details", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "image_adjust", cat: "Image", name: "Adjust Image", desc: "Adjust brightness, contrast, and saturation", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "image_grayscale", cat: "Image", name: "Grayscale", desc: "Convert an image to grayscale (black & white)", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "image_metadata", cat: "Image", name: "Image Metadata", desc: "View image metadata and EXIF data", in: [".png", ".jpg", ".webp", ".tiff"], out: [".json"] },
+        { id: "remove_exif", cat: "Image", name: "Remove EXIF", desc: "Strip all EXIF metadata from an image for privacy", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "generate_thumbnail", cat: "Image", name: "Generate Thumbnail", desc: "Create a thumbnail version of an image", in: [".png", ".jpg", ".webp"], out: [".jpg", ".png", ".webp"] },
+        { id: "batch_resize", cat: "Image", name: "Batch Resize", desc: "Resize multiple images at once and download as a ZIP archive", in: [".png", ".jpg", ".webp"], out: [".zip", ".png", ".jpg"] },
+        { id: "watermark_image", cat: "Image", name: "Watermark Image", desc: "Add custom text or logo watermark overlay to images", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "remove_bg", cat: "Image", name: "Remove Background", desc: "Automatically remove image background and make it transparent", in: [".png", ".jpg", ".webp"], out: [".png", ".webp"] },
+        { id: "invert_image", cat: "Image", name: "Invert Image Colors", desc: "Invert colors of an image to create a negative photo effect", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "gamma_image", cat: "Image", name: "Gamma Correction", desc: "Apply gamma correction to adjust image luminance", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "threshold_image", cat: "Image", name: "Image Thresholding", desc: "Apply binary black & white threshold to image", in: [".png", ".jpg", ".webp"], out: [".png", ".jpg", ".webp"] },
+        { id: "dominant_colors", cat: "Image", name: "Dominant Color Palette", desc: "Extract dominant color palette and channel statistics from image", in: [".png", ".jpg", ".webp"], out: [".json"] },
+        { id: "trim_transparent_edges", cat: "Image", name: "Trim Transparent Edges", desc: "Crop and trim transparent or solid color outer borders from image", in: [".png", ".webp"], out: [".png", ".webp"] },
+
+        // Data (12)
+        { id: "json_to_csv", cat: "Data", name: "JSON to CSV", desc: "Convert JSON arrays to CSV format", in: [".json"], out: [".csv"] },
+        { id: "csv_to_json", cat: "Data", name: "CSV to JSON", desc: "Convert CSV files to JSON format", in: [".csv", ".tsv"], out: [".json"] },
+        { id: "json_to_xml", cat: "Data", name: "JSON to XML", desc: "Convert JSON data to XML format", in: [".json"], out: [".xml"] },
+        { id: "xml_to_json", cat: "Data", name: "XML to JSON", desc: "Convert XML data to JSON format", in: [".xml"], out: [".json"] },
+        { id: "json_to_yaml", cat: "Data", name: "JSON to YAML", desc: "Convert JSON data to YAML format", in: [".json"], out: [".yaml"] },
+        { id: "yaml_to_json", cat: "Data", name: "YAML to JSON", desc: "Convert YAML data to JSON format", in: [".yaml"], out: [".json"] },
+        { id: "validate_json", cat: "Data", name: "Validate JSON", desc: "Check if JSON data is valid and well-formed", in: [".json"], out: [".json"] },
+        { id: "format_json", cat: "Data", name: "Format JSON", desc: "Pretty-print and format JSON data", in: [".json"], out: [".json"] },
+        { id: "minify_json", cat: "Data", name: "Minify JSON", desc: "Minify JSON by removing whitespace", in: [".json"], out: [".json"] },
+        { id: "format_xml", cat: "Data", name: "Format XML", desc: "Pretty-print and format XML data", in: [".xml"], out: [".xml"] },
+        { id: "markdown_to_html", cat: "Data", name: "Markdown to HTML", desc: "Convert Markdown documents to styled HTML", in: [".md"], out: [".html"] },
+        { id: "html_to_markdown", cat: "Data", name: "HTML to Markdown", desc: "Convert HTML pages to Markdown format", in: [".html"], out: [".md"] },
+
+        // Document (10)
+        { id: "extract_docx_text", cat: "Document", name: "Extract Word Text", desc: "Extract raw text content from DOCX documents", in: [".docx", ".doc"], out: [".txt"] },
+        { id: "docx_to_html", cat: "Document", name: "Word to HTML", desc: "Convert DOCX documents to HTML with formatting", in: [".docx", ".doc"], out: [".html"] },
+        { id: "extract_docx_images", cat: "Document", name: "Extract Word Images", desc: "Extract all embedded images from Word document into original files or ZIP", in: [".docx"], out: [".png", ".jpg", ".zip"] },
+        { id: "extract_docx_hyperlinks", cat: "Document", name: "Extract Word Links", desc: "Extract all embedded URLs and hyperlinks from a Word document", in: [".docx"], out: [".json"] },
+        { id: "docx_to_markdown", cat: "Document", name: "Word to Markdown", desc: "Convert DOCX Word documents to Markdown format", in: [".docx"], out: [".md"] },
+        { id: "text_to_docx", cat: "Document", name: "Text to Word", desc: "Convert plain text or Markdown files into a Word DOCX document", in: [".txt", ".md"], out: [".docx"] },
+        { id: "merge_docx", cat: "Document", name: "Merge Word Documents", desc: "Merge multiple Word (.docx) files into a single unified document", in: [".docx"], out: [".docx"] },
+        { id: "replace_text_docx", cat: "Document", name: "Find & Replace Word Text", desc: "Find and replace target text occurrences inside a Word document", in: [".docx"], out: [".docx"] },
+        { id: "extract_docx_comments", cat: "Document", name: "Extract Word Comments", desc: "Extract reviewer comments and notes from a Word document", in: [".docx"], out: [".json"] },
+        { id: "word_count_docx", cat: "Document", name: "Word Count & Stats", desc: "Calculate word count, character count, and reading time in Word documents", in: [".docx"], out: [".json"] },
+
+        // Spreadsheet (12)
+        { id: "excel_to_csv", cat: "Spreadsheet", name: "Excel to CSV", desc: "Convert Excel workbook to CSV (separates multiple sheets into ZIP)", in: [".xlsx", ".xls"], out: [".csv", ".zip"] },
+        { id: "csv_to_excel", cat: "Spreadsheet", name: "CSV to Excel", desc: "Convert a CSV file to an Excel XLSX workbook", in: [".csv"], out: [".xlsx"] },
+        { id: "excel_to_json", cat: "Spreadsheet", name: "Excel to JSON", desc: "Convert Excel spreadsheet data to JSON array of objects", in: [".xlsx", ".xls"], out: [".json", ".zip"] },
+        { id: "merge_excel_sheets", cat: "Spreadsheet", name: "Merge Excel Workbooks", desc: "Combine multiple Excel workbooks/sheets into a single workbook", in: [".xlsx", ".csv"], out: [".xlsx"] },
+        { id: "remove_csv_duplicates", cat: "Spreadsheet", name: "Remove CSV Duplicates", desc: "Remove duplicate rows from a CSV file", in: [".csv"], out: [".csv"] },
+        { id: "json_to_excel", cat: "Spreadsheet", name: "JSON to Excel", desc: "Convert JSON array of objects into a formatted Excel XLSX workbook", in: [".json"], out: [".xlsx"] },
+        { id: "transpose_sheet", cat: "Spreadsheet", name: "Transpose Spreadsheet", desc: "Transpose rows and columns in a CSV / spreadsheet", in: [".csv"], out: [".csv"] },
+        { id: "excel_to_html", cat: "Spreadsheet", name: "Excel to HTML Table", desc: "Convert Excel spreadsheet to an HTML formatted table", in: [".xlsx", ".xls"], out: [".html"] },
+        { id: "protect_workbook", cat: "Spreadsheet", name: "Protect Excel Workbook", desc: "Add password protection to an Excel workbook", in: [".xlsx", ".xls"], out: [".xlsx"] },
+        { id: "split_workbook", cat: "Spreadsheet", name: "Split Excel Workbook", desc: "Split multi-sheet Excel workbook into individual sheet files", in: [".xlsx", ".xls"], out: [".xlsx", ".zip"] },
+        { id: "find_replace_excel", cat: "Spreadsheet", name: "Find & Replace Excel Cells", desc: "Find and replace target cell values across all worksheets", in: [".xlsx", ".xls"], out: [".xlsx"] },
+        { id: "workbook_statistics", cat: "Spreadsheet", name: "Workbook Statistics", desc: "Analyze Excel workbook structure, sheet counts, row counts, and stats", in: [".xlsx", ".xls", ".csv"], out: [".json"] },
+
+        // Presentation (6)
+        { id: "extract_pptx_text", cat: "Presentation", name: "Extract PPTX Text", desc: "Extract raw text from all slides in a PowerPoint presentation", in: [".pptx"], out: [".txt"] },
+        { id: "extract_pptx_notes", cat: "Presentation", name: "Extract Speaker Notes", desc: "Extract speaker notes from PowerPoint presentation slides", in: [".pptx"], out: [".txt"] },
+        { id: "extract_pptx_images", cat: "Presentation", name: "Extract PPTX Images", desc: "Extract all embedded images and graphics from PowerPoint slides into ZIP", in: [".pptx"], out: [".zip"] },
+        { id: "pptx_to_pdf", cat: "Presentation", name: "PPTX to PDF", desc: "Convert PowerPoint presentation slides directly into PDF document", in: [".pptx"], out: [".pdf"] },
+        { id: "pptx_to_html", cat: "Presentation", name: "PowerPoint to HTML Deck", desc: "Convert PowerPoint (.pptx) presentation slides into a web HTML slide deck", in: [".pptx"], out: [".html"] },
+        { id: "read_pptx_metadata", cat: "Presentation", name: "PowerPoint Metadata & Stats", desc: "Extract presentation slide counts, speaker notes count, and stats", in: [".pptx"], out: [".json"] },
+
+        // Text (1)
+        { id: "word_count", cat: "Text", name: "Text & Word Analysis", desc: "Calculate word count, character count, sentence count, and reading time", in: [".txt", ".md", ".html", ".json"], out: [".json"] },
+
+        // Archive (5)
+        { id: "create_zip", cat: "Archive", name: "Create ZIP Archive", desc: "Compress multiple files into a single ZIP archive", in: ["*"], out: [".zip"] },
+        { id: "extract_zip", cat: "Archive", name: "Extract ZIP Archive", desc: "Extract all files and folders from a ZIP archive", in: [".zip"], out: ["*"] },
+        { id: "list_archive_contents", cat: "Archive", name: "List Archive Contents", desc: "Inspect files and folders inside a ZIP archive without extracting", in: [".zip"], out: [".json"] },
+        { id: "compress_gzip", cat: "Archive", name: "GZIP Compress File", desc: "Compress any single file using GZIP compression algorithm (.gz)", in: ["*"], out: [".gz"] },
+        { id: "decompress_gzip", cat: "Archive", name: "GZIP Decompress File", desc: "Decompress GZIP (.gz) archive file", in: [".gz"], out: ["*"] },
+
+        // Audio (5)
+        { id: "convert_audio", cat: "Audio", name: "Convert Audio Format", desc: "Convert audio files between MP3, WAV, AAC, OGG, FLAC, and M4A formats", in: [".mp3", ".wav", ".aac", ".ogg", ".flac"], out: [".mp3", ".wav", ".aac"] },
+        { id: "extract_audio_from_video", cat: "Audio", name: "Extract Audio from Video", desc: "Extract high-quality audio stream from MP4, MKV, AVI, or MOV video", in: [".mp4", ".mkv", ".avi", ".mov"], out: [".mp3", ".wav"] },
+        { id: "trim_audio", cat: "Audio", name: "Trim Audio", desc: "Cut audio clip between start and end timestamps", in: [".mp3", ".wav", ".aac"], out: [".mp3", ".wav"] },
+        { id: "change_audio_speed", cat: "Audio", name: "Change Audio Speed", desc: "Adjust audio playback speed (0.5x slow-motion to 2.0x fast-forward)", in: [".mp3", ".wav"], out: [".mp3", ".wav"] },
+        { id: "audio_to_waveform", cat: "Audio", name: "Audio Waveform Image", desc: "Generate a visual waveform PNG image of any audio track", in: [".mp3", ".wav"], out: [".png"] },
+
+        // Video (6)
+        { id: "compress_video", cat: "Video", name: "Compress Video", desc: "Reduce video file size using H.264 video compression", in: [".mp4", ".mkv", ".avi", ".mov"], out: [".mp4"] },
+        { id: "generate_video_thumbnail", cat: "Video", name: "Video Frame Thumbnail", desc: "Extract a high-resolution JPG thumbnail image from any video frame timestamp", in: [".mp4", ".mkv", ".mov"], out: [".jpg"] },
+        { id: "video_to_gif", cat: "Video", name: "Video to Animated GIF", desc: "Convert video clip into a smooth animated GIF file", in: [".mp4", ".mkv", ".mov"], out: [".gif"] },
+        { id: "gif_to_video", cat: "Video", name: "GIF to MP4 Video", desc: "Convert animated GIF files into lightweight MP4 video clips", in: [".gif"], out: [".mp4"] },
+        { id: "trim_video", cat: "Video", name: "Trim Video Clip", desc: "Cut video clip between start and end timestamps", in: [".mp4", ".mkv", ".mov"], out: [".mp4"] },
+        { id: "mute_video", cat: "Video", name: "Mute Video (Strip Audio)", desc: "Remove audio track from video file to create a silent video", in: [".mp4", ".mkv", ".mov"], out: [".mp4"] },
+
+        // OCR (1)
+        { id: "extract_text_from_image_ocr", cat: "OCR", name: "Image OCR Text Extractor", desc: "Perform Optical Character Recognition on PNG, JPG, or TIFF images to extract text", in: [".png", ".jpg", ".tiff"], out: [".txt"] },
+
+        // Security / Hash (1)
+        { id: "hash_file", cat: "Security", name: "File Checksum Hashing", desc: "Calculate MD5, SHA1, SHA256, and SHA512 checksum hashes of any file", in: ["*"], out: [".json"] },
+
+        // AI (3)
+        { id: "summarize_text", cat: "AI", name: "AI Document Summarizer", desc: "Summarize long text, documents, or extracted PDF content into key bullet points", in: [".txt", ".md", ".docx", ".pdf"], out: [".txt"] },
+        { id: "extract_keywords", cat: "AI", name: "AI Keyword Extractor", desc: "Extract top keywords and key phrases from any document or text file", in: [".txt", ".md", ".docx", ".pdf"], out: [".json"] },
+        { id: "sentiment_analysis", cat: "AI", name: "AI Sentiment Analysis", desc: "Analyze sentiment (Positive, Negative, Neutral) and emotion scores of text", in: [".txt", ".md", ".docx", ".pdf"], out: [".json"] }
+      ];
+
+      let selectedCategory = 'all';
+
+      function renderStats() {
+        const counts = {};
+        TOOLS.forEach(t => counts[t.cat] = (counts[t.cat] || 0) + 1);
+        
+        const grid = document.getElementById('statsGrid');
+        grid.innerHTML = `
+          <div class="stat-card" style="border-color: var(--accent);">
+            <div class="num">${TOOLS.length}</div>
+            <div class="label">Total Tools</div>
+          </div>
+          ${Object.entries(counts).map(([cat, count]) => `
+            <div class="stat-card">
+              <div class="num">${count}</div>
+              <div class="label">${cat}</div>
+            </div>
+          `).join('')}
+        `;
+
+        const pills = document.getElementById('categoryPills');
+        pills.innerHTML = `
+          <div class="pill active" onclick="setCategory('all', this)">All Categories (${TOOLS.length})</div>
+          ${Object.entries(counts).map(([cat, count]) => `
+            <div class="pill" onclick="setCategory('${cat}', this)">${cat} (${count})</div>
+          `).join('')}
+        `;
+      }
+
+      function setCategory(cat, el) {
+        selectedCategory = cat;
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        applyFilters();
+      }
+
+      function copyToolId(id) {
+        navigator.clipboard.writeText(id).then(() => {
+          const toast = document.getElementById('toast');
+          toast.textContent = `Copied "${id}" to clipboard!`;
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+      }
+
+      function applyFilters() {
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+        const tbody = document.getElementById('toolsTbody');
+        const empty = document.getElementById('emptyState');
+
+        const filtered = TOOLS.filter(t => {
+          const matchCat = selectedCategory === 'all' || t.cat === selectedCategory;
+          if (!matchCat) return false;
+          if (!query) return true;
+
+          return t.id.toLowerCase().includes(query) ||
+                 t.name.toLowerCase().includes(query) ||
+                 t.desc.toLowerCase().includes(query) ||
+                 t.cat.toLowerCase().includes(query) ||
+                 t.in.some(ext => ext.toLowerCase().includes(query)) ||
+                 t.out.some(ext => ext.toLowerCase().includes(query));
+        });
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '';
+          empty.style.display = 'block';
+          return;
+        }
+
+        empty.style.display = 'none';
+        tbody.innerHTML = filtered.map(t => `
+          <tr>
+            <td><code class="tool-id" onclick="copyToolId('${t.id}')" title="Click to copy tool ID">${t.id}</code></td>
+            <td><span class="category-tag">${t.cat}</span></td>
+            <td class="tool-name">${t.name}</td>
+            <td class="tool-desc">${t.desc}</td>
+            <td>${t.in.map(ext => `<span class="format-tag">${ext}</span>`).join('')}</td>
+            <td>${t.out.map(ext => `<span class="format-tag">${ext}</span>`).join('')}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Initial render
+      renderStats();
+      applyFilters();
+    </script>
+  </body>
+</html>

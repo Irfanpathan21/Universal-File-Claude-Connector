@@ -18,27 +18,32 @@ When you ask Claude to merge PDFs, crop images, convert Excel files, compress vi
 
 ## ✨ Key Highlights
 
-- 🔒 **100% Privacy & Local File Safety**: Your binary files (PDFs, DOCX, XLSX, Images, Videos, MP3s) never leave your machine.
-- ⚡ **111 Professional Tools**: Manipulate documents, media, data structures, archives, and AI analysis.
+- 🔒 **100% Privacy & Local File Safety**: Your binary files (PDFs, DOCX, XLSX, Images, Videos, MP3s) never leave your machine when using Claude Desktop.
+- 🌐 **Full Claude Web & Mobile Support**: Connect directly from **claude.ai** and mobile apps using Streamable HTTP (`/mcp`) or SSE (`/sse`) with automatic base64 chat file processing and inline image returns.
+- ⚡ **111 Active Professional Tools**: Manipulate documents, media, data structures, archives, and AI analysis.
 - 🪄 **1-Click Auto Connector Setup**: Non-technical users can double-click `install.bat` to automatically configure `claude_desktop_config.json` with zero manual JSON editing.
 - 🎥 **Bundled FFmpeg Media Engine**: Video thumbnail extraction, compression, GIF conversion, and audio slicing work right out of the box.
 
 ---
 
-## 🛠️ Tool Directory (111 Tools Across 11 Categories)
+## 🛠️ Tool Directory (111 Tools Across 13 Categories)
+
+See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete directory of all 111 tools with descriptions and supported formats:
 
 | Category | Tools | Description & Capabilities |
 | :--- | :---: | :--- |
 | **📄 PDF Professional Toolkit** | **28** | Merge, split, compress, rotate, watermark, page numbers, password protect, **`insert_pages`**, **`duplicate_pages`**, **`swap_pages`**, **`reverse_pages`**, **`edit_pdf_metadata`**, **`flatten_pdf_form`**, **`extract_form_fields`**, **`pdf_to_txt`**, **`txt_to_pdf`**, **`crop_pdf`**, **`resize_pdf_pages`**, **`validate_pdf`** |
-| **🖼️ Image Processing Toolkit** | **20** | Resize, crop, rotate, flip, compress, format conversion, blur, sharpen, EXIF strip, thumbnails, **`invert_image`**, **`gamma_image`**, **`threshold_image`**, **`dominant_colors`**, **`trim_transparent_edges`** |
+| **🖼️ Image Processing Toolkit** | **21** | Resize, crop, rotate, flip, compress, format conversion, blur, sharpen, EXIF strip, thumbnails, **`invert_image`**, **`gamma_image`**, **`threshold_image`**, **`dominant_colors`**, **`trim_transparent_edges`** |
 | **📈 Excel & Spreadsheets** | **12** | Excel ↔ CSV, Excel ↔ JSON, **`excel_to_html`**, deduplication, sheet merging, transpose, **`protect_workbook`**, **`split_workbook`**, **`find_replace_excel`**, **`workbook_statistics`** |
 | **📊 Data Interchange** | **12** | JSON ↔ CSV, JSON ↔ XML, JSON ↔ YAML, Markdown ↔ HTML, formatting, minification |
 | **📝 Word Documents** | **10** | Extract text/images/links, **`docx_to_html`**, **`docx_to_markdown`**, **`text_to_docx`**, **`merge_docx`**, **`replace_text_docx`**, **`extract_docx_comments`**, **`word_count_docx`** |
+| **🖥️ PowerPoint Presentation** | **6** | Extract slide text, speaker notes, images, **`pptx_to_pdf`**, **`pptx_to_html`**, **`read_pptx_metadata`** |
 | **🎬 Video Processing (FFmpeg)** | **6** | **`generate_video_thumbnail`**, **`compress_video`**, **`video_to_gif`**, **`gif_to_video`**, **`trim_video`**, **`mute_video`** |
-| **🖥️ PowerPoint Presentation** | **5** | Extract slide text, speaker notes, images, **`pptx_to_html`**, **`read_pptx_metadata`** |
-| **📦 Archives & Compression** | **5** | Create ZIP, Extract ZIP, List contents, **`compress_gzip`**, **`decompress_gzip`** |
 | **🎵 Audio Processing** | **5** | Convert audio, Extract audio from video, **`trim_audio`**, **`change_audio_speed`**, **`audio_to_waveform`** |
-| **🤖 OCR, AI & Security** | **7** | **`extract_text_from_image_ocr`**, **`hash_file`**, **`summarize_text`**, **`extract_keywords`**, **`sentiment_analysis`** |
+| **📦 Archives & Compression** | **5** | Create ZIP, Extract ZIP, List contents, **`compress_gzip`**, **`decompress_gzip`** |
+| **🤖 AI Document Intelligence** | **3** | **`summarize_text`**, **`extract_keywords`**, **`sentiment_analysis`** |
+| **🔍 OCR Text Extraction** | **1** | **`extract_text_from_image_ocr`** (Tesseract OCR on PNG, JPG, TIFF) |
+| **🔒 Checksum & Security** | **1** | **`hash_file`** (MD5, SHA1, SHA256, SHA512) |
 | **✍️ Text Analytics** | **1** | Word count, character count, readability metrics, reading time |
 
 ---
@@ -111,6 +116,22 @@ If you prefer to configure your `claude_desktop_config.json` manually:
    ```
 
 3. **Restart Claude Desktop**.
+
+---
+
+### Option 3: Claude Web (claude.ai) & Mobile Setup (Zero Local Install)
+
+You can connect Claude directly from your browser or mobile phone:
+
+1. Deploy the MCP server to **Render** (or any cloud host with HTTPS).
+2. In **claude.ai**, go to **Settings** ➔ **Integrations / Connectors** ➔ **Add custom integration**.
+3. Enter your connector URL:
+   ```text
+   https://<your-mcp-subdomain>.onrender.com/mcp
+   ```
+4. Claude Web will immediately connect to all **111 tools**. Chat file uploads and base64 documents are processed seamlessly with inline preview images and downloadable output attachments!
+
+For step-by-step free deployment instructions, see [Free Hosting & Claude Guide](docs/FREE_HOSTING_AND_CLAUDE_GUIDE.md).
 
 ---
 

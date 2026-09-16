@@ -2717,7 +2717,7 @@ async function main() {
             messages: '/messages',
             health: '/health'
           },
-          toolsCount: 108,
+          toolsCount: 111,
           timestamp: new Date().toISOString()
         }));
         return;

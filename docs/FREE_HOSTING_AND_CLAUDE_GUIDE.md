@@ -123,12 +123,18 @@ Now that you have your live public SSE URL:
 
 ### Option 1: Claude Web (claude.ai) & Claude Mobile (iOS / Android)
 In Claude Web or mobile devices:
-1. Open Claude and go to **Settings** ➔ **Integrations** / **MCP Servers** (or your Organization/Custom MCP settings).
-2. Add a new remote MCP server:
+1. Open Claude and go to **Settings** ➔ **Integrations** / **Connectors** (or Custom MCP settings).
+2. Add a new custom integration:
    - **Name**: `Universal File Toolkit`
-   - **URL / Endpoint**: `https://your-mcp-server.onrender.com/sse`
-   - **Transport**: `SSE`
-3. Hit Save. Claude will now have direct access to all **108 file processing tools** right inside your chats from any device!
+   - **URL / Endpoint**: `https://your-mcp-server.onrender.com/mcp` (or `/sse` for older SSE clients)
+   - **Authentication**: None (`auth: none`)
+3. Hit Save. Claude will now have direct access to all **111 active file processing tools** right inside your chats from any device!
+
+> **How Chat File Uploads Work in Claude Web**:
+> When you upload a file in chat and prompt Claude to process it:
+> 1. Claude reads the file in its sandbox and base64-encodes it (`base64 -w0`).
+> 2. Claude passes the base64 data to the remote tool endpoint.
+> 3. The MCP server processes the file and returns images directly into the chat stream and documents as downloadable resources!
 
 ---
 
@@ -172,6 +178,6 @@ Open your Claude Desktop config file:
 | **Code Storage** | GitHub Repository | Free |
 | **Web Frontend App** | Vercel / Cloudflare Pages / GitHub Pages | Free |
 | **Backend & MCP Engine** | Render.com Free Web Service | Free |
-| **Claude Web / Mobile MCP** | `https://your-app.onrender.com/sse` | Free |
+| **Claude Web / Mobile MCP** | `https://your-app.onrender.com/mcp` (or `/sse`) | Free |
 | **Claude Desktop MCP** | Remote URL or Local Node Stdio | Free |
 | **Total Cost** | **$0.00 / month forever** | **100% Free** |
