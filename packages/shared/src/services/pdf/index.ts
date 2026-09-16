@@ -1249,11 +1249,11 @@ export async function pdfToImages(
 
     if (scriptPath) {
       try {
-        const { stdout } = await execFileAsync('python', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt]);
+        const { stdout } = await execFileAsync('python', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt], { timeout: 25000, maxBuffer: 50 * 1024 * 1024 });
         jsonOutput = stdout;
       } catch (err: any) {
         try {
-          const { stdout } = await execFileAsync('python3', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt]);
+          const { stdout } = await execFileAsync('python3', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt], { timeout: 25000, maxBuffer: 50 * 1024 * 1024 });
           jsonOutput = stdout;
         } catch (err2: any) {
           // Python execution failed, will fallback to pure JS below

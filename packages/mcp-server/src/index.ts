@@ -121,26 +121,24 @@ function isDataUri(str: string): boolean {
 
 function isLikelyBase64(str: string): boolean {
   if (typeof str !== 'string') return false;
-  if (str.includes('/') && !str.includes(';base64,') && !str.includes(' ') && str.length < 260 && existsSync(resolve(str))) {
-    return false;
-  }
-  if (str.includes('\\') && existsSync(resolve(str))) {
+  // If it's a file path (starts with / or has path like /mnt/ or file extension), it is NOT base64
+  if (
+    str.startsWith('/mnt/') ||
+    str.startsWith('/home/') ||
+    str.startsWith('C:') ||
+    str.startsWith('/') ||
+    str.includes('\\') ||
+    (str.length < 300 && /\.[A-Za-z0-9]{2,5}$/i.test(str.trim()))
+  ) {
     return false;
   }
   const clean = str.replace(/[\r\n\s]/g, '');
-  return clean.length > 50 && /^[A-Za-z0-9+/=]+$/.test(clean);
+  return clean.length >= 40 && /^[A-Za-z0-9+/=]+$/.test(clean);
 }
 
 async function saveInputToTemp(input: string | any, preferredName?: string): Promise<string> {
   const uploadDir = join(tmpdir(), 'uft_remote_uploads');
   await mkdir(uploadDir, { recursive: true });
-
-  if (typeof input === 'string' && existsSync(resolve(input))) {
-    return resolve(input);
-  }
-
-  let buffer: Buffer;
-  let filename = preferredName || `input_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.bin`;
 
   if (typeof input === 'object' && input !== null) {
     if (input.data) {
@@ -149,34 +147,58 @@ async function saveInputToTemp(input: string | any, preferredName?: string): Pro
   }
 
   if (typeof input === 'string') {
+    // 1. Existing local file path on this server
+    if (existsSync(resolve(input))) {
+      return resolve(input);
+    }
+
+    // 2. Client-side path that does NOT exist on this remote server (e.g. /mnt/user-data/uploads/...)
+    const isPathLike =
+      input.startsWith('/mnt/') ||
+      input.startsWith('/home/') ||
+      input.startsWith('/') ||
+      /^[A-Za-z]:[\\/]/.test(input) ||
+      input.includes('\\') ||
+      (input.length < 300 && /\.[A-Za-z0-9]{2,5}$/i.test(input.trim()));
+
+    if (isPathLike) {
+      throw new Error(
+        `Remote MCP server cannot access file path "${input}". In Claude Web, files uploaded to chat are stored in your container (/mnt/user-data/...) and cannot be reached by remote servers. You must encode the file to base64 using bash (base64 -w0 "${input}") and pass the base64 string directly in the 'file' parameter.`
+      );
+    }
+
+    // 3. Data URI (e.g. data:application/pdf;base64,...)
     if (isDataUri(input)) {
       const commaIdx = input.indexOf(',');
       const header = input.slice(0, commaIdx);
       const b64 = input.slice(commaIdx + 1);
-      buffer = Buffer.from(b64.trim(), 'base64');
-      if (!preferredName) {
+      const buffer = Buffer.from(b64.trim(), 'base64');
+      let filename = preferredName;
+      if (!filename) {
         const mime = header.split(';')[0].replace('data:', '');
         const ext = mime.includes('/') ? mime.split('/')[1] : 'bin';
         filename = `upload_${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
       }
-    } else if (isLikelyBase64(input)) {
-      buffer = Buffer.from(input.replace(/[\r\n\s]/g, ''), 'base64');
-    } else {
-      const resolved = resolve(input);
-      if (existsSync(resolved)) return resolved;
-      try {
-        buffer = Buffer.from(input, 'base64');
-      } catch {
-        throw new Error(`File not found: ${input}`);
-      }
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      return filePath;
     }
-  } else {
-    throw new Error('Invalid file input');
+
+    // 4. Raw Base64 string
+    if (isLikelyBase64(input)) {
+      const buffer = Buffer.from(input.replace(/[\r\n\s]/g, ''), 'base64');
+      const filename = preferredName || `upload_${Date.now()}.bin`;
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      return filePath;
+    }
+
+    throw new Error(
+      `Invalid file input. Expected base64-encoded file content or data URI, but received: ${input.slice(0, 100)}`
+    );
   }
 
-  const filePath = join(uploadDir, filename);
-  await writeFile(filePath, buffer);
-  return filePath;
+  throw new Error('Invalid file input: expected string (base64 or data URI) or file object');
 }
 
 function enhanceToolDefinition(tool: any): any {
@@ -188,28 +210,28 @@ function enhanceToolDefinition(tool: any): any {
     },
   };
 
-  // Clean description: remove local disk restrictions so Claude Web calls it freely
+  // Clean description: remove local disk restrictions and instruct Claude Web
   let desc = enhanced.description || '';
   desc = desc.replace(/Local MCP tool with full disk access to [A-Za-z]:\\? file paths\. Call this tool directly when requested\./gi, '');
   desc = desc.replace(/Local MCP tool with (full )?disk access\.?/gi, '');
   desc = desc.replace(/Local MCP tool\.?/gi, '');
   desc = desc.trim();
-  desc += ' Supports both local file paths and direct base64 data / data URIs (works seamlessly in Claude Web and remote sessions).';
+  desc += ' NOTE FOR CLAUDE WEB: Remote server cannot read /mnt/user-data/ container paths. Run `base64 -w0 <file>` in bash first and pass the base64 content in "file" or "fileData".';
   enhanced.description = desc;
 
-  // Single file parameters: teach Claude Web to send base64 or fileData
+  // Single file parameters: teach Claude Web to send base64
   if (enhanced.inputSchema.properties.file) {
     enhanced.inputSchema.properties.file = {
       type: 'string',
-      description: 'File path OR base64 data URI (e.g. "data:application/pdf;base64,...") OR raw base64 string. In Claude Web, provide the file content as base64.',
+      description: 'Base64 file data or data URI (data:application/pdf;base64,...). CRITICAL IN CLAUDE WEB: Remote server cannot read /mnt/user-data/ or /home/ paths. Use bash to encode the file (base64 -w0 <path>) and pass the base64 string here.',
     };
     enhanced.inputSchema.properties.fileData = {
       type: 'string',
-      description: 'Optional base64-encoded file data or data URI (alternative to file path for Claude Web)',
+      description: 'Optional base64-encoded file data or data URI (alternative to file for Claude Web)',
     };
     enhanced.inputSchema.properties.fileName = {
       type: 'string',
-      description: 'Optional filename with extension (e.g. "document.pdf", "receipt.png")',
+      description: 'Optional filename with extension (e.g. "document.pdf", "receipt.pdf")',
     };
   }
 
@@ -218,7 +240,7 @@ function enhanceToolDefinition(tool: any): any {
     enhanced.inputSchema.properties.files = {
       type: 'array',
       items: { type: 'string' },
-      description: 'Array of file paths OR array of base64 data URIs / base64 strings. In Claude Web, pass base64 data URIs.',
+      description: 'Array of base64 data URIs or base64 strings (or server file paths). In Claude Web, pass base64 data URIs.',
     };
     enhanced.inputSchema.properties.fileList = {
       type: 'array',
@@ -241,6 +263,11 @@ function enhanceToolDefinition(tool: any): any {
 async function readInputFile(filePath: string): Promise<Buffer> {
   const resolved = resolve(filePath);
   if (!existsSync(resolved)) {
+    if (filePath.startsWith('/mnt/') || filePath.startsWith('/home/') || filePath.includes('user-data')) {
+      throw new Error(
+        `Remote MCP server cannot access local container path "${filePath}". In Claude Web, uploaded files reside in your sandbox (/mnt/user-data/...) and cannot be reached across the network. Encode the file to base64 using bash (\`base64 -w0 "${filePath}"\`) and pass the resulting base64 string directly in the 'file' parameter.`
+      );
+    }
     throw new Error(`File not found: ${resolved}`);
   }
   return readFile(resolved);
@@ -1510,7 +1537,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // 1. Normalize single-file inputs from base64/data URIs to temporary files
     if (args.fileData && typeof args.fileData === 'string') {
       args.file = await saveInputToTemp(args.fileData, (args.fileName as string) || 'document.bin');
-    } else if (typeof args.file === 'string' && (isDataUri(args.file) || isLikelyBase64(args.file))) {
+    } else if (typeof args.file === 'string') {
       args.file = await saveInputToTemp(args.file, (args.fileName as string) || 'document.bin');
     }
 
@@ -2178,7 +2205,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'pdf_to_images': {
         const data = await readInputFile(args.file as string);
-        const result = await pdfService.pdfToImages(data, basename(args.file as string));
+        const result = await pdfService.pdfToImages(data, basename(args.file as string), {
+          mode: args.mode as string,
+          format: (args.format as string) || 'png',
+        });
         const outDir = dirname(resolve(args.file as string));
         const outputPaths: string[] = [];
         for (const f of result.outputFiles) {
