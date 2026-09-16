@@ -13,4 +13,5 @@ output/
 *.env
 *.tsbuildinfo
 scratch/
+*.traineddata
 

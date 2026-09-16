@@ -65,5 +65,16 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     } catch (error) { handleRouteError(reply, error); }
   });
 
+  app.post('/to-pdf', {
+    schema: { tags: ['Presentation'], summary: 'Convert PPTX to PDF', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      const result = await presentationService.pptxToPdf(files[0].data, files[0].name);
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) { handleRouteError(reply, error); }
+  });
+
   done();
 };

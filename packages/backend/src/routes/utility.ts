@@ -22,10 +22,15 @@ export const registerUtilityRoutes: FastifyPluginCallback = (app: FastifyInstanc
     let tools;
     if (query) {
       tools = searchTools(query);
-    } else if (category) {
+    } else if (category && category !== 'all') {
       tools = getToolsByCategory(category as ToolCategory);
     } else {
       tools = getTools();
+    }
+
+    // Exclude media element tools (video & audio) when category is all or not specified
+    if (!category || category === 'all') {
+      tools = tools.filter(t => t.category !== 'video' && t.category !== 'audio');
     }
 
     reply.send({

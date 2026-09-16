@@ -11,6 +11,9 @@ import { Document, Packer, Paragraph, TextRun, Table as DocxTable, TableRow, Tab
 import type { ProcessingResult, ProcessingOptions, OutputFile } from '../../types/index.js';
 import { ValidationError, ProcessingError } from '../../errors/index.js';
 import { getBaseName } from '../../utils/index.js';
+import { createZip } from '../archive/index.js';
+// @ts-ignore
+import DocxMerger from 'docx-merger';
 
 // ─── Extract Text from DOCX ───────────────────────────────────
 
@@ -106,6 +109,22 @@ ${bodyHtml}
 
 // ─── Extract Images from DOCX ─────────────────────────────────
 
+const MEDIA_MIME_MAP: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.jpe': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.bmp': 'image/bmp',
+  '.tiff': 'image/tiff',
+  '.tif': 'image/tiff',
+  '.ico': 'image/x-icon',
+  '.emf': 'image/x-emf',
+  '.wmf': 'image/x-wmf',
+};
+
 export async function extractDocxImages(
   data: Buffer | Uint8Array,
   filename: string,
@@ -114,39 +133,113 @@ export async function extractDocxImages(
   const start = Date.now();
 
   try {
-    processing?.onProgress?.(30, 'Searching for images in document...');
-    const buffer = Buffer.from(data);
-    const outputFiles: OutputFile[] = [];
-    let imageIndex = 1;
+    processing?.onProgress?.(20, 'Inspecting Word document structure...');
+    const zip = await JSZip.loadAsync(data);
+    const baseName = getBaseName(filename);
+    const extractedImages: OutputFile[] = [];
 
-    await mammoth.convertToHtml(
-      { buffer },
-      {
-        convertImage: mammoth.images.imgElement((element: any) => {
-          return element.read('binary').then((imageBuffer: any) => {
-            const ext = element.contentType ? `.${element.contentType.split('/')[1]}` : '.png';
-            outputFiles.push({
-              name: `${getBaseName(filename)}_image_${imageIndex++}${ext}`,
-              data: Buffer.from(imageBuffer),
-              mimeType: element.contentType || 'image/png',
-              extension: ext,
-              size: imageBuffer.length,
-            });
-            return { src: '' };
-          });
-        }),
+    // 1. Direct OpenXML extraction from word/media/
+    // This catches 100% of images, shapes, diagrams, headers, footers, etc. losslessly
+    const mediaFilePaths = Object.keys(zip.files).filter((filePath) => {
+      const normalized = filePath.replace(/\\/g, '/').toLowerCase();
+      return (
+        (normalized.startsWith('word/media/') || normalized.includes('/media/')) &&
+        !zip.files[filePath].dir
+      );
+    });
+
+    if (mediaFilePaths.length > 0) {
+      processing?.onProgress?.(40, `Extracting ${mediaFilePaths.length} embedded media files...`);
+      let idx = 1;
+      for (const mediaPath of mediaFilePaths) {
+        const fileEntry = zip.files[mediaPath];
+        const fileBuffer = await fileEntry.async('nodebuffer');
+        if (!fileBuffer || fileBuffer.length === 0) continue;
+
+        const rawFileName = mediaPath.split('/').pop() || `image_${idx}`;
+        const lastDot = rawFileName.lastIndexOf('.');
+        const ext = lastDot !== -1 ? rawFileName.slice(lastDot).toLowerCase() : '.png';
+        const mimeType = MEDIA_MIME_MAP[ext] || `image/${ext.replace('.', '')}`;
+
+        extractedImages.push({
+          name: `${baseName}_img_${idx}${ext}`,
+          data: fileBuffer,
+          mimeType,
+          extension: ext,
+          size: fileBuffer.length,
+        });
+        idx++;
       }
-    );
-
-    if (outputFiles.length === 0) {
-      throw new ValidationError('No embedded images found in document');
     }
+
+    // 2. Fallback to mammoth AST scanner if direct media was empty
+    if (extractedImages.length === 0) {
+      processing?.onProgress?.(50, 'Scanning document content for embedded images...');
+      const buffer = Buffer.from(data);
+      let mammothIdx = 1;
+
+      await mammoth.convertToHtml(
+        { buffer },
+        {
+          convertImage: mammoth.images.imgElement((element: any) => {
+            return element.read('binary').then((imageBuffer: any) => {
+              const contentType = element.contentType || 'image/png';
+              const ext = contentType ? `.${contentType.split('/')[1]}` : '.png';
+              const buf = Buffer.from(imageBuffer);
+              extractedImages.push({
+                name: `${baseName}_img_${mammothIdx++}${ext}`,
+                data: buf,
+                mimeType: contentType,
+                extension: ext,
+                size: buf.length,
+              });
+              return { src: '' };
+            });
+          }),
+        }
+      );
+    }
+
+    if (extractedImages.length === 0) {
+      throw new ValidationError('No embedded images found in Word document');
+    }
+
+    // If only 1 image found, return the single image directly
+    if (extractedImages.length === 1) {
+      return {
+        success: true,
+        outputFiles: extractedImages,
+        metadata: {
+          imageCount: 1,
+          containedFiles: extractedImages.map((f) => ({
+            name: f.name,
+            size: f.size,
+            mimeType: f.mimeType,
+          })),
+        },
+        duration: Date.now() - start,
+      };
+    }
+
+    // Multiple images -> Bundle into ZIP archive for 1-click download
+    processing?.onProgress?.(80, `Packaging ${extractedImages.length} images into ZIP archive...`);
+    const zipFilename = `${baseName}_images.zip`;
+    const zipResult = await createZip(
+      extractedImages.map((f) => ({ data: f.data, name: f.name })),
+      { outputFilename: zipFilename }
+    );
 
     return {
       success: true,
-      outputFiles,
+      outputFiles: zipResult.outputFiles,
       metadata: {
-        imagesExtracted: outputFiles.length,
+        isZip: true,
+        imageCount: extractedImages.length,
+        containedFiles: extractedImages.map((f) => ({
+          name: f.name,
+          size: f.size,
+          mimeType: f.mimeType,
+        })),
       },
       duration: Date.now() - start,
     };
@@ -288,48 +381,56 @@ export async function textToDocx(
 
 export async function mergeDocx(
   files: { data: Buffer | Uint8Array; name: string }[],
-  options: { outputFilename?: string } = {},
+  options: { outputFilename?: string; pageBreak?: boolean } = {},
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
   if (files.length < 2) throw new ValidationError('At least 2 DOCX files are required for merging');
 
   try {
-    processing?.onProgress?.(30, 'Merging Word documents...');
-    const combinedTexts: string[] = [];
+    processing?.onProgress?.(20, 'Preparing Word documents for high-fidelity merge...');
 
-    for (const f of files) {
-      const res = await mammoth.extractRawText({ buffer: Buffer.from(f.data) });
-      combinedTexts.push(res.value);
-    }
+    const pageBreak = typeof options.pageBreak !== 'undefined' ? !!options.pageBreak : true;
+    const fileBuffers = files.map((f) => Buffer.from(f.data));
 
-    const mergedContent = combinedTexts.join('\n\n--- Page Break ---\n\n');
-    const paragraphs = mergedContent.split(/\r?\n/).map(line =>
-      new Paragraph({
-        children: [new TextRun(line)],
-      })
-    );
+    processing?.onProgress?.(50, `Merging ${files.length} Word documents preserving alignment, styles, and tables...`);
 
-    const doc = new Document({
-      sections: [{ children: paragraphs }],
+    // High-fidelity OpenXML merge preserving paragraph alignments, tables, headings, styles, and media
+    const mergedBuffer = await new Promise<Buffer>((resolve, reject) => {
+      try {
+        const merger = new (DocxMerger as any)({ pageBreak }, fileBuffers);
+        merger.save('nodebuffer', (data: any) => {
+          if (!data) {
+            return reject(new Error('DocxMerger returned empty data'));
+          }
+          resolve(Buffer.from(data));
+        });
+      } catch (mergerErr) {
+        reject(mergerErr);
+      }
     });
 
-    const buffer = await Packer.toBuffer(doc);
+    processing?.onProgress?.(90, 'Finalizing merged Word document...');
     const outName = options.outputFilename || 'merged_document.docx';
 
     return {
       success: true,
       outputFiles: [{
         name: outName,
-        data: Buffer.from(buffer),
+        data: mergedBuffer,
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         extension: '.docx',
-        size: buffer.length,
+        size: mergedBuffer.length,
       }],
-      metadata: { filesMerged: files.length },
+      metadata: {
+        filesMerged: files.length,
+        sourceFiles: files.map((f) => f.name),
+        pageBreak,
+      },
       duration: Date.now() - start,
     };
   } catch (error) {
+    if (error instanceof ValidationError) throw error;
     throw new ProcessingError(`Failed to merge DOCX files: ${(error as Error).message}`);
   }
 }

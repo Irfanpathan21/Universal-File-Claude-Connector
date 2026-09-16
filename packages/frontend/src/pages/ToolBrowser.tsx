@@ -3,25 +3,27 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Wrench, ArrowRight, FileText, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { CATEGORIES_CONFIG } from '../config/categories';
-import { tools as ALL_TOOLS, getCategories } from '@uft/shared';
+import { tools as RAW_ALL_TOOLS, getCategories } from '@uft/shared';
+
+// Exclude media element tools (video & audio)
+const ALL_TOOLS = RAW_ALL_TOOLS.filter((t) => t.category !== 'video' && t.category !== 'audio');
 
 export function ToolBrowser() {
+  const { category: routeCategory } = useParams<{ category?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeCategoryParam = searchParams.get('category') || 'all';
+  const activeCategoryParam = routeCategory || searchParams.get('category') || 'all';
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>(activeCategoryParam);
 
   useEffect(() => {
-    const cat = searchParams.get('category');
-    if (cat) {
-      setSelectedCategory(cat);
-    }
-  }, [searchParams]);
+    const cat = routeCategory || searchParams.get('category') || 'all';
+    setSelectedCategory(cat);
+  }, [routeCategory, searchParams]);
 
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);
@@ -35,7 +37,19 @@ export function ToolBrowser() {
 
   // Filter tools based on search query and category
   const filteredTools = ALL_TOOLS.filter((tool) => {
-    const matchesCat = selectedCategory === 'all' || tool.category === selectedCategory;
+    let matchesCat = selectedCategory === 'all' || tool.category === selectedCategory;
+    if (selectedCategory === 'document' || selectedCategory === 'word') {
+      matchesCat = tool.category === 'document';
+    } else if (selectedCategory === 'spreadsheet' || selectedCategory === 'excel') {
+      matchesCat = tool.category === 'spreadsheet';
+    } else if (selectedCategory === 'data') {
+      matchesCat = tool.category === 'data' || tool.category === 'text';
+    } else if (selectedCategory === 'ocr') {
+      matchesCat = tool.category === 'ocr' || tool.category === 'ai';
+    } else if (selectedCategory === 'archive' || selectedCategory === 'extra') {
+      matchesCat = tool.category === 'archive';
+    }
+
     const q = search.toLowerCase().trim();
     const matchesSearch =
       !q ||
@@ -58,7 +72,7 @@ export function ToolBrowser() {
           Tool Directory & Directory Browser
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
-          Search and run 111+ local document, image, spreadsheet, video, audio, and OCR conversion tools.
+          Search and run 100+ local document, image, spreadsheet, and OCR conversion tools.
         </p>
       </div>
 
@@ -68,7 +82,7 @@ export function ToolBrowser() {
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search 111+ tools by name, description, tags (e.g. merge pdf, resize png, excel to csv, ocr)..."
+            placeholder="Search 100+ tools by name, description, tags (e.g. merge pdf, resize png, excel to csv, ocr)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-sm"
@@ -88,28 +102,41 @@ export function ToolBrowser() {
             All Tools ({ALL_TOOLS.length})
           </button>
 
-          {Object.entries(CATEGORIES_CONFIG).map(([key, cat]) => {
-            const isSelected = selectedCategory === key;
-            const count = ALL_TOOLS.filter((t) => t.category === key).length;
+          {Object.entries(CATEGORIES_CONFIG)
+            .filter(([key]) => ['pdf', 'image', 'document', 'spreadsheet', 'presentation', 'data', 'ocr', 'archive'].includes(key))
+            .map(([key, cat]) => {
+              const isSelected = selectedCategory === key || (key === 'archive' && selectedCategory === 'extra');
+              let count = ALL_TOOLS.filter((t) => t.category === key).length;
+              if (key === 'document') {
+                count = ALL_TOOLS.filter((t) => t.category === 'document').length;
+              } else if (key === 'spreadsheet') {
+                count = ALL_TOOLS.filter((t) => t.category === 'spreadsheet').length;
+              } else if (key === 'data') {
+                count = ALL_TOOLS.filter((t) => t.category === 'data' || t.category === 'text').length;
+              } else if (key === 'ocr') {
+                count = ALL_TOOLS.filter((t) => t.category === 'ocr' || t.category === 'ai').length;
+              } else if (key === 'archive' || key === 'extra') {
+                count = ALL_TOOLS.filter((t) => t.category === 'archive').length;
+              }
 
-            return (
-              <button
-                key={key}
-                onClick={() => handleCategorySelect(key)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  isSelected
-                    ? 'text-white shadow-md'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-                style={isSelected ? { backgroundColor: cat.accentColor } : {}}
-              >
-                <span>{cat.name}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleCategorySelect(key)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'text-white shadow-md'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  }`}
+                  style={isSelected ? { backgroundColor: cat.accentColor } : {}}
+                >
+                  <span>{cat.name}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
         </div>
       </div>
 

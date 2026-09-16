@@ -143,9 +143,46 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
-      if (!params.order) throw new ValidationError('New page order is required');
 
-      const order = params.order.split(',').map(p => parseInt(p.trim()));
+      const rawOrder = params.order || params.pages || params.sequence || params.newOrder;
+      if (!rawOrder || !rawOrder.trim()) throw new ValidationError('New page order is required (e.g. 3, 1, 2)');
+
+      const order = rawOrder
+        .replace(/[;|\s]+/g, ',')
+        .split(',')
+        .map(p => parseInt(p.trim(), 10))
+        .filter(p => !isNaN(p) && p > 0);
+
+      if (order.length === 0) {
+        throw new ValidationError('Invalid page numbers provided for rearrange');
+      }
+
+      const result = await pdfService.rearrangePages(files[0].data, files[0].name, order);
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) {
+      handleRouteError(reply, error);
+    }
+  });
+
+  app.post('/rearrange-pages', {
+    schema: { tags: ['PDF'], summary: 'Rearrange pages alias', description: 'Reorder pages in a PDF', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('A PDF file is required');
+
+      const rawOrder = params.order || params.pages || params.sequence || params.newOrder;
+      if (!rawOrder || !rawOrder.trim()) throw new ValidationError('New page order is required (e.g. 3, 1, 2)');
+
+      const order = rawOrder
+        .replace(/[;|\s]+/g, ',')
+        .split(',')
+        .map(p => parseInt(p.trim(), 10))
+        .filter(p => !isNaN(p) && p > 0);
+
+      if (order.length === 0) {
+        throw new ValidationError('Invalid page numbers provided for rearrange');
+      }
 
       const result = await pdfService.rearrangePages(files[0].data, files[0].name, order);
       await sendProcessingResult(reply, result, outputDir);
@@ -228,12 +265,13 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
-      if (!params.password) throw new ValidationError('Password is required');
+      const password = params.password || params.userPassword;
+      if (!password) throw new ValidationError('Password is required');
 
       const result = await pdfService.passwordProtect(
         files[0].data,
         files[0].name,
-        { userPassword: params.password }
+        { userPassword: password }
       );
 
       await sendProcessingResult(reply, result, outputDir);
@@ -286,8 +324,19 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     }
   });
 
-  // ── PDF to DOCX ───────────────────────────────────────────
+  // ── PDF to DOCX / Word ───────────────────────────────────
   app.post('/to-docx', {
+    schema: { tags: ['PDF'], summary: 'PDF to Word', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('A PDF file is required');
+      const result = await pdfService.pdfToDocx(files[0].data, files[0].name);
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) { handleRouteError(reply, error); }
+  });
+
+  app.post('/to-word', {
     schema: { tags: ['PDF'], summary: 'PDF to Word', consumes: ['multipart/form-data'] },
   }, async (request, reply) => {
     try {
@@ -315,9 +364,12 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     schema: { tags: ['PDF'], summary: 'PDF to JPG / Images', consumes: ['multipart/form-data'] },
   }, async (request, reply) => {
     try {
-      const { files } = await extractFilesAndParams(request, uploadDir, 1);
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
-      const result = await pdfService.pdfToImages(files[0].data, files[0].name);
+      const result = await pdfService.pdfToImages(files[0].data, files[0].name, {
+        mode: (params.mode as string) || 'auto',
+        format: (params.format as string) || 'png',
+      });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
   });
@@ -329,8 +381,9 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      const pageInput = params.pages || params.page || params.pageNumber || '1';
       const result = await pdfService.duplicatePages(files[0].data, files[0].name, {
-        pages: params.pages ? (params.pages as string).split(',').map(n => parseInt(n.trim())) : [1],
+        pages: pageInput as any,
       });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -422,6 +475,38 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
       const result = await pdfService.validatePdf(files[0].data, files[0].name);
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) { handleRouteError(reply, error); }
+  });
+
+  // ── Crop PDF ──────────────────────────────────────────────
+  app.post('/crop', {
+    schema: { tags: ['PDF'], summary: 'Crop PDF Margins', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('A PDF file is required');
+      const cropBox = (params.x || params.y || params.width || params.height) ? {
+        x: parseInt(params.x || '20'),
+        y: parseInt(params.y || '20'),
+        width: parseInt(params.width || '550'),
+        height: parseInt(params.height || '800'),
+      } : undefined;
+      const result = await pdfService.cropPdf(files[0].data, files[0].name, { cropBox });
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) { handleRouteError(reply, error); }
+  });
+
+  // ── Resize PDF Pages ──────────────────────────────────────
+  app.post('/resize-pages', {
+    schema: { tags: ['PDF'], summary: 'Resize PDF Pages', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('A PDF file is required');
+      const result = await pdfService.resizePdfPages(files[0].data, files[0].name, {
+        size: (params.size as any) || 'A4',
+      });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
   });

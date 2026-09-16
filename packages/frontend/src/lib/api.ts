@@ -2,7 +2,10 @@
  * API Client for the Universal File Toolkit backend with Instant Local Shared Registry Fallback.
  */
 
-import { tools as LOCAL_TOOLS, getCategories as getLocalCategories } from '@uft/shared';
+import { tools as RAW_LOCAL_TOOLS, getCategories as getLocalCategories } from '@uft/shared';
+
+// Exclude media element tools (video & audio)
+export const LOCAL_TOOLS = RAW_LOCAL_TOOLS.filter((t: any) => t.category !== 'video' && t.category !== 'audio');
 
 const API_BASE = '/api';
 
@@ -104,6 +107,11 @@ export async function processTool(
   params: Record<string, string> = {},
   onProgress?: (progress: number) => void
 ): Promise<ApiToolResponse> {
+  const emptyFile = files.find((f) => f.size === 0);
+  if (emptyFile) {
+    throw new Error('The File You have uploaded is empty');
+  }
+
   const formData = new FormData();
 
   for (const file of files) {
@@ -131,7 +139,10 @@ export async function processTool(
 
     return await res.json();
   } catch (err: any) {
-    // If backend is running simulation or local processing
+    if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError') && !err.message.includes('Load failed')) {
+      throw err;
+    }
+    // If backend is unreachable, simulate client processing result
     console.warn('Backend API request failed, simulating client processing result:', err.message);
     
     // Generate synthetic download URL for client preview
@@ -170,11 +181,21 @@ function getToolEndpoint(toolId: string): string {
     password_protect: '/api/pdf/protect',
     pdf_metadata: '/api/pdf/metadata',
     images_to_pdf: '/api/pdf/from-images',
-    pdf_to_images: '/api/pdf/to-images',
+    pdf_to_images: '/api/pdf/extract-images',
     txt_to_pdf: '/api/pdf/from-txt',
     pdf_to_txt: '/api/pdf/to-txt',
     crop_pdf: '/api/pdf/crop',
+    resize_pdf_pages: '/api/pdf/resize-pages',
     validate_pdf: '/api/pdf/validate',
+    duplicate_pages: '/api/pdf/duplicate-pages',
+    swap_pages: '/api/pdf/swap-pages',
+    reverse_pages: '/api/pdf/reverse-pages',
+    edit_pdf_metadata: '/api/pdf/edit-metadata',
+    flatten_pdf_form: '/api/pdf/flatten-form',
+    pdf_to_html: '/api/pdf/to-html',
+    pdf_to_docx: '/api/pdf/to-docx',
+    pdf_to_word: '/api/pdf/to-docx',
+    extract_pdf_images: '/api/pdf/extract-images',
     resize_image: '/api/image/resize',
     crop_image: '/api/image/crop',
     rotate_image: '/api/image/rotate',
@@ -193,6 +214,10 @@ function getToolEndpoint(toolId: string): string {
     invert_image: '/api/image/invert',
     dominant_colors: '/api/image/dominant-colors',
     trim_transparent_edges: '/api/image/trim',
+    remove_bg: '/api/image/remove-bg',
+    remove_background: '/api/image/remove-bg',
+    gamma_image: '/api/image/gamma',
+    threshold_image: '/api/image/threshold',
     json_to_csv: '/api/data/json-to-csv',
     csv_to_json: '/api/data/csv-to-json',
     json_to_xml: '/api/data/json-to-xml',
@@ -209,50 +234,51 @@ function getToolEndpoint(toolId: string): string {
     csv_to_excel: '/api/spreadsheet/csv-to-excel',
     json_to_excel: '/api/spreadsheet/json-to-excel',
     excel_to_json: '/api/spreadsheet/excel-to-json',
-    excel_to_html: '/api/spreadsheet/excel-to-html',
+    excel_to_html: '/api/spreadsheet/to-html',
     merge_excel_sheets: '/api/spreadsheet/merge-sheets',
-    remove_csv_duplicates: '/api/spreadsheet/dedup-csv',
+    remove_csv_duplicates: '/api/spreadsheet/remove-duplicates',
     transpose_sheet: '/api/spreadsheet/transpose',
     protect_workbook: '/api/spreadsheet/protect',
     split_workbook: '/api/spreadsheet/split',
-    find_replace_excel: '/api/spreadsheet/find-replace',
+    find_replace_excel: '/api/spreadsheet/replace-cells',
     workbook_statistics: '/api/spreadsheet/stats',
-    extract_docx_text: '/api/document/docx-text',
-    docx_to_html: '/api/document/docx-to-html',
-    extract_docx_images: '/api/document/docx-images',
-    extract_docx_hyperlinks: '/api/document/docx-links',
-    docx_to_markdown: '/api/document/docx-to-md',
-    text_to_docx: '/api/document/text-to-docx',
-    merge_docx: '/api/document/merge-docx',
+    extract_docx_text: '/api/document/extract-text',
+    docx_to_html: '/api/document/to-html',
+    extract_docx_images: '/api/document/extract-images',
+    extract_docx_hyperlinks: '/api/document/extract-links',
+    docx_to_markdown: '/api/document/to-markdown',
+    text_to_docx: '/api/document/from-text',
+    merge_docx: '/api/document/merge',
     replace_text_docx: '/api/document/replace-text',
-    extract_docx_comments: '/api/document/docx-comments',
-    word_count_docx: '/api/document/docx-word-count',
-    extract_pptx_text: '/api/presentation/pptx-text',
-    extract_pptx_notes: '/api/presentation/pptx-notes',
-    extract_pptx_images: '/api/presentation/pptx-images',
-    pptx_to_html: '/api/presentation/pptx-to-html',
-    read_pptx_metadata: '/api/presentation/pptx-metadata',
+    extract_docx_comments: '/api/document/comments',
+    word_count_docx: '/api/document/word-count',
+    extract_pptx_text: '/api/presentation/extract-text',
+    extract_pptx_notes: '/api/presentation/extract-notes',
+    extract_pptx_images: '/api/presentation/extract-images',
+    pptx_to_html: '/api/presentation/to-html',
+    read_pptx_metadata: '/api/presentation/metadata',
+    pptx_to_pdf: '/api/presentation/to-pdf',
     compress_video: '/api/video/compress',
     generate_video_thumbnail: '/api/video/thumbnail',
     video_to_gif: '/api/video/to-gif',
-    gif_to_video: '/api/video/to-mp4',
+    gif_to_video: '/api/video/from-gif',
     trim_video: '/api/video/trim',
     mute_video: '/api/video/mute',
     create_zip: '/api/archive/create-zip',
     extract_zip: '/api/archive/extract-zip',
-    list_archive_contents: '/api/archive/list',
-    compress_gzip: '/api/archive/gzip',
-    decompress_gzip: '/api/archive/gunzip',
+    list_archive_contents: '/api/archive/list-contents',
+    compress_gzip: '/api/archive/compress-gzip',
+    decompress_gzip: '/api/archive/decompress-gzip',
     convert_audio: '/api/audio/convert',
-    extract_audio_from_video: '/api/audio/from-video',
+    extract_audio_from_video: '/api/audio/extract-from-video',
     trim_audio: '/api/audio/trim',
-    change_audio_speed: '/api/audio/speed',
+    change_audio_speed: '/api/audio/change-speed',
     audio_to_waveform: '/api/audio/waveform',
-    extract_text_from_image_ocr: '/api/ocr/image-to-text',
+    extract_text_from_image_ocr: '/api/ocr/image-ocr',
     word_count: '/api/text/word-count',
-    hash_file: '/api/security/hash',
+    hash_file: '/api/hash',
     summarize_text: '/api/ai/summarize',
-    extract_keywords: '/api/ai/keywords',
+    extract_keywords: '/api/ai/extract-keywords',
     sentiment_analysis: '/api/ai/sentiment',
   };
 

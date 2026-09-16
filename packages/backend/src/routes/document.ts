@@ -81,10 +81,12 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
   }, async (request, reply) => {
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 20);
-      if (files.length < 2) throw new ValidationError('At least 2 DOCX files are required');
       const result = await documentService.mergeDocx(
         files.map(f => ({ data: f.data, name: f.name })),
-        { outputFilename: params.outputFilename }
+        {
+          outputFilename: params.outputFilename,
+          pageBreak: params.pageBreak !== undefined ? params.pageBreak !== 'false' : true,
+        }
       );
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

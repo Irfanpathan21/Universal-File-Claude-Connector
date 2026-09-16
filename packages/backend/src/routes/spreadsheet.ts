@@ -18,6 +18,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
       if (files.length < 1) throw new ValidationError('An Excel file is required');
       const result = await spreadsheetService.excelToCsv(files[0].data, files[0].name, {
         sheetName: params.sheetName,
+        delimiter: params.delimiter,
       });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -66,7 +67,10 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
       if (files.length < 2) throw new ValidationError('At least 2 Excel files are required');
       const result = await spreadsheetService.mergeExcelSheets(
         files.map(f => ({ data: f.data, name: f.name })),
-        { outputFilename: params.outputFilename }
+        {
+          outputFilename: params.outputFilename,
+          mergeMode: (params.mergeMode as any) || 'preserve_sheets',
+        }
       );
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -113,7 +117,12 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
-      const result = await spreadsheetService.protectWorkbook(files[0].data, files[0].name, { password: params.password });
+      const password = params.password || params.userPassword;
+      if (!password) throw new ValidationError('Password is required');
+      const result = await spreadsheetService.protectWorkbook(files[0].data, files[0].name, {
+        password,
+        userPassword: password,
+      });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
   });
@@ -122,9 +131,11 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     schema: { tags: ['Spreadsheet'], summary: 'Split Excel workbook sheets', consumes: ['multipart/form-data'] },
   }, async (request, reply) => {
     try {
-      const { files } = await extractFilesAndParams(request, uploadDir, 1);
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
-      const result = await spreadsheetService.splitExcelWorkbook(files[0].data, files[0].name);
+      const result = await spreadsheetService.splitExcelWorkbook(files[0].data, files[0].name, {
+        sheetName: params.sheetName,
+      });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
   });

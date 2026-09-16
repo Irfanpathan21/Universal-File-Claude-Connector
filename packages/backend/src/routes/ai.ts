@@ -15,7 +15,7 @@ export const registerAiRoutes: FastifyPluginCallback = (app: FastifyInstance, _o
   }, async (request, reply) => {
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
-      if (files.length < 1) throw new ValidationError('A text file is required');
+      if (files.length < 1) throw new ValidationError('A document or text file is required');
       const result = await aiService.summarizeText(files[0].data, files[0].name, {
         maxSentences: params.maxSentences ? parseInt(params.maxSentences) : undefined,
       });
@@ -28,7 +28,7 @@ export const registerAiRoutes: FastifyPluginCallback = (app: FastifyInstance, _o
   }, async (request, reply) => {
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
-      if (files.length < 1) throw new ValidationError('A text file is required');
+      if (files.length < 1) throw new ValidationError('A document or text file is required');
       const result = await aiService.extractKeywords(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -39,7 +39,7 @@ export const registerAiRoutes: FastifyPluginCallback = (app: FastifyInstance, _o
   }, async (request, reply) => {
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
-      if (files.length < 1) throw new ValidationError('A text file is required');
+      if (files.length < 1) throw new ValidationError('A document or text file is required');
       const result = await aiService.analyzeSentiment(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

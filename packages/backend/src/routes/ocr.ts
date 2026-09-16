@@ -18,6 +18,7 @@ export const registerOcrRoutes: FastifyPluginCallback = (app: FastifyInstance, _
       if (files.length < 1) throw new ValidationError('An image file is required');
       const result = await ocrService.extractTextFromImageOcr(files[0].data, files[0].name, {
         language: params.language,
+        preserveLayout: params.preserveLayout !== 'false',
       });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

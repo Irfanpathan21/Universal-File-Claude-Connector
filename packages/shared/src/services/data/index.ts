@@ -11,7 +11,7 @@ import yaml from 'js-yaml';
 import { marked } from 'marked';
 import type { ProcessingResult, ProcessingOptions, OutputFile } from '../../types/index.js';
 import { ValidationError, ProcessingError } from '../../errors/index.js';
-import { getBaseName } from '../../utils/index.js';
+import { getBaseName, normalizeJsonToTabularRows } from '../../utils/index.js';
 
 // ─── JSON ↔ CSV ──────────────────────────────────────────────
 
@@ -30,19 +30,30 @@ export async function jsonToCsv(
   const start = Date.now();
 
   try {
-    processing?.onProgress?.(30, 'Parsing JSON...');
+    processing?.onProgress?.(25, 'Parsing and validating JSON structure...');
     const jsonStr = Buffer.from(data).toString('utf-8');
-    const jsonData = JSON.parse(jsonStr);
+    if (!jsonStr.trim()) throw new ValidationError('JSON data is empty');
 
-    const rows = Array.isArray(jsonData) ? jsonData : [jsonData];
-    if (rows.length === 0) throw new ValidationError('JSON data is empty');
+    let jsonData: any;
+    try {
+      jsonData = JSON.parse(jsonStr);
+    } catch (parseErr: any) {
+      throw new ValidationError(`Invalid JSON format: ${parseErr.message}`);
+    }
 
-    processing?.onProgress?.(60, 'Converting to CSV...');
+    processing?.onProgress?.(50, 'Normalizing data records and flattening structures...');
+    const { rows, columns } = normalizeJsonToTabularRows(jsonData);
+
+    if (rows.length === 0) throw new ValidationError('No convertible data rows found in JSON');
+
+    processing?.onProgress?.(75, 'Generating CSV table...');
+
+    const chosenColumns = options.columns && options.columns.length > 0 ? options.columns : columns;
 
     const csv = Papa.unparse(rows, {
       delimiter: options.delimiter || ',',
       header: options.header !== false,
-      columns: options.columns,
+      columns: chosenColumns,
     });
 
     return {
@@ -54,7 +65,7 @@ export async function jsonToCsv(
         extension: '.csv',
         size: Buffer.byteLength(csv, 'utf-8'),
       }],
-      metadata: { rows: rows.length, columns: Object.keys(rows[0] || {}).length },
+      metadata: { rows: rows.length, columns: chosenColumns.length },
       duration: Date.now() - start,
     };
   } catch (error) {
@@ -527,8 +538,15 @@ export async function htmlToMarkdown(
   const start = Date.now();
 
   try {
-    processing?.onProgress?.(30, 'Converting HTML to Markdown...');
-    const htmlStr = Buffer.from(data).toString('utf-8');
+    processing?.onProgress?.(25, 'Preprocessing HTML content...');
+    let htmlStr = Buffer.from(data).toString('utf-8');
+    if (!htmlStr.trim()) throw new ValidationError('HTML content is empty');
+
+    // Extract title from <head> if present
+    const titleMatch = htmlStr.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const docTitle = titleMatch ? titleMatch[1].replace(/\s+/g, ' ').trim() : '';
+    // Strip <title> from HTML so Turndown doesn't dump raw unformatted text with indentation
+    htmlStr = htmlStr.replace(/<title[^>]*>[\s\S]*?<\/title>/gi, '');
 
     // Dynamic import for Turndown (CommonJS)
     const TurndownService = (await import('turndown')).default;
@@ -536,9 +554,116 @@ export async function htmlToMarkdown(
       headingStyle: 'atx',
       codeBlockStyle: 'fenced',
       bulletListMarker: '-',
+      emDelimiter: '*',
+      strongDelimiter: '**',
     });
 
-    const markdown = turndown.turndown(htmlStr);
+    // 1. Remove non-content / decorative tags
+    turndown.remove(['style', 'script', 'noscript', 'iframe', 'svg', 'canvas']);
+
+    // 2. Preserve action buttons and buttons with links
+    turndown.addRule('buttonLink', {
+      filter: (node: any) =>
+        node.nodeName === 'BUTTON' ||
+        (node.nodeName === 'INPUT' && (node.getAttribute('type') === 'button' || node.getAttribute('type') === 'submit')),
+      replacement: (content: string, node: any) => {
+        const onclick = node.getAttribute('onclick') || '';
+        const dataHref = node.getAttribute('data-href') || node.getAttribute('href') || '';
+        const match = onclick.match(/location(?:\.href)?\s*=\s*['"]([^'"]+)['"]/) ||
+                      onclick.match(/window\.open\(['"]([^'"]+)['"]\)/);
+        const href = dataHref || (match ? match[1] : '');
+        const text = (node.value || content || '').replace(/\s+/g, ' ').trim();
+        if (href && text) {
+          return `\n\n[${text}](${href})\n\n`;
+        }
+        return text ? `\n\n**${text}**\n\n` : '';
+      },
+    });
+
+    // 3. Full HTML Table Support (GFM Markdown Table)
+    turndown.addRule('table', {
+      filter: 'table',
+      replacement: (_content: string, node: any) => {
+        const rows = Array.from(node.querySelectorAll('tr')) as any[];
+        if (rows.length === 0) return '';
+
+        const matrix = rows.map(tr => {
+          const cells = Array.from(tr.querySelectorAll('th, td')) as any[];
+          return cells.map(cell => (cell.textContent || '').replace(/[\r\n\t]+/g, ' ').replace(/\|/g, '\\|').trim());
+        });
+
+        if (matrix.length === 0 || matrix[0].length === 0) return '';
+
+        const colCount = Math.max(...matrix.map(r => r.length));
+        const normalizedMatrix = matrix.map(r => {
+          while (r.length < colCount) r.push('');
+          return r;
+        });
+
+        const header = normalizedMatrix[0];
+        const separator = new Array(colCount).fill('---');
+        const dataRows = normalizedMatrix.slice(1);
+
+        const lines = [
+          '| ' + header.join(' | ') + ' |',
+          '| ' + separator.join(' | ') + ' |',
+          ...dataRows.map(r => '| ' + r.join(' | ') + ' |'),
+        ];
+
+        return '\n\n' + lines.join('\n') + '\n\n';
+      },
+    });
+
+    // 4. Clean List Item (- Item instead of -   Item)
+    turndown.addRule('cleanListItem', {
+      filter: 'li',
+      replacement: (content: string, node: any, options: any) => {
+        content = content
+          .replace(/^\n+/, '')
+          .replace(/\n+$/, '\n')
+          .replace(/\n/gm, '\n  ');
+        let prefix = (options.bulletListMarker || '-') + ' ';
+        const parent = node.parentNode;
+        if (parent && parent.nodeName === 'OL') {
+          const start = parent.getAttribute('start');
+          const index = Array.prototype.indexOf.call(parent.children, node);
+          prefix = (start ? Number(start) + index : index + 1) + '. ';
+        }
+        return (
+          prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '')
+        );
+      },
+    });
+
+    // 5. Clean Image URLs (encode spaces to %20 instead of < >)
+    turndown.addRule('cleanImage', {
+      filter: 'img',
+      replacement: (_content: string, node: any) => {
+        const alt = node.getAttribute('alt') || '';
+        let src = node.getAttribute('src') || '';
+        if (!src) return '';
+        src = src.trim().replace(/\s+/g, '%20');
+        return `![${alt}](${src})`;
+      },
+    });
+
+    processing?.onProgress?.(60, 'Converting document structure to Markdown...');
+    let markdown = turndown.turndown(htmlStr);
+
+    // Prefix with clean title header if extracted from <head>
+    if (docTitle) {
+      markdown = `# ${docTitle}\n\n` + markdown;
+    }
+
+    processing?.onProgress?.(85, 'Formatting and cleaning Markdown layout...');
+    // Post-processing:
+    // 1. Trim trailing whitespace on all lines
+    markdown = markdown
+      .split('\n')
+      .map(line => line.trimEnd())
+      .join('\n');
+    // 2. Collapse 3+ consecutive newlines (including whitespace-only lines) to standard double newlines
+    markdown = markdown.replace(/\n[ \t]*\n[ \t]*\n+/g, '\n\n').trim() + '\n';
 
     return {
       success: true,
@@ -552,6 +677,7 @@ export async function htmlToMarkdown(
       duration: Date.now() - start,
     };
   } catch (error) {
+    if (error instanceof ValidationError) throw error;
     throw new ProcessingError(`Failed to convert HTML to Markdown: ${(error as Error).message}`);
   }
 }

@@ -6,9 +6,18 @@
  */
 
 import { PDFDocument, StandardFonts, rgb, degrees, PageSizes, PDFPage, PDFRawStream, PDFName } from 'pdf-lib';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { writeFile, readFile, unlink, mkdir, rm } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { ProcessingResult, ProcessingOptions, OutputFile } from '../../types/index.js';
 import { ValidationError, ProcessingError } from '../../errors/index.js';
 import { getBaseName, generateId } from '../../utils/index.js';
+
+const execFileAsync = promisify(execFile);
 
 // ─── Merge PDFs ──────────────────────────────────────────────
 
@@ -201,17 +210,26 @@ export async function rotatePdf(
 export async function extractPages(
   data: Buffer | Uint8Array,
   filename: string,
-  pages: number[],
+  pages: (number[] | string) | { pages?: number[] | string },
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
 
-  if (!pages.length) throw new ValidationError('At least one page number required');
+  const rawPages = (typeof pages === 'object' && pages !== null && !Array.isArray(pages) && 'pages' in (pages as any))
+    ? (pages as any).pages
+    : pages;
+
+  const pagesArray = (Array.isArray(rawPages)
+    ? rawPages
+    : String(rawPages || '').split(',').map(p => parseInt(p.trim(), 10))
+  ).map(p => typeof p === 'string' ? parseInt(p, 10) : p).filter(n => !isNaN(n));
+
+  if (!pagesArray.length) throw new ValidationError('At least one page number required');
 
   try {
     const sourcePdf = await PDFDocument.load(data, { ignoreEncryption: true });
     const newPdf = await PDFDocument.create();
-    const pageIndices = pages.map(p => p - 1).filter(p => p >= 0 && p < sourcePdf.getPageCount());
+    const pageIndices = pagesArray.map(p => p - 1).filter(p => p >= 0 && p < sourcePdf.getPageCount());
 
     const copiedPages = await newPdf.copyPages(sourcePdf, pageIndices);
     copiedPages.forEach(page => newPdf.addPage(page));
@@ -241,7 +259,7 @@ export async function extractPages(
 export async function deletePages(
   data: Buffer | Uint8Array,
   filename: string,
-  pagesToDelete: number[],
+  pagesToDelete: number[] | string,
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
@@ -249,7 +267,11 @@ export async function deletePages(
   try {
     const sourcePdf = await PDFDocument.load(data, { ignoreEncryption: true });
     const totalPages = sourcePdf.getPageCount();
-    const deleteSet = new Set(pagesToDelete.map(p => p - 1));
+    const pagesArray = (Array.isArray(pagesToDelete)
+      ? pagesToDelete
+      : String(pagesToDelete || '').split(',').map(p => parseInt(p.trim(), 10))
+    ).map(p => typeof p === 'string' ? parseInt(p, 10) : p).filter(n => !isNaN(n));
+    const deleteSet = new Set(pagesArray.map(p => p - 1));
 
     const keepPages = Array.from({ length: totalPages }, (_, i) => i)
       .filter(i => !deleteSet.has(i));
@@ -294,7 +316,21 @@ export async function rearrangePages(
 
   try {
     const sourcePdf = await PDFDocument.load(data, { ignoreEncryption: true });
-    const pageIndices = newOrder.map(p => p - 1);
+    const totalPages = sourcePdf.getPageCount();
+    if (totalPages === 0) throw new ValidationError('The PDF file contains no pages');
+
+    let parsedOrder: number[] = [];
+    if (Array.isArray(newOrder)) {
+      parsedOrder = newOrder
+        .map(n => (typeof n === 'string' ? parseInt(n, 10) : Number(n)))
+        .filter(n => !isNaN(n) && n >= 1 && n <= totalPages);
+    }
+
+    if (parsedOrder.length === 0) {
+      throw new ValidationError(`Please specify valid page numbers between 1 and ${totalPages}`);
+    }
+
+    const pageIndices = parsedOrder.map(p => p - 1);
 
     const newPdf = await PDFDocument.create();
     const copiedPages = await newPdf.copyPages(sourcePdf, pageIndices);
@@ -312,10 +348,11 @@ export async function rearrangePages(
         extension: '.pdf',
         size: outputData.length,
       }],
-      metadata: { totalPages: newOrder.length },
+      metadata: { totalPages: parsedOrder.length, pageOrder: parsedOrder },
       duration: Date.now() - start,
     };
   } catch (error) {
+    if (error instanceof ValidationError) throw error;
     throw new ProcessingError(`Failed to rearrange pages: ${(error as Error).message}`);
   }
 }
@@ -531,37 +568,129 @@ export async function passwordProtect(
 ): Promise<ProcessingResult> {
   const start = Date.now();
 
-  if (!options.userPassword) {
+  const password = options.userPassword || (options as any).password;
+  if (!password) {
     throw new ValidationError('Password is required');
   }
 
+  processing?.onProgress?.(20, 'Preparing PDF for password protection...');
+
+  const id = generateId();
+  const tempFolder = join(tmpdir(), 'uft_pdf_encrypt');
+  await mkdir(tempFolder, { recursive: true });
+
+  const inputPath = join(tempFolder, `${id}_in.pdf`);
+  const outputPath = join(tempFolder, `${id}_out.pdf`);
+
   try {
-    // pdf-lib doesn't support encryption directly, but we can
-    // add basic encryption through document metadata
-    // For full AES encryption, QPDF would be needed (Phase 4)
-    const pdf = await PDFDocument.load(data, { ignoreEncryption: true });
+    await writeFile(inputPath, data);
+    processing?.onProgress?.(50, 'Applying password encryption...');
 
-    processing?.onProgress?.(50, 'Applying password protection...');
+    // Resolve encrypt_pdf.py helper script
+    let scriptPath = '';
+    try {
+      const currentDir = dirname(fileURLToPath(import.meta.url));
+      const candidates = [
+        join(currentDir, 'encrypt_pdf.py'),
+        join(process.cwd(), 'packages', 'shared', 'src', 'services', 'pdf', 'encrypt_pdf.py'),
+        join(process.cwd(), 'packages', 'shared', 'dist', 'services', 'pdf', 'encrypt_pdf.py'),
+      ];
+      for (const cand of candidates) {
+        if (existsSync(cand)) {
+          scriptPath = cand;
+          break;
+        }
+      }
+    } catch {
+      // Ignore url resolution issues
+    }
 
-    // Note: pdf-lib v1.x has limited encryption support.
-    // This creates a new PDF and sets metadata indicating protection.
-    // Full encryption requires QPDF integration.
-    const outputData = await pdf.save();
+    let encrypted = false;
+
+    // Strategy 1: Use Python helper script if found
+    if (scriptPath) {
+      try {
+        await execFileAsync('python', [scriptPath, inputPath, outputPath, password]);
+        if (existsSync(outputPath)) encrypted = true;
+      } catch {
+        try {
+          await execFileAsync('python3', [scriptPath, inputPath, outputPath, password]);
+          if (existsSync(outputPath)) encrypted = true;
+        } catch {
+          // Fall through to Strategy 2
+        }
+      }
+    }
+
+    // Strategy 2: Inline Python command with pypdf (AES-128 / RC4-128 standard encryption)
+    if (!encrypted) {
+      const cleanPy = `
+import sys
+from pypdf import PdfReader, PdfWriter
+r = PdfReader(sys.argv[1])
+w = PdfWriter()
+for p in r.pages:
+    w.add_page(p)
+if r.metadata:
+    w.add_metadata(r.metadata)
+try:
+    w.encrypt(user_password=sys.argv[3], algorithm="AES-128")
+except Exception:
+    w.encrypt(user_password=sys.argv[3], algorithm="RC4-128")
+with open(sys.argv[2], "wb") as f:
+    w.write(f)
+`;
+      try {
+        await execFileAsync('python', ['-c', cleanPy, inputPath, outputPath, password]);
+        if (existsSync(outputPath)) encrypted = true;
+      } catch {
+        try {
+          await execFileAsync('python3', ['-c', cleanPy, inputPath, outputPath, password]);
+          if (existsSync(outputPath)) encrypted = true;
+        } catch {
+          // Fall through to Strategy 3
+        }
+      }
+    }
+
+    // Strategy 3: Try QPDF if installed
+    if (!encrypted) {
+      try {
+        await execFileAsync('qpdf', ['--encrypt', password, password, '256', '--', inputPath, outputPath]);
+        if (existsSync(outputPath)) encrypted = true;
+      } catch {
+        // All strategies failed
+      }
+    }
+
+    if (!encrypted || !existsSync(outputPath)) {
+      throw new ProcessingError('Failed to password-protect PDF: Unable to encrypt file using Python or QPDF.');
+    }
+
+    processing?.onProgress?.(90, 'Finalizing encrypted PDF...');
+    const outputData = await readFile(outputPath);
+
+    // Clean up temp files
+    await unlink(inputPath).catch(() => {});
+    await unlink(outputPath).catch(() => {});
 
     return {
       success: true,
       outputFiles: [{
         name: `${getBaseName(filename)}_protected.pdf`,
-        data: Buffer.from(outputData),
+        data: outputData,
         mimeType: 'application/pdf',
         extension: '.pdf',
         size: outputData.length,
       }],
-      message: 'PDF saved. Note: Full AES encryption requires QPDF (available in Docker image).',
+      message: 'PDF successfully password protected! When opened in any viewer, it will require your password.',
       metadata: { encrypted: true },
       duration: Date.now() - start,
     };
   } catch (error) {
+    await unlink(inputPath).catch(() => {});
+    await unlink(outputPath).catch(() => {});
+    if (error instanceof ValidationError || error instanceof ProcessingError) throw error;
     throw new ProcessingError(`Failed to protect PDF: ${(error as Error).message}`);
   }
 }
@@ -862,33 +991,94 @@ export async function pdfToDocx(
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
-  processing?.onProgress?.(30, 'Extracting text from PDF...');
-  const textResult = await extractText(data, filename);
-  const text = textResult.outputFiles[0].data.toString('utf-8');
+  processing?.onProgress?.(10, 'Preparing PDF for Word conversion...');
 
-  processing?.onProgress?.(60, 'Generating DOCX document...');
-  const { Document, Packer, Paragraph, TextRun } = await import('docx');
-  const lines = text.split(/\r?\n/);
-  const paragraphs = lines.map(line => new Paragraph({ children: [new TextRun(line)] }));
+  const tempDir = join(tmpdir(), `pdf2docx_${generateId()}`);
+  const inputPdfPath = join(tempDir, 'input.pdf');
+  const outputDocxPath = join(tempDir, 'output.docx');
 
-  const doc = new Document({
-    sections: [{ children: paragraphs }],
-  });
+  try {
+    await mkdir(tempDir, { recursive: true });
+    await writeFile(inputPdfPath, data);
 
-  const buffer = await Packer.toBuffer(doc);
+    // Resolve pdf_to_docx.py helper script
+    let scriptPath = '';
+    try {
+      const currentDir = dirname(fileURLToPath(import.meta.url));
+      const candidates = [
+        join(currentDir, 'pdf_to_docx.py'),
+        join(process.cwd(), 'packages', 'shared', 'src', 'services', 'pdf', 'pdf_to_docx.py'),
+        join(process.cwd(), 'packages', 'shared', 'dist', 'services', 'pdf', 'pdf_to_docx.py'),
+      ];
+      for (const cand of candidates) {
+        if (existsSync(cand)) {
+          scriptPath = cand;
+          break;
+        }
+      }
+    } catch {
+      // Ignore resolution issues
+    }
 
-  return {
-    success: true,
-    outputFiles: [{
-      name: `${getBaseName(filename)}.docx`,
-      data: Buffer.from(buffer),
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      extension: '.docx',
-      size: buffer.length,
-    }],
-    metadata: { lineCount: lines.length },
-    duration: Date.now() - start,
-  };
+    let convertedSuccessfully = false;
+
+    if (scriptPath) {
+      processing?.onProgress?.(40, 'Converting PDF structure to Word format...');
+      try {
+        await execFileAsync('python', [scriptPath, inputPdfPath, outputDocxPath]);
+        convertedSuccessfully = existsSync(outputDocxPath);
+      } catch {
+        try {
+          await execFileAsync('python3', [scriptPath, inputPdfPath, outputDocxPath]);
+          convertedSuccessfully = existsSync(outputDocxPath);
+        } catch (pyErr: any) {
+          console.warn('[pdfToDocx] Python execution failed, attempting fallback:', pyErr?.message);
+        }
+      }
+    }
+
+    let docxBuffer: Buffer;
+
+    if (convertedSuccessfully && existsSync(outputDocxPath)) {
+      processing?.onProgress?.(80, 'Finalizing Word document...');
+      docxBuffer = await readFile(outputDocxPath);
+    } else {
+      // Fallback: extract text and construct DOCX using docx node module
+      processing?.onProgress?.(50, 'Converting text to DOCX document...');
+      const textResult = await extractText(data, filename);
+      const text = textResult.outputFiles[0].data.toString('utf-8');
+      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      const lines = text.split(/\r?\n/);
+      const paragraphs = lines.map(line => new Paragraph({ children: [new TextRun(line)] }));
+      const doc = new Document({ sections: [{ children: paragraphs }] });
+      const buffer = await Packer.toBuffer(doc);
+      docxBuffer = Buffer.from(buffer);
+    }
+
+    processing?.onProgress?.(100, 'Conversion complete');
+
+    const outName = `${getBaseName(filename)}.docx`;
+    return {
+      success: true,
+      outputFiles: [{
+        name: outName,
+        data: docxBuffer,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        extension: '.docx',
+        size: docxBuffer.length,
+      }],
+      metadata: { originalFilename: filename, outputSize: docxBuffer.length },
+      duration: Date.now() - start,
+    };
+  } catch (error) {
+    throw new ProcessingError(`Failed to convert PDF to DOCX: ${(error as Error).message}`);
+  } finally {
+    try {
+      await rm(tempDir, { recursive: true, force: true });
+    } catch {
+      // Cleanup best effort
+    }
+  }
 }
 
 // ─── PDF to HTML Conversion ──────────────────────────────────
@@ -936,49 +1126,93 @@ export async function pdfToHtml(
 
 // ─── PDF to Images (JPG / PNG) ───────────────────────────────
 
+export interface PdfToImagesOptions {
+  mode?: 'auto' | 'pages' | 'embedded' | string;
+  format?: 'png' | 'jpg' | 'jpeg' | string;
+}
+
 export async function pdfToImages(
   data: Buffer | Uint8Array,
   filename: string,
+  options: PdfToImagesOptions = {},
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
+  const baseName = getBaseName(filename);
+  const tempDir = join(tmpdir(), `pdf_img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+  const inputPdfPath = join(tempDir, filename);
+  const outputImgDir = join(tempDir, 'extracted');
 
   try {
-    processing?.onProgress?.(30, 'Analyzing PDF image streams...');
-    const pdfDoc = await PDFDocument.load(data, { ignoreEncryption: true });
-    const outputFiles: OutputFile[] = [];
+    processing?.onProgress?.(20, 'Preparing PDF for image extraction...');
+    await mkdir(tempDir, { recursive: true });
+    await mkdir(outputImgDir, { recursive: true });
+    await writeFile(inputPdfPath, data);
 
-    const indirectObjects = pdfDoc.context.enumerateIndirectObjects();
-    let imgIdx = 1;
-
-    for (const [ref, obj] of indirectObjects) {
-      if (obj instanceof PDFRawStream) {
-        const dict = obj.dict;
-        const subtype = dict.get(PDFName.of('Subtype'));
-        if (subtype === PDFName.of('Image')) {
-          const filter = dict.get(PDFName.of('Filter'));
-          const isJpg = filter === PDFName.of('DCTDecode');
-          const isPng = filter === PDFName.of('FlateDecode');
-          const ext = isJpg ? '.jpg' : isPng ? '.png' : '.jpg';
-          const mimeType = isJpg ? 'image/jpeg' : isPng ? 'image/png' : 'image/jpeg';
-
-          const contents = obj.getContents();
-          if (contents && contents.length > 0) {
-            outputFiles.push({
-              name: `${getBaseName(filename)}_img_${imgIdx}${ext}`,
-              data: Buffer.from(contents),
-              mimeType,
-              extension: ext,
-              size: contents.length,
-            });
-            imgIdx++;
-          }
+    // Resolve extract_pdf_images.py helper script
+    let scriptPath = '';
+    try {
+      const currentDir = dirname(fileURLToPath(import.meta.url));
+      const candidates = [
+        join(currentDir, 'extract_pdf_images.py'),
+        join(process.cwd(), 'packages', 'shared', 'src', 'services', 'pdf', 'extract_pdf_images.py'),
+        join(process.cwd(), 'packages', 'shared', 'dist', 'services', 'pdf', 'extract_pdf_images.py'),
+      ];
+      for (const cand of candidates) {
+        if (existsSync(cand)) {
+          scriptPath = cand;
+          break;
         }
       }
+    } catch {
+      // Ignore resolution issues
     }
 
-    if (outputFiles.length === 0) {
-      throw new ValidationError('No embedded images found in PDF');
+    const mode = options.mode || 'auto';
+    const preferredFmt = (options.format || 'png').toLowerCase().includes('jpg') ? 'jpg' : 'png';
+
+    let jsonOutput = '';
+
+    if (scriptPath) {
+      try {
+        const { stdout } = await execFileAsync('python', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt]);
+        jsonOutput = stdout;
+      } catch (err: any) {
+        try {
+          const { stdout } = await execFileAsync('python3', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt]);
+          jsonOutput = stdout;
+        } catch (err2: any) {
+          throw new ProcessingError(`Python image extraction failed: ${err2.message || err.message}`);
+        }
+      }
+    } else {
+      throw new ProcessingError('extract_pdf_images.py helper script could not be located');
+    }
+
+    // Parse RESULT_JSON from stdout
+    const marker = 'RESULT_JSON:';
+    const markerIndex = jsonOutput.indexOf(marker);
+    if (markerIndex === -1) {
+      throw new ProcessingError(`Image extraction failed: unexpected python response: ${jsonOutput}`);
+    }
+
+    const parsedJsonStr = jsonOutput.slice(markerIndex + marker.length).trim();
+    const extractedList: Array<{ name: string; path: string; size: number; mimeType: string; extension: string }> = JSON.parse(parsedJsonStr);
+
+    if (!extractedList || extractedList.length === 0) {
+      throw new ValidationError('No images could be extracted or generated from this PDF');
+    }
+
+    const outputFiles: OutputFile[] = [];
+    for (const item of extractedList) {
+      const fileData = await readFile(item.path);
+      outputFiles.push({
+        name: item.name,
+        data: fileData,
+        mimeType: item.mimeType,
+        extension: item.extension,
+        size: fileData.length,
+      });
     }
 
     return {
@@ -989,7 +1223,12 @@ export async function pdfToImages(
     };
   } catch (error) {
     if (error instanceof ValidationError) throw error;
-    throw new ProcessingError(`Failed to extract images from PDF: ${(error as Error).message}`);
+    throw new ProcessingError(`Failed to convert PDF to images: ${(error as Error).message}`);
+  } finally {
+    // Cleanup temporary directory
+    try {
+      await rm(tempDir, { recursive: true, force: true });
+    } catch {}
   }
 }
 
@@ -1041,19 +1280,65 @@ export async function insertPages(
 
 // ─── Duplicate Pages ──────────────────────────────────────────
 
+function parseDuplicatePagesInput(input: any, maxPages: number): number[] {
+  if (!input) return [1];
+  const list: number[] = [];
+
+  const addRange = (startStr: string, endStr: string) => {
+    const start = parseInt(startStr, 10);
+    const end = endStr ? parseInt(endStr, 10) : maxPages;
+    if (!isNaN(start) && !isNaN(end)) {
+      const s = Math.max(1, Math.min(start, end));
+      const e = Math.min(maxPages, Math.max(start, end));
+      for (let i = s; i <= e; i++) list.push(i);
+    }
+  };
+
+  const processItem = (item: any) => {
+    if (typeof item === 'number' && !isNaN(item)) {
+      list.push(Math.max(1, Math.min(item, maxPages)));
+    } else if (typeof item === 'string') {
+      const parts = item.split(',').map((s) => s.trim());
+      for (const part of parts) {
+        if (!part) continue;
+        if (part.includes('-')) {
+          const [s, e] = part.split('-').map((str) => str.trim());
+          addRange(s, e);
+        } else {
+          const num = parseInt(part, 10);
+          if (!isNaN(num)) list.push(Math.max(1, Math.min(num, maxPages)));
+        }
+      }
+    }
+  };
+
+  if (Array.isArray(input)) {
+    input.forEach(processItem);
+  } else {
+    processItem(input);
+  }
+
+  return list.length > 0 ? list : [1];
+}
+
 export async function duplicatePages(
   data: Buffer | Uint8Array,
   filename: string,
-  options: { pages?: number[] } = {},
+  options: { pages?: number[] | number | string; page?: number | string } = {},
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
   try {
     const pdfDoc = await PDFDocument.load(data, { ignoreEncryption: true });
-    const pagesToDup = options.pages || [1];
+    const totalCount = pdfDoc.getPageCount();
+    const rawPages = options.pages !== undefined ? options.pages : (options.page !== undefined ? options.page : [1]);
+    const parsedPages = parseDuplicatePagesInput(rawPages, totalCount);
 
-    for (const pageNum of pagesToDup) {
-      if (pageNum >= 1 && pageNum <= pdfDoc.getPageCount()) {
+    // Get unique page numbers and sort descending so insertion does not alter indices of earlier pages
+    const uniquePages = Array.from(new Set(parsedPages)).sort((a, b) => b - a);
+
+    for (const pageNum of uniquePages) {
+      if (pageNum >= 1 && pageNum <= totalCount) {
         const [copied] = await pdfDoc.copyPages(pdfDoc, [pageNum - 1]);
         pdfDoc.insertPage(pageNum, copied);
       }
@@ -1069,7 +1354,7 @@ export async function duplicatePages(
         extension: '.pdf',
         size: pdfBytes.length,
       }],
-      metadata: { totalPages: pdfDoc.getPageCount() },
+      metadata: { totalPages: pdfDoc.getPageCount(), duplicatedPages: uniquePages },
       duration: Date.now() - start,
     };
   } catch (error) {

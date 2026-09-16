@@ -6,9 +6,19 @@
  */
 
 import sharp from 'sharp';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { writeFile, readFile, mkdir, rm } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { ProcessingResult, ProcessingOptions, OutputFile } from '../../types/index.js';
 import { ValidationError, ProcessingError, UnsupportedFormatError } from '../../errors/index.js';
-import { getBaseName, getExtension } from '../../utils/index.js';
+import { getBaseName, getExtension, generateId } from '../../utils/index.js';
+import { createZip } from '../archive/index.js';
+
+const execFileAsync = promisify(execFile);
 
 type ImageFormat = 'png' | 'jpeg' | 'webp' | 'avif' | 'tiff' | 'gif';
 
@@ -117,13 +127,30 @@ export async function cropImage(
   try {
     processing?.onProgress?.(30, 'Cropping image...');
 
+    const metadata = await sharp(Buffer.from(data)).metadata();
+    const imgW = metadata.width || 1000;
+    const imgH = metadata.height || 1000;
+
+    let left = Math.max(0, Math.round(Number(options.left) || 0));
+    let top = Math.max(0, Math.round(Number(options.top) || 0));
+    let width = Math.round(Number(options.width) || (imgW - left));
+    let height = Math.round(Number(options.height) || (imgH - top));
+
+    // Clamp offsets within image boundaries
+    if (left >= imgW) left = Math.max(0, imgW - 10);
+    if (top >= imgH) top = Math.max(0, imgH - 10);
+    if (width <= 0) width = imgW - left;
+    if (height <= 0) height = imgH - top;
+
+    // Clamp width & height within image bounds
+    if (left + width > imgW) width = imgW - left;
+    if (top + height > imgH) height = imgH - top;
+
+    width = Math.max(1, width);
+    height = Math.max(1, height);
+
     const result = await sharp(Buffer.from(data))
-      .extract({
-        left: Math.round(options.left),
-        top: Math.round(options.top),
-        width: Math.round(options.width),
-        height: Math.round(options.height),
-      })
+      .extract({ left, top, width, height })
       .toBuffer({ resolveWithObject: true });
 
     const ext = getExtension(filename);
@@ -140,6 +167,10 @@ export async function cropImage(
       metadata: {
         width: result.info.width,
         height: result.info.height,
+        cropLeft: left,
+        cropTop: top,
+        originalWidth: imgW,
+        originalHeight: imgH,
       },
       duration: Date.now() - start,
     };
@@ -366,16 +397,20 @@ export async function convertImage(
 // ─── Add Watermark ───────────────────────────────────────────
 
 export interface ImageWatermarkOptions {
-  watermarkData: Buffer | Uint8Array;
-  position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  watermarkData?: Buffer | Uint8Array;
+  text?: string;
+  position?: 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | string;
   opacity?: number;
   scale?: number; // 0-1, relative to main image
+  fontSize?: number;
+  color?: string;
+  angle?: number;
 }
 
 export async function addImageWatermark(
   data: Buffer | Uint8Array,
   filename: string,
-  options: ImageWatermarkOptions,
+  options: ImageWatermarkOptions = {},
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
@@ -385,33 +420,113 @@ export async function addImageWatermark(
 
     const mainImage = sharp(Buffer.from(data));
     const mainMeta = await mainImage.metadata();
+    const imgWidth = mainMeta.width || 800;
+    const imgHeight = mainMeta.height || 600;
 
-    const watermarkWidth = Math.round((mainMeta.width || 500) * (options.scale || 0.3));
+    let watermarkBuffer: Buffer;
+    let gravity: string = 'center';
 
-    let watermark = sharp(Buffer.from(options.watermarkData))
-      .resize({ width: watermarkWidth })
-      .ensureAlpha();
+    if (options.watermarkData) {
+      const watermarkWidth = Math.round(imgWidth * (options.scale || 0.3));
 
-    if (options.opacity !== undefined) {
-      const opacity = Math.max(0, Math.min(1, options.opacity));
-      // Create a semi-transparent version
-      watermark = watermark.composite([{
-        input: Buffer.from([0, 0, 0, Math.round(opacity * 255)]),
-        raw: { width: 1, height: 1, channels: 4 },
-        tile: true,
-        blend: 'dest-in',
-      }]);
-    }
+      let watermark = sharp(Buffer.from(options.watermarkData))
+        .resize({ width: watermarkWidth })
+        .ensureAlpha();
 
-    const watermarkBuffer = await watermark.toBuffer();
+      if (options.opacity !== undefined) {
+        const opacity = Math.max(0, Math.min(1, options.opacity));
+        watermark = watermark.composite([{
+          input: Buffer.from([0, 0, 0, Math.round(opacity * 255)]),
+          raw: { width: 1, height: 1, channels: 4 },
+          tile: true,
+          blend: 'dest-in',
+        }]);
+      }
 
-    let gravity: string;
-    switch (options.position || 'center') {
-      case 'top-left': gravity = 'northwest'; break;
-      case 'top-right': gravity = 'northeast'; break;
-      case 'bottom-left': gravity = 'southwest'; break;
-      case 'bottom-right': gravity = 'southeast'; break;
-      default: gravity = 'center';
+      watermarkBuffer = await watermark.toBuffer();
+
+      const pos = (options.position || 'center').toLowerCase().replace('_', '-');
+      switch (pos) {
+        case 'top-left': gravity = 'northwest'; break;
+        case 'top':
+        case 'top-center': gravity = 'north'; break;
+        case 'top-right': gravity = 'northeast'; break;
+        case 'left':
+        case 'center-left': gravity = 'west'; break;
+        case 'center': gravity = 'center'; break;
+        case 'right':
+        case 'center-right': gravity = 'east'; break;
+        case 'bottom-left': gravity = 'southwest'; break;
+        case 'bottom':
+        case 'bottom-center': gravity = 'south'; break;
+        case 'bottom-right': gravity = 'southeast'; break;
+        default: gravity = 'center'; break;
+      }
+    } else {
+      const text = options.text || 'CONFIDENTIAL';
+      const fontSize = options.fontSize || Math.max(24, Math.round(imgWidth * 0.05));
+      const color = options.color || '#ffffff';
+      const opacity = options.opacity !== undefined ? Math.max(0, Math.min(1, options.opacity)) : 0.6;
+      const escapedText = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      let xPx = Math.round(imgWidth * 0.5);
+      let yPx = Math.round(imgHeight * 0.5);
+      let anchor = 'middle';
+
+      const pos = (options.position || 'center').toLowerCase().replace('_', '-');
+      switch (pos) {
+        case 'top-left':
+          xPx = Math.round(imgWidth * 0.06); yPx = Math.round(imgHeight * 0.10); anchor = 'start';
+          break;
+        case 'top':
+        case 'top-center':
+          xPx = Math.round(imgWidth * 0.5); yPx = Math.round(imgHeight * 0.10); anchor = 'middle';
+          break;
+        case 'top-right':
+          xPx = Math.round(imgWidth * 0.94); yPx = Math.round(imgHeight * 0.10); anchor = 'end';
+          break;
+        case 'left':
+        case 'center-left':
+          xPx = Math.round(imgWidth * 0.06); yPx = Math.round(imgHeight * 0.5); anchor = 'start';
+          break;
+        case 'center':
+          xPx = Math.round(imgWidth * 0.5); yPx = Math.round(imgHeight * 0.5); anchor = 'middle';
+          break;
+        case 'right':
+        case 'center-right':
+          xPx = Math.round(imgWidth * 0.94); yPx = Math.round(imgHeight * 0.5); anchor = 'end';
+          break;
+        case 'bottom-left':
+          xPx = Math.round(imgWidth * 0.06); yPx = Math.round(imgHeight * 0.92); anchor = 'start';
+          break;
+        case 'bottom':
+        case 'bottom-center':
+          xPx = Math.round(imgWidth * 0.5); yPx = Math.round(imgHeight * 0.92); anchor = 'middle';
+          break;
+        case 'bottom-right':
+          xPx = Math.round(imgWidth * 0.94); yPx = Math.round(imgHeight * 0.92); anchor = 'end';
+          break;
+        default:
+          xPx = Math.round(imgWidth * 0.5); yPx = Math.round(imgHeight * 0.5); anchor = 'middle';
+          break;
+      }
+
+      // Slant angle: default to -30° unless explicitly provided (e.g. 0 for horizontal, -45 for diagonal)
+      const angle = options.angle !== undefined && options.angle !== null && !isNaN(Number(options.angle))
+        ? Number(options.angle)
+        : -30;
+
+      const transform = angle !== 0 ? `transform="rotate(${angle} ${xPx} ${yPx})"` : '';
+
+      const svg = `<svg width="${imgWidth}" height="${imgHeight}">
+        <style>
+          .wm { fill: ${color}; font-size: ${fontSize}px; font-weight: bold; font-family: sans-serif; opacity: ${opacity}; }
+        </style>
+        <text x="${xPx}" y="${yPx}" text-anchor="${anchor}" dominant-baseline="middle" ${transform} class="wm">${escapedText}</text>
+      </svg>`;
+
+      watermarkBuffer = Buffer.from(svg);
+      gravity = 'center';
     }
 
     const result = await sharp(Buffer.from(data))
@@ -747,22 +862,35 @@ export async function batchResize(
   if (!files.length) throw new ValidationError('At least one image required');
 
   try {
-    const outputFiles: OutputFile[] = [];
+    const resizedImages: OutputFile[] = [];
 
     for (let i = 0; i < files.length; i++) {
       processing?.onProgress?.(
-        Math.round(((i + 1) / files.length) * 90),
+        Math.round(((i + 1) / files.length) * 80),
         `Resizing ${i + 1} of ${files.length}: ${files[i].name}`
       );
 
       const result = await resizeImage(files[i].data, files[i].name, options);
-      outputFiles.push(...result.outputFiles);
+      resizedImages.push(...result.outputFiles);
     }
+
+    processing?.onProgress?.(90, 'Packaging resized images into ZIP folder...');
+    const zipResult = await createZip(
+      resizedImages.map((f) => ({ data: f.data, name: f.name })),
+      { outputFilename: 'resized_images.zip' }
+    );
 
     return {
       success: true,
-      outputFiles,
-      metadata: { filesProcessed: files.length },
+      outputFiles: zipResult.outputFiles,
+      metadata: {
+        filesProcessed: files.length,
+        containedFiles: resizedImages.map((f) => ({
+          name: f.name,
+          size: f.size,
+          mimeType: f.mimeType,
+        })),
+      },
       duration: Date.now() - start,
     };
   } catch (error) {
@@ -843,7 +971,7 @@ export async function gammaImage(
 export async function thresholdImage(
   data: Buffer | Uint8Array,
   filename: string,
-  options: { threshold?: number } = {},
+  options: { threshold?: number; invert?: boolean; background?: string } = {},
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
@@ -853,9 +981,20 @@ export async function thresholdImage(
     const format = FORMAT_MAP[ext] || 'png';
     const threshVal = options.threshold ?? 128;
 
-    const result = await sharp(Buffer.from(data))
-      .threshold(threshVal)
-      .toBuffer({ resolveWithObject: true });
+    let pipeline = sharp(Buffer.from(data));
+    const metadata = await sharp(Buffer.from(data)).metadata();
+
+    if (options.background === 'white' && metadata.hasAlpha) {
+      pipeline = pipeline.flatten({ background: '#ffffff' });
+    }
+
+    pipeline = pipeline.threshold(threshVal);
+
+    if (options.invert) {
+      pipeline = pipeline.negate({ alpha: false });
+    }
+
+    const result = await pipeline.toBuffer({ resolveWithObject: true });
 
     return {
       success: true,
@@ -917,34 +1056,312 @@ export async function dominantColorsImage(
 
 // ─── Trim Transparent Edges ───────────────────────────────────
 
+export interface TrimEdgesOptions {
+  threshold?: number;
+  padding?: number;
+  mode?: 'transparent' | 'auto' | 'white' | 'black' | string;
+}
+
 export async function trimTransparentEdges(
   data: Buffer | Uint8Array,
   filename: string,
+  options: TrimEdgesOptions = {},
   processing?: ProcessingOptions
 ): Promise<ProcessingResult> {
   const start = Date.now();
   try {
-    processing?.onProgress?.(30, 'Trimming transparent edges...');
+    processing?.onProgress?.(30, 'Analyzing image borders...');
     const ext = getExtension(filename);
     const format = FORMAT_MAP[ext] || 'png';
+    const threshold = options.threshold !== undefined ? Math.max(0, Math.min(255, Number(options.threshold))) : 10;
+    const padding = options.padding !== undefined ? Math.max(0, Math.min(200, Number(options.padding))) : 0;
+    const mode = options.mode || 'transparent';
 
-    const result = await sharp(Buffer.from(data))
-      .trim()
-      .toBuffer({ resolveWithObject: true });
+    let img = sharp(Buffer.from(data));
+    const meta = await img.metadata();
+    const origWidth = meta.width || 0;
+    const origHeight = meta.height || 0;
+
+    if (!origWidth || !origHeight) {
+      throw new ProcessingError('Invalid image dimensions');
+    }
+
+    // Convert to raw pixel buffer for accurate bounding box calculation
+    let rawImg = sharp(Buffer.from(data));
+
+    if (mode === 'transparent') {
+      rawImg = rawImg.ensureAlpha();
+    }
+
+    const { data: rawData, info } = await rawImg.raw().toBuffer({ resolveWithObject: true });
+    const { width, height, channels } = info;
+
+    let minX = width;
+    let minY = height;
+    let maxX = -1;
+    let maxY = -1;
+
+    if (mode === 'transparent') {
+      // Find bounding box where alpha > threshold
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * channels;
+          const a = rawData[idx + 3];
+          if (a > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+    } else {
+      // Color-based trimming (white, black, or auto from 4 corners)
+      let targetR = 255;
+      let targetG = 255;
+      let targetB = 255;
+
+      if (mode === 'black') {
+        targetR = 0; targetG = 0; targetB = 0;
+      } else if (mode === 'auto') {
+        // Sample 4 corners
+        const getPix = (px: number, py: number) => {
+          const i = (py * width + px) * channels;
+          return [rawData[i], rawData[i + 1], rawData[i + 2]];
+        };
+        const c1 = getPix(0, 0);
+        const c2 = getPix(width - 1, 0);
+        const c3 = getPix(0, height - 1);
+        const c4 = getPix(width - 1, height - 1);
+        targetR = Math.round((c1[0] + c2[0] + c3[0] + c4[0]) / 4);
+        targetG = Math.round((c1[1] + c2[1] + c3[1] + c4[1]) / 4);
+        targetB = Math.round((c1[2] + c2[2] + c3[2] + c4[2]) / 4);
+      }
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * channels;
+          const r = rawData[idx];
+          const g = rawData[idx + 1];
+          const b = rawData[idx + 2];
+          const a = channels === 4 ? rawData[idx + 3] : 255;
+
+          const colorDist = Math.sqrt(
+            Math.pow(r - targetR, 2) + Math.pow(g - targetG, 2) + Math.pow(b - targetB, 2)
+          );
+
+          if ((channels === 4 && a < 25) || colorDist > threshold) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+    }
+
+    processing?.onProgress?.(70, 'Cropping trimmed bounding box...');
+
+    let resultBuffer: Buffer;
+    let cropLeft = 0;
+    let cropTop = 0;
+    let cropWidth = origWidth;
+    let cropHeight = origHeight;
+
+    // If valid bounding box found, crop; otherwise return original
+    if (maxX >= minX && maxY >= minY) {
+      cropLeft = Math.max(0, minX - padding);
+      cropTop = Math.max(0, minY - padding);
+      const rightPad = Math.min(origWidth - 1, maxX + padding);
+      const bottomPad = Math.min(origHeight - 1, maxY + padding);
+      cropWidth = rightPad - cropLeft + 1;
+      cropHeight = bottomPad - cropTop + 1;
+
+      resultBuffer = await sharp(Buffer.from(data))
+        .extract({ left: cropLeft, top: cropTop, width: cropWidth, height: cropHeight })
+        .toBuffer();
+    } else {
+      resultBuffer = Buffer.from(data);
+    }
+
+    const trimmedTop = cropTop;
+    const trimmedBottom = origHeight - (cropTop + cropHeight);
+    const trimmedLeft = cropLeft;
+    const trimmedRight = origWidth - (cropLeft + cropWidth);
+    const percentReduction = Math.round((1 - (cropWidth * cropHeight) / (origWidth * origHeight)) * 100);
 
     return {
       success: true,
       outputFiles: [{
         name: `${getBaseName(filename)}_trimmed${ext}`,
-        data: result.data,
-        mimeType: MIME_FOR_FORMAT[format],
+        data: resultBuffer,
+        mimeType: MIME_FOR_FORMAT[format] || 'image/png',
         extension: ext,
-        size: result.info.size,
+        size: resultBuffer.length,
       }],
-      metadata: { width: result.info.width, height: result.info.height },
+      metadata: {
+        width: cropWidth,
+        height: cropHeight,
+        originalWidth: origWidth,
+        originalHeight: origHeight,
+        trimmedTop,
+        trimmedBottom,
+        trimmedLeft,
+        trimmedRight,
+        percentReduction,
+      },
       duration: Date.now() - start,
     };
   } catch (error) {
     throw new ProcessingError(`Failed to trim transparent edges: ${(error as Error).message}`);
+  }
+}
+
+// ─── Remove Background ─────────────────────────────────────────
+
+export interface RemoveBackgroundOptions {
+  model?: 'u2net' | 'u2netp' | 'isnet-general-use' | string;
+  format?: 'png' | 'webp';
+  alphaMatting?: boolean;
+  bgcolor?: string;
+}
+
+export async function removeBackground(
+  data: Buffer | Uint8Array,
+  filename: string,
+  options: RemoveBackgroundOptions = {},
+  processing?: ProcessingOptions
+): Promise<ProcessingResult> {
+  const start = Date.now();
+  const inputExt = getExtension(filename).toLowerCase() || '.png';
+  const outExt = options.format === 'webp' ? '.webp' : '.png';
+  const model = options.model || 'u2net';
+  const bgcolor = options.bgcolor || '';
+
+  const tempId = generateId();
+  const tempDir = join(tmpdir(), `uft_rembg_${tempId}`);
+  const inputPath = join(tempDir, `input${inputExt}`);
+  const outputPath = join(tempDir, `output.png`);
+
+  try {
+    processing?.onProgress?.(15, 'Preparing image for AI background removal...');
+    await mkdir(tempDir, { recursive: true });
+    await writeFile(inputPath, data);
+
+    let scriptPath = '';
+    try {
+      const currentDir = dirname(fileURLToPath(import.meta.url));
+      const candidates = [
+        join(currentDir, 'remove_bg.py'),
+        join(process.cwd(), 'packages', 'shared', 'src', 'services', 'image', 'remove_bg.py'),
+        join(process.cwd(), 'packages', 'shared', 'dist', 'services', 'image', 'remove_bg.py'),
+      ];
+      for (const cand of candidates) {
+        if (existsSync(cand)) {
+          scriptPath = cand;
+          break;
+        }
+      }
+    } catch {
+      // Ignore resolution error
+    }
+
+    let success = false;
+    if (scriptPath) {
+      processing?.onProgress?.(40, 'Detecting subject and isolating background with AI...');
+      try {
+        await execFileAsync('python', [scriptPath, inputPath, outputPath, model, bgcolor], { timeout: 60000 });
+        success = existsSync(outputPath);
+      } catch {
+        try {
+          await execFileAsync('python3', [scriptPath, inputPath, outputPath, model, bgcolor], { timeout: 60000 });
+          success = existsSync(outputPath);
+        } catch (pyErr: any) {
+          console.warn('[removeBackground] Python AI removal failed, attempting fallback:', pyErr?.message);
+        }
+      }
+    }
+
+    let resultBuffer: Buffer;
+    if (success && existsSync(outputPath)) {
+      processing?.onProgress?.(85, 'Finalizing transparent cutout...');
+      resultBuffer = await readFile(outputPath);
+    } else {
+      // Pure Sharp Fallback: Corner-sampling Chroma / Alpha transparency
+      processing?.onProgress?.(60, 'Processing edge transparency fallback...');
+      const img = sharp(Buffer.from(data)).ensureAlpha();
+      const raw = await img.raw().toBuffer({ resolveWithObject: true });
+      const { data: rawData, info } = raw;
+      const { width, height, channels } = info;
+
+      const getPixel = (x: number, y: number) => {
+        const idx = (y * width + x) * channels;
+        return [rawData[idx], rawData[idx + 1], rawData[idx + 2]];
+      };
+
+      const c1 = getPixel(0, 0);
+      const c2 = getPixel(Math.max(0, width - 1), 0);
+      const c3 = getPixel(0, Math.max(0, height - 1));
+      const c4 = getPixel(Math.max(0, width - 1), Math.max(0, height - 1));
+      const bgR = Math.round((c1[0] + c2[0] + c3[0] + c4[0]) / 4);
+      const bgG = Math.round((c1[1] + c2[1] + c3[1] + c4[1]) / 4);
+      const bgB = Math.round((c1[2] + c2[2] + c3[2] + c4[2]) / 4);
+
+      const outData = Buffer.from(rawData);
+      const threshold = 35;
+      const feather = 20;
+
+      for (let i = 0; i < outData.length; i += channels) {
+        const dr = outData[i] - bgR;
+        const dg = outData[i + 1] - bgG;
+        const db = outData[i + 2] - bgB;
+        const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+
+        if (dist < threshold) {
+          outData[i + 3] = 0;
+        } else if (dist < threshold + feather) {
+          outData[i + 3] = Math.round(((dist - threshold) / feather) * 255);
+        }
+      }
+
+      resultBuffer = await sharp(outData, {
+        raw: { width, height, channels },
+      })
+        .png()
+        .toBuffer();
+    }
+
+    // Convert format if webp requested
+    if (options.format === 'webp') {
+      resultBuffer = await sharp(resultBuffer).webp({ quality: 95, lossless: true }).toBuffer();
+    }
+
+    const metadata = await sharp(resultBuffer).metadata();
+
+    return {
+      success: true,
+      outputFiles: [{
+        name: `${getBaseName(filename)}_no_bg${outExt}`,
+        data: resultBuffer,
+        mimeType: outExt === '.webp' ? 'image/webp' : 'image/png',
+        extension: outExt,
+        size: resultBuffer.length,
+      }],
+      metadata: {
+        width: metadata.width,
+        height: metadata.height,
+        format: outExt.slice(1),
+        isTransparent: true,
+      },
+      duration: Date.now() - start,
+    };
+  } catch (error) {
+    throw new ProcessingError(`Failed to remove background: ${(error as Error).message}`);
+  } finally {
+    try {
+      await rm(tempDir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup error
+    }
   }
 }

@@ -1,0 +1,968 @@
+Issue Type,Issue Key,Summary,Description,Component,Priority,Precondition,Test Steps,Test Data,Expected Result,Execution Status,Labels
+"Test","TC-001","[Top Website Menu] Check that the top menu bar, logo, and links work properly in Google Chrome","Test Case ID: TC-001
+Feature: Top Website Menu
+Category: Website Pages
+Summary: Check that the top menu bar, logo, and links work properly in Google Chrome","Website Pages","High","Open Google Chrome and go to the website homepage.","Step 1: Open the website in Google Chrome.
+Step 2: Look at the top menu bar and check that the logo and name are visible.
+Step 3: Click each menu tab: ""PDF"", ""Image"", ""Word"", ""Excel"", ""Media"".
+Step 4: Check that the page smoothly switches to show tools for that category.","None (just your Chrome browser)","The menu stays at the top, links work instantly, and colored lines show which category you are on.","PASS","uft,qa,website_pages"
+"Test","TC-002","[Dark & Light Mode Switch] Switch between Dark Mode and Light Mode and check that your choice is saved","Test Case ID: TC-002
+Feature: Dark & Light Mode Switch
+Category: Website Pages
+Summary: Switch between Dark Mode and Light Mode and check that your choice is saved","Website Pages","Medium","Website is open in Google Chrome.","Step 1: Click the Sun / Moon icon in the top-right corner.
+Step 2: Check that the background switches from white to dark (or dark to white).
+Step 3: Refresh the web page in Chrome (press F5 or Ctrl+R).
+Step 4: Check that your dark or light mode choice is still saved.","None","The screen colors change smoothly and Google Chrome remembers your choice even after refreshing.","PASS","uft,qa,website_pages"
+"Test","TC-003","[Quick Tool Search (Ctrl+K)] Press Ctrl+K on the keyboard to quickly find and open any tool","Test Case ID: TC-003
+Feature: Quick Tool Search (Ctrl+K)
+Category: Website Pages
+Summary: Press Ctrl+K on the keyboard to quickly find and open any tool","Website Pages","High","Any page on the website is open.","Step 1: On your keyboard, press Ctrl and K together (Cmd and K on Mac).
+Step 2: A quick search popup will appear on the screen.
+Step 3: Type the word ""merge"".
+Step 4: Press Enter on ""Merge PDF"".","None","The search popup opens instantly, filters the tools as you type, and opens the tool you picked.","PASS","uft,qa,website_pages"
+"Test","TC-004","[Search Bar in Header] Type in the top search box to see matching tools in a dropdown list","Test Case ID: TC-004
+Feature: Search Bar in Header
+Category: Website Pages
+Summary: Type in the top search box to see matching tools in a dropdown list","Website Pages","Medium","Website is open in Chrome.","Step 1: Click inside the search box at the top of the page.
+Step 2: Type ""watermark"".
+Step 3: Check that a dropdown list shows matching tools.
+Step 4: Click anywhere outside the search box to close the list.","None","Matching tools appear in a list below the search box and close when clicking away.","PASS","uft,qa,website_pages"
+"Test","TC-005","[Footer Links] Check that footer links (Privacy, Terms, Security, Help) open correct pages","Test Case ID: TC-005
+Feature: Footer Links
+Category: Website Pages
+Summary: Check that footer links (Privacy, Terms, Security, Help) open correct pages","Website Pages","Low","Scroll to the very bottom of the website.","Step 1: Scroll to the bottom of the page.
+Step 2: Click on ""Privacy Policy"", ""Terms of Service"", ""Security"", and ""Help & Support"".
+Step 3: Check that each link opens a real page without any ""Page Not Found (404)"" error.","None","All legal, security, and help pages open cleanly with helpful information.","PASS","uft,qa,website_pages"
+"Test","TC-006","[Homepage Popular Cards] Click on the popular tool cards on the homepage","Test Case ID: TC-006
+Feature: Homepage Popular Cards
+Category: Website Pages
+Summary: Click on the popular tool cards on the homepage","Website Pages","High","Homepage is open in Chrome.","Step 1: Look at the top of the homepage.
+Step 2: Check the 4 popular cards: ""Merge PDF"", ""Resize Image"", ""Word to PDF"", ""Excel to CSV"".
+Step 3: Click on the ""Merge PDF"" card.","None","Clicking the card opens the Merge PDF tool page right away.","PASS","uft,qa,website_pages"
+"Test","TC-007","[Homepage Drag and Drop Box] Drag and drop any file into the big box on the homepage","Test Case ID: TC-007
+Feature: Homepage Drag and Drop Box
+Category: Website Pages
+Summary: Drag and drop any file into the big box on the homepage","Website Pages","High","Have any file on your computer desktop.","Step 1: Drag a file from your computer over the big box on the homepage.
+Step 2: Notice the box outline highlights in color.
+Step 3: Drop the file.
+Step 4: Alternatively, click the ""Browse Files"" button.","Any file (e.g. document or picture)","The upload box highlights when dragging over it and opens the file picker when clicked.","PASS","uft,qa,website_pages"
+"Test","TC-008","[All Tools Directory Page] Check that all 110 tools are listed neatly on the Tools page","Test Case ID: TC-008
+Feature: All Tools Directory Page
+Category: Website Pages
+Summary: Check that all 110 tools are listed neatly on the Tools page","Website Pages","High","Click ""Tools"" in the top menu bar.","Step 1: Go to the Tools page (/tools).
+Step 2: Check the total count badge showing all tools.
+Step 3: Scroll down the grid.
+Step 4: Check that each tool card has a title, short description, and category badge.","None","All tools are displayed neatly in a clean grid with clear descriptions and icons.","PASS","uft,qa,website_pages"
+"Test","TC-009","[Category Filter Buttons] Click category filter buttons (PDF, Image, Excel, etc.) to show only those tools","Test Case ID: TC-009
+Feature: Category Filter Buttons
+Category: Website Pages
+Summary: Click category filter buttons (PDF, Image, Excel, etc.) to show only those tools","Website Pages","High","On the /tools page in Chrome.","Step 1: Click the ""PDF"" filter button.
+Step 2: Check that only PDF tools are displayed.
+Step 3: Click the ""Excel"" filter button.
+Step 4: Check that only spreadsheet tools are displayed.","None","The tool list instantly updates to show only the selected category.","PASS","uft,qa,website_pages"
+"Test","TC-010","[Search Inside Tools Page] Type words like ""watermark"", ""csv"", or ""crop"" to find tools","Test Case ID: TC-010
+Feature: Search Inside Tools Page
+Category: Website Pages
+Summary: Type words like ""watermark"", ""csv"", or ""crop"" to find tools","Website Pages","High","On the /tools page in Chrome.","Step 1: Click the search box on the Tools page.
+Step 2: Type ""csv"".
+Step 3: Check that only CSV and spreadsheet tools appear.
+Step 4: Type a random word like ""xyz123"" and check that a friendly ""No tools found"" message appears.","None","The tools filter in real time as you type, and shows a friendly message if nothing matches.","PASS","uft,qa,website_pages"
+"Test","TC-011","[Picture Tools Hub] Open the Picture Tools Hub and preview a photo","Test Case ID: TC-011
+Feature: Picture Tools Hub
+Category: Website Pages
+Summary: Open the Picture Tools Hub and preview a photo","Website Pages","High","Click ""Image"" in the top navigation menu.","Step 1: Open the Image Hub page (/tools/image).
+Step 2: Drag a photo into the quick upload box on the right.
+Step 3: Check that a picture preview appears immediately.","1 photo (PNG or JPG)","The photo preview appears right away with options to resize, crop, or compress.","PASS","uft,qa,website_pages"
+"Test","TC-012","[Visual Photo Crop Tool] Use the interactive crop box to cut out unwanted edges of a picture","Test Case ID: TC-012
+Feature: Visual Photo Crop Tool
+Category: Website Pages
+Summary: Use the interactive crop box to cut out unwanted edges of a picture","Website Pages","High","Open the Crop Tool page (/crop).","Step 1: Upload a photo.
+Step 2: Use your mouse to drag the crop box corners to select the part you want.
+Step 3: Check that the pixel size (width and height) updates as you drag.","1 photo (PNG or JPG)","The crop box handles drag smoothly and updates dimensions in real time.","PASS","uft,qa,website_pages"
+"Test","TC-013","[Recent Activity & History Page] Check that files you processed show up in your History page","Test Case ID: TC-013
+Feature: Recent Activity & History Page
+Category: Website Pages
+Summary: Check that files you processed show up in your History page","Website Pages","Medium","Run any tool (like resizing an image or merging a PDF).","Step 1: Process any file using a tool.
+Step 2: Click ""History"" in the top menu.
+Step 3: Check that the file you just processed is listed with a ""Download"" button.","1 test file","Your recently processed files appear in a list with time stamps and download buttons.","PASS","uft,qa,website_pages"
+"Test","TC-014","[Clear Activity History] Click ""Clear History"" to wipe your past activity list","Test Case ID: TC-014
+Feature: Clear Activity History
+Category: Website Pages
+Summary: Click ""Clear History"" to wipe your past activity list","Website Pages","Low","History page has items listed.","Step 1: Go to the History page.
+Step 2: Click the ""Clear History"" or trash can button.
+Step 3: Check that the list is emptied and shows a clean empty state.","None","The history list is cleared immediately.","PASS","uft,qa,website_pages"
+"Test","TC-015","[Help & Contact Form] Fill out the contact form on the Help page","Test Case ID: TC-015
+Feature: Help & Contact Form
+Category: Website Pages
+Summary: Fill out the contact form on the Help page","Website Pages","Low","Go to the Help & Support page (/help).","Step 1: Type your name, email address, and a short message in the form.
+Step 2: Click the ""Send Message"" button.
+Step 3: Check that a green success message appears.","Name: John, Email: john@example.com, Message: Hello","The form validates your email and shows a confirmation message.","PASS","uft,qa,website_pages"
+"Test","TC-016","[Merge PDF] Combine two or more PDF files into one single PDF","Test Case ID: TC-016
+Feature: Merge PDF
+Category: PDF Tools
+Summary: Combine two or more PDF files into one single PDF","PDF Tools","High","Have at least 2 PDF files ready on your computer.","Step 1: Open the ""Merge PDF"" tool.
+Step 2: Choose or drag 2 PDF files into the upload box.
+Step 3: Click the ""Merge PDF"" button.
+Step 4: Click ""Download"" to save the combined PDF.","2 PDF files (e.g. FileA.pdf and FileB.pdf)","One single combined PDF file downloads with all pages from both files in order.","PASS","uft,qa,pdf_tools"
+"Test","TC-017","[Split PDF] Split one multi-page PDF into separate smaller PDF files","Test Case ID: TC-017
+Feature: Split PDF
+Category: PDF Tools
+Summary: Split one multi-page PDF into separate smaller PDF files","PDF Tools","High","Have a PDF file with 2 or more pages.","Step 1: Open the ""Split PDF"" tool.
+Step 2: Upload your multi-page PDF.
+Step 3: Type the page numbers you want (e.g. ""1, 2"").
+Step 4: Click ""Split PDF"" and download the result.","1 PDF with 3 pages","The PDF splits into individual files or the page range you picked.","PASS","uft,qa,pdf_tools"
+"Test","TC-018","[Compress PDF] Make a large PDF file size smaller so it is easier to email","Test Case ID: TC-018
+Feature: Compress PDF
+Category: PDF Tools
+Summary: Make a large PDF file size smaller so it is easier to email","PDF Tools","High","Have a PDF file.","Step 1: Open the ""Compress PDF"" tool.
+Step 2: Upload your PDF file.
+Step 3: Pick compression level: Low, Medium, or High.
+Step 4: Click ""Compress"" and download the smaller file.","1 PDF file","The PDF downloads with a smaller file size while remaining clear and readable.","PASS","uft,qa,pdf_tools"
+"Test","TC-019","[Rotate PDF] Turn upside-down or sideways PDF pages right-side up","Test Case ID: TC-019
+Feature: Rotate PDF
+Category: PDF Tools
+Summary: Turn upside-down or sideways PDF pages right-side up","PDF Tools","High","Have a PDF file.","Step 1: Open the ""Rotate PDF"" tool.
+Step 2: Upload your PDF.
+Step 3: Choose 90°, 180°, or 270°.
+Step 4: Click ""Rotate PDF"" and download.","1 PDF file","The downloaded PDF has all pages rotated to the angle you selected.","PASS","uft,qa,pdf_tools"
+"Test","TC-020","[Extract Pages from PDF] Pull out specific pages from a big PDF and save them as a new file","Test Case ID: TC-020
+Feature: Extract Pages from PDF
+Category: PDF Tools
+Summary: Pull out specific pages from a big PDF and save them as a new file","PDF Tools","High","Have a multi-page PDF file.","Step 1: Open the ""Extract Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Enter the page numbers you want (e.g. ""1"").
+Step 4: Click ""Extract"" and download.","1 multi-page PDF","A new PDF is created containing only the exact pages you chose.","PASS","uft,qa,pdf_tools"
+"Test","TC-021","[Delete Pages from PDF] Remove unwanted pages from a PDF document","Test Case ID: TC-021
+Feature: Delete Pages from PDF
+Category: PDF Tools
+Summary: Remove unwanted pages from a PDF document","PDF Tools","High","Have a multi-page PDF file.","Step 1: Open the ""Delete Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Enter the page numbers to delete (e.g. ""2"").
+Step 4: Click ""Delete Pages"" and download.","1 PDF with 2 pages","The unwanted page is deleted and the remaining pages download cleanly.","PASS","uft,qa,pdf_tools"
+"Test","TC-022","[Add Watermark to PDF] Stamp a word like ""CONFIDENTIAL"" or ""DRAFT"" across PDF pages","Test Case ID: TC-022
+Feature: Add Watermark to PDF
+Category: PDF Tools
+Summary: Stamp a word like ""CONFIDENTIAL"" or ""DRAFT"" across PDF pages","PDF Tools","High","Have a PDF file.","Step 1: Open the ""Add Watermark"" tool.
+Step 2: Upload your PDF.
+Step 3: Type your watermark text (e.g. ""CONFIDENTIAL"").
+Step 4: Click ""Add Watermark"" and download.","1 PDF file","The downloaded PDF shows the watermark text clearly across each page.","PASS","uft,qa,pdf_tools"
+"Test","TC-023","[Add Page Numbers to PDF] Add page numbers (1, 2, 3...) to the bottom or top of each page","Test Case ID: TC-023
+Feature: Add Page Numbers to PDF
+Category: PDF Tools
+Summary: Add page numbers (1, 2, 3...) to the bottom or top of each page","PDF Tools","Medium","Have a multi-page PDF file.","Step 1: Open the ""Add Page Numbers"" tool.
+Step 2: Upload your PDF.
+Step 3: Pick position (Bottom Center) and format (Numeric: 1, 2, 3).
+Step 4: Click ""Add Page Numbers"" and download.","1 multi-page PDF","Every page shows a neat, centered page number at the bottom.","PASS","uft,qa,pdf_tools"
+"Test","TC-024","[Lock PDF with Password] Protect a PDF with a password so only people who know it can open it","Test Case ID: TC-024
+Feature: Lock PDF with Password
+Category: PDF Tools
+Summary: Protect a PDF with a password so only people who know it can open it","PDF Tools","High","Have a PDF file.","Step 1: Open the ""Password Protect"" tool.
+Step 2: Upload your PDF.
+Step 3: Type a password (e.g. ""Secret123"").
+Step 4: Click ""Protect"" and download.","1 PDF file, Password: ""Secret123""","When opening the downloaded PDF in Chrome, it asks for the password before opening.","PASS","uft,qa,pdf_tools"
+"Test","TC-025","[Unlock / Remove Password from PDF] Remove the password from a PDF so you don't have to type it every time","Test Case ID: TC-025
+Feature: Unlock / Remove Password from PDF
+Category: PDF Tools
+Summary: Remove the password from a PDF so you don't have to type it every time","PDF Tools","Medium","Have a password-locked PDF file.","Step 1: Open the ""Unlock PDF"" tool.
+Step 2: Upload the locked PDF and type the password.
+Step 3: Click ""Unlock"" and download.","1 password-protected PDF","The PDF downloads unlocked and can now be opened without typing a password.","PASS","uft,qa,pdf_tools"
+"Test","TC-026","[Plain Text to PDF] Turn a plain text file (.txt) into a clean, formatted PDF document","Test Case ID: TC-026
+Feature: Plain Text to PDF
+Category: PDF Tools
+Summary: Turn a plain text file (.txt) into a clean, formatted PDF document","PDF Tools","Medium","Have a text file with notes or paragraphs.","Step 1: Open the ""Text to PDF"" tool.
+Step 2: Upload your .txt file.
+Step 3: Click ""Convert to PDF"" and download.","1 text file (notes.txt)","A clean, printable PDF document is generated from your plain text.","PASS","uft,qa,pdf_tools"
+"Test","TC-027","[Pictures to PDF] Put several pictures or photos together into one PDF album or book","Test Case ID: TC-027
+Feature: Pictures to PDF
+Category: PDF Tools
+Summary: Put several pictures or photos together into one PDF album or book","PDF Tools","High","Have 2 or more pictures (PNG, JPG).","Step 1: Open the ""Images to PDF"" tool.
+Step 2: Upload your pictures.
+Step 3: Pick page size (A4 or Letter).
+Step 4: Click ""Create PDF"" and download.","2 pictures (photo1.jpg, photo2.png)","A PDF document is created with one picture per page.","PASS","uft,qa,pdf_tools"
+"Test","TC-028","[Copy / Duplicate Pages in PDF] Make a duplicate copy of a page inside your PDF document","Test Case ID: TC-028
+Feature: Copy / Duplicate Pages in PDF
+Category: PDF Tools
+Summary: Make a duplicate copy of a page inside your PDF document","PDF Tools","Medium","Have a PDF file.","Step 1: Open the ""Duplicate Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Enter the page number you want to copy (e.g. ""1"").
+Step 4: Click ""Duplicate"" and download.","1 PDF with 2 pages","The PDF downloads with an extra copy of the page (total 3 pages).","PASS","uft,qa,pdf_tools"
+"Test","TC-029","[Swap Two Pages in PDF] Swap the position of two pages (e.g. switch page 1 and page 2)","Test Case ID: TC-029
+Feature: Swap Two Pages in PDF
+Category: PDF Tools
+Summary: Swap the position of two pages (e.g. switch page 1 and page 2)","PDF Tools","Medium","Have a multi-page PDF file.","Step 1: Open the ""Swap Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Pick Page A (1) and Page B (2).
+Step 4: Click ""Swap"" and download.","1 PDF with 2 pages","The two pages trade positions cleanly in the downloaded PDF.","PASS","uft,qa,pdf_tools"
+"Test","TC-030","[Reverse PDF Page Order] Flip the entire PDF backwards so the last page becomes the first page","Test Case ID: TC-030
+Feature: Reverse PDF Page Order
+Category: PDF Tools
+Summary: Flip the entire PDF backwards so the last page becomes the first page","PDF Tools","Medium","Have a multi-page PDF file.","Step 1: Open the ""Reverse Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Click ""Reverse"" and download.","1 PDF with 3 pages","The pages are reversed (page 3 is now first, page 1 is last).","PASS","uft,qa,pdf_tools"
+"Test","TC-031","[Check PDF for Errors (Validate)] Test a PDF file to see if it is healthy or corrupted","Test Case ID: TC-031
+Feature: Check PDF for Errors (Validate)
+Category: PDF Tools
+Summary: Test a PDF file to see if it is healthy or corrupted","PDF Tools","High","Have any PDF file.","Step 1: Open the ""Validate PDF"" tool.
+Step 2: Upload your PDF file.
+Step 3: Click ""Validate"".
+Step 4: Read the health report on screen.","1 PDF file","The screen clearly says ""Valid: True"" and shows page count and version.","PASS","uft,qa,pdf_tools"
+"Test","TC-032","[Read PDF Information (Metadata)] See title, author name, creation date, and total pages of a PDF","Test Case ID: TC-032
+Feature: Read PDF Information (Metadata)
+Category: PDF Tools
+Summary: See title, author name, creation date, and total pages of a PDF","PDF Tools","Medium","Have any PDF file.","Step 1: Open the ""PDF Metadata"" tool.
+Step 2: Upload your PDF.
+Step 3: Click ""Read Info"".","1 PDF file","A table shows the file details (number of pages, author, title, creation date).","PASS","uft,qa,pdf_tools"
+"Test","TC-033","[Edit PDF Information] Change or add the title, author, and description on a PDF document","Test Case ID: TC-033
+Feature: Edit PDF Information
+Category: PDF Tools
+Summary: Change or add the title, author, and description on a PDF document","PDF Tools","Medium","Have a PDF file.","Step 1: Open the ""Edit PDF Info"" tool.
+Step 2: Upload your PDF.
+Step 3: Type new Title: ""Quarterly Report"", Author: ""Team"".
+Step 4: Click ""Save"" and download.","1 PDF file","The new title and author are saved into the PDF file.","PASS","uft,qa,pdf_tools"
+"Test","TC-034","[Crop PDF Margins] Trim white margins or borders from all pages of a PDF document","Test Case ID: TC-034
+Feature: Crop PDF Margins
+Category: PDF Tools
+Summary: Trim white margins or borders from all pages of a PDF document","PDF Tools","Medium","Have a PDF file with wide margins.","Step 1: Open the ""Crop PDF"" tool.
+Step 2: Upload your PDF.
+Step 3: Set margin crop amount (e.g. 20 pixels).
+Step 4: Click ""Crop"" and download.","1 PDF file","Extra white space around the pages is trimmed away cleanly.","PASS","uft,qa,pdf_tools"
+"Test","TC-035","[Change PDF Page Size (A4 / Letter)] Change page dimensions of a PDF to standard A4 or US Letter","Test Case ID: TC-035
+Feature: Change PDF Page Size (A4 / Letter)
+Category: PDF Tools
+Summary: Change page dimensions of a PDF to standard A4 or US Letter","PDF Tools","Medium","Have a PDF file.","Step 1: Open the ""Resize PDF Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Choose target page size: ""A4"".
+Step 4: Click ""Resize"" and download.","1 PDF file","All pages fit cleanly into the chosen standard page size.","PASS","uft,qa,pdf_tools"
+"Test","TC-036","[Flatten PDF Form Fields] Lock filled-in PDF forms so nobody can change your typed answers","Test Case ID: TC-036
+Feature: Flatten PDF Form Fields
+Category: PDF Tools
+Summary: Lock filled-in PDF forms so nobody can change your typed answers","PDF Tools","Medium","Have a fillable PDF form.","Step 1: Open the ""Flatten PDF"" tool.
+Step 2: Upload your PDF form.
+Step 3: Click ""Flatten"" and download.","1 fillable PDF form","Form fields become permanent text that cannot be clicked or edited.","PASS","uft,qa,pdf_tools"
+"Test","TC-037","[Pull Text Out of PDF] Copy all the text out of a PDF document and save it as plain text","Test Case ID: TC-037
+Feature: Pull Text Out of PDF
+Category: PDF Tools
+Summary: Copy all the text out of a PDF document and save it as plain text","PDF Tools","High","Have a PDF with text.","Step 1: Open the ""Extract Text from PDF"" tool.
+Step 2: Upload your PDF.
+Step 3: Click ""Extract Text"" and download the text file.","1 PDF with paragraphs","A plain text (.txt) file downloads with all the words from the PDF.","PASS","uft,qa,pdf_tools"
+"Test","TC-038","[Turn PDF into Pictures (PNG/JPG)] Save each page of a PDF document as an image file","Test Case ID: TC-038
+Feature: Turn PDF into Pictures (PNG/JPG)
+Category: PDF Tools
+Summary: Save each page of a PDF document as an image file","PDF Tools","High","Have a PDF file.","Step 1: Open the ""PDF to Images"" tool.
+Step 2: Upload your PDF.
+Step 3: Choose format: ""PNG"".
+Step 4: Click ""Convert"" and download the images.","1 PDF file","A ZIP file or list of pictures is provided, one image per PDF page.","PASS","uft,qa,pdf_tools"
+"Test","TC-039","[Turn PDF into Word Document (.docx)] Convert a PDF into an editable Microsoft Word document","Test Case ID: TC-039
+Feature: Turn PDF into Word Document (.docx)
+Category: PDF Tools
+Summary: Convert a PDF into an editable Microsoft Word document","PDF Tools","High","Have a PDF document.","Step 1: Open the ""PDF to Word"" tool.
+Step 2: Upload your PDF file.
+Step 3: Click ""Convert to Word"" and download.","1 PDF document","An editable .docx Word document downloads with your text and tables.","PASS","uft,qa,pdf_tools"
+"Test","TC-040","[Turn PDF into Web Page (.html)] Convert a PDF into an HTML web page you can view in any web browser","Test Case ID: TC-040
+Feature: Turn PDF into Web Page (.html)
+Category: PDF Tools
+Summary: Convert a PDF into an HTML web page you can view in any web browser","PDF Tools","Medium","Have a PDF document.","Step 1: Open the ""PDF to HTML"" tool.
+Step 2: Upload your PDF.
+Step 3: Click ""Convert to HTML"" and download.","1 PDF document","An .html file downloads that opens in Google Chrome showing the document.","PASS","uft,qa,pdf_tools"
+"Test","TC-041","[Extract Pictures from PDF] Save all images and photos embedded inside a PDF to your computer","Test Case ID: TC-041
+Feature: Extract Pictures from PDF
+Category: PDF Tools
+Summary: Save all images and photos embedded inside a PDF to your computer","PDF Tools","Medium","Have a PDF containing pictures.","Step 1: Open the ""Extract PDF Images"" tool.
+Step 2: Upload your PDF.
+Step 3: Click ""Extract Images"" and download the ZIP file.","1 PDF with pictures","A ZIP folder downloads containing each picture saved in original quality.","PASS","uft,qa,pdf_tools"
+"Test","TC-042","[Extreme PDF Compression for Email] Drastically shrink a huge PDF so it fits under email size limits (e.g. under 10MB)","Test Case ID: TC-042
+Feature: Extreme PDF Compression for Email
+Category: PDF Tools
+Summary: Drastically shrink a huge PDF so it fits under email size limits (e.g. under 10MB)","PDF Tools","High","Have a large PDF file.","Step 1: Open ""Compress PDF"".
+Step 2: Select ""High Compression"".
+Step 3: Upload the large file and click ""Compress"".","1 large PDF file","The file size shrinks significantly while remaining readable.","PASS","uft,qa,pdf_tools"
+"Test","TC-043","[Read PDF Bookmarks & Chapters] Inspect the table of contents and chapter bookmarks inside a PDF","Test Case ID: TC-043
+Feature: Read PDF Bookmarks & Chapters
+Category: PDF Tools
+Summary: Inspect the table of contents and chapter bookmarks inside a PDF","PDF Tools","Low","Have a PDF with bookmarks/chapters.","Step 1: Open the ""PDF Bookmarks"" tool.
+Step 2: Upload your PDF.
+Step 3: Click ""Read Bookmarks"".","1 PDF with table of contents","A list of chapters and page numbers is displayed clearly on screen.","PASS","uft,qa,pdf_tools"
+"Test","TC-044","[Add Web Links to PDF] Add a clickable website link onto a page in your PDF document","Test Case ID: TC-044
+Feature: Add Web Links to PDF
+Category: PDF Tools
+Summary: Add a clickable website link onto a page in your PDF document","PDF Tools","Low","Have a PDF file.","Step 1: Open the ""Add Links"" tool.
+Step 2: Upload your PDF.
+Step 3: Type link URL: ""https://example.com"" and page number.
+Step 4: Click ""Apply"" and download.","1 PDF file","Clicking the link inside the downloaded PDF opens the website in Chrome.","PASS","uft,qa,pdf_tools"
+"Test","TC-045","[Rearrange PDF Pages by Dragging] Change the order of pages in a PDF by entering a new page sequence (e.g. ""3, 1, 2"")","Test Case ID: TC-045
+Feature: Rearrange PDF Pages by Dragging
+Category: PDF Tools
+Summary: Change the order of pages in a PDF by entering a new page sequence (e.g. ""3, 1, 2"")","PDF Tools","Medium","Have a 3-page PDF file.","Step 1: Open the ""Rearrange Pages"" tool.
+Step 2: Upload your PDF.
+Step 3: Type order: ""2, 1"".
+Step 4: Click ""Rearrange"" and download.","1 PDF with 2 pages","The downloaded PDF has pages in the exact sequence you specified.","PASS","uft,qa,pdf_tools"
+"Test","TC-046","[Resize Image] Change the width and height of a picture to specific pixel dimensions","Test Case ID: TC-046
+Feature: Resize Image
+Category: Picture Tools
+Summary: Change the width and height of a picture to specific pixel dimensions","Picture Tools","High","Have a photo or image file.","Step 1: Open the ""Resize Image"" tool.
+Step 2: Upload your photo.
+Step 3: Enter Width: 200, Height: 200.
+Step 4: Click ""Resize"" and download.","1 photo (100x100 PNG)","The downloaded picture has the exact dimensions (200x200 pixels).","PASS","uft,qa,picture_tools"
+"Test","TC-047","[Crop Image] Crop a picture to keep only the middle or selected portion","Test Case ID: TC-047
+Feature: Crop Image
+Category: Picture Tools
+Summary: Crop a picture to keep only the middle or selected portion","Picture Tools","High","Have a photo or image file.","Step 1: Open the ""Crop Image"" tool.
+Step 2: Upload your photo.
+Step 3: Set Width: 50, Height: 50, Left: 25, Top: 25.
+Step 4: Click ""Crop"" and download.","1 photo (100x100 PNG)","Only the selected 50x50 center part of the picture is saved.","PASS","uft,qa,picture_tools"
+"Test","TC-048","[Convert Picture to WebP] Turn a PNG or JPG into WebP format for faster website loading","Test Case ID: TC-048
+Feature: Convert Picture to WebP
+Category: Picture Tools
+Summary: Turn a PNG or JPG into WebP format for faster website loading","Picture Tools","High","Have a PNG or JPG photo.","Step 1: Open the ""Convert Image"" tool.
+Step 2: Upload your photo.
+Step 3: Choose target format: ""WebP"".
+Step 4: Click ""Convert"" and download.","1 PNG photo","A .webp picture downloads that opens cleanly in Google Chrome.","PASS","uft,qa,picture_tools"
+"Test","TC-049","[Convert PNG to JPG] Change a PNG picture with transparency into a standard JPG picture","Test Case ID: TC-049
+Feature: Convert PNG to JPG
+Category: Picture Tools
+Summary: Change a PNG picture with transparency into a standard JPG picture","Picture Tools","High","Have a PNG image.","Step 1: Open ""Convert Image"".
+Step 2: Upload PNG.
+Step 3: Choose ""JPG"" format.
+Step 4: Click ""Convert"" and download.","1 PNG image","A standard .jpg photo downloads with a clean background.","PASS","uft,qa,picture_tools"
+"Test","TC-050","[Convert JPG to PNG] Change a JPG photo into a lossless PNG picture","Test Case ID: TC-050
+Feature: Convert JPG to PNG
+Category: Picture Tools
+Summary: Change a JPG photo into a lossless PNG picture","Picture Tools","High","Have a JPG photo.","Step 1: Open ""Convert Image"".
+Step 2: Upload JPG.
+Step 3: Choose ""PNG"".
+Step 4: Click ""Convert"" and download.","1 JPG photo","A sharp .png file downloads.","PASS","uft,qa,picture_tools"
+"Test","TC-051","[Compress Picture File Size] Make a photo file size smaller while keeping it clear and sharp","Test Case ID: TC-051
+Feature: Compress Picture File Size
+Category: Picture Tools
+Summary: Make a photo file size smaller while keeping it clear and sharp","Picture Tools","High","Have a high-resolution photo.","Step 1: Open the ""Compress Image"" tool.
+Step 2: Upload your photo.
+Step 3: Move the quality slider to 80%.
+Step 4: Click ""Compress"" and download.","1 photo (photo.jpg)","The picture file size is reduced significantly without visible blur.","PASS","uft,qa,picture_tools"
+"Test","TC-052","[Rotate Picture] Turn a picture 90 degrees, 180 degrees, or 270 degrees","Test Case ID: TC-052
+Feature: Rotate Picture
+Category: Picture Tools
+Summary: Turn a picture 90 degrees, 180 degrees, or 270 degrees","Picture Tools","High","Have any picture file.","Step 1: Open the ""Rotate Image"" tool.
+Step 2: Upload your photo.
+Step 3: Select 90° clockwise.
+Step 4: Click ""Rotate"" and download.","1 photo (photo.png)","The picture downloads turned 90 degrees to the right.","PASS","uft,qa,picture_tools"
+"Test","TC-053","[Flip Picture (Mirror Effect)] Flip a picture sideways (horizontal mirror) or upside down (vertical)","Test Case ID: TC-053
+Feature: Flip Picture (Mirror Effect)
+Category: Picture Tools
+Summary: Flip a picture sideways (horizontal mirror) or upside down (vertical)","Picture Tools","Medium","Have any picture file.","Step 1: Open the ""Flip Image"" tool.
+Step 2: Upload your photo.
+Step 3: Select ""Horizontal"".
+Step 4: Click ""Flip"" and download.","1 photo","The picture is mirrored horizontally from left to right.","PASS","uft,qa,picture_tools"
+"Test","TC-054","[Blur Picture] Apply a soft Gaussian blur to hide faces, private details, or soften background","Test Case ID: TC-054
+Feature: Blur Picture
+Category: Picture Tools
+Summary: Apply a soft Gaussian blur to hide faces, private details, or soften background","Picture Tools","Medium","Have any picture file.","Step 1: Open the ""Blur Image"" tool.
+Step 2: Upload your photo.
+Step 3: Set blur strength to 5.
+Step 4: Click ""Blur"" and download.","1 photo (100x100 PNG)","The picture downloads with smooth, soft blurred details.","PASS","uft,qa,picture_tools"
+"Test","TC-055","[Sharpen Picture] Sharpen a slightly fuzzy or soft photo to make details stand out","Test Case ID: TC-055
+Feature: Sharpen Picture
+Category: Picture Tools
+Summary: Sharpen a slightly fuzzy or soft photo to make details stand out","Picture Tools","Medium","Have a photo.","Step 1: Open the ""Sharpen Image"" tool.
+Step 2: Upload your photo.
+Step 3: Set strength to 2.
+Step 4: Click ""Sharpen"" and download.","1 photo","The picture edges and details look crisper and more defined.","PASS","uft,qa,picture_tools"
+"Test","TC-056","[Adjust Brightness & Contrast] Make a dark photo brighter or boost the colors and contrast","Test Case ID: TC-056
+Feature: Adjust Brightness & Contrast
+Category: Picture Tools
+Summary: Make a dark photo brighter or boost the colors and contrast","Picture Tools","Medium","Have a photo.","Step 1: Open the ""Adjust Image"" tool.
+Step 2: Upload your photo.
+Step 3: Increase brightness to 1.2.
+Step 4: Click ""Apply"" and download.","1 photo","The picture looks noticeably brighter and clearer.","PASS","uft,qa,picture_tools"
+"Test","TC-057","[Black & White Picture (Grayscale)] Turn a color photo into classic black and white","Test Case ID: TC-057
+Feature: Black & White Picture (Grayscale)
+Category: Picture Tools
+Summary: Turn a color photo into classic black and white","Picture Tools","Medium","Have a color photo.","Step 1: Open the ""Grayscale Image"" tool.
+Step 2: Upload your color photo.
+Step 3: Click ""Convert to Black & White"" and download.","1 color photo","The downloaded photo is black and white with no colors remaining.","PASS","uft,qa,picture_tools"
+"Test","TC-058","[Invert Picture Colors] Invert the colors of a picture to make a negative film look","Test Case ID: TC-058
+Feature: Invert Picture Colors
+Category: Picture Tools
+Summary: Invert the colors of a picture to make a negative film look","Picture Tools","Low","Have any picture file.","Step 1: Open the ""Invert Image"" tool.
+Step 2: Upload your picture.
+Step 3: Click ""Invert Colors"" and download.","1 picture (photo.png)","All colors are inverted (white becomes black, dark becomes light).","PASS","uft,qa,picture_tools"
+"Test","TC-059","[Find Main Colors in Picture (Palette)] Pick out the top 5 dominant colors used in a photo with their color codes","Test Case ID: TC-059
+Feature: Find Main Colors in Picture (Palette)
+Category: Picture Tools
+Summary: Pick out the top 5 dominant colors used in a photo with their color codes","Picture Tools","Medium","Have a colorful photo.","Step 1: Open the ""Dominant Colors"" tool.
+Step 2: Upload your photo.
+Step 3: Click ""Extract Palette"".","1 colorful photo","Color swatches and color codes (like Red, Blue, or Hex #FF0000) appear on screen.","PASS","uft,qa,picture_tools"
+"Test","TC-060","[Trim Empty Picture Borders] Automatically cut off empty transparent or white borders around an icon or logo","Test Case ID: TC-060
+Feature: Trim Empty Picture Borders
+Category: Picture Tools
+Summary: Automatically cut off empty transparent or white borders around an icon or logo","Picture Tools","Medium","Have a logo with extra transparent space.","Step 1: Open the ""Trim Image"" tool.
+Step 2: Upload your logo.
+Step 3: Click ""Trim"" and download.","1 logo PNG with transparent margins","Extra border space is automatically cut off, keeping just the logo.","PASS","uft,qa,picture_tools"
+"Test","TC-061","[Read Photo Camera Info (EXIF)] See camera model, date taken, exposure time, and photo dimensions","Test Case ID: TC-061
+Feature: Read Photo Camera Info (EXIF)
+Category: Picture Tools
+Summary: See camera model, date taken, exposure time, and photo dimensions","Picture Tools","Medium","Have a camera photo.","Step 1: Open the ""Image Metadata"" tool.
+Step 2: Upload your camera photo.
+Step 3: Click ""View Info"".","1 camera photo (photo.jpg)","A neat table displays camera model, resolution, format, and color type.","PASS","uft,qa,picture_tools"
+"Test","TC-062","[Remove Private Camera Info for Privacy] Strip out GPS location and camera details from a photo before posting online","Test Case ID: TC-062
+Feature: Remove Private Camera Info for Privacy
+Category: Picture Tools
+Summary: Strip out GPS location and camera details from a photo before posting online","Picture Tools","High","Have a phone photo with location data.","Step 1: Open the ""Remove EXIF"" tool.
+Step 2: Upload your photo.
+Step 3: Click ""Strip Info"" and download.","1 phone photo","The photo downloads clean of private GPS and camera data.","PASS","uft,qa,picture_tools"
+"Test","TC-063","[Create Small Thumbnail Picture] Quickly make a tiny 150x150 or 200x200 preview thumbnail from a large photo","Test Case ID: TC-063
+Feature: Create Small Thumbnail Picture
+Category: Picture Tools
+Summary: Quickly make a tiny 150x150 or 200x200 preview thumbnail from a large photo","Picture Tools","Medium","Have a large photo.","Step 1: Open the ""Thumbnail"" tool.
+Step 2: Upload your photo.
+Step 3: Set size: 200x200.
+Step 4: Click ""Create Thumbnail"" and download.","1 large photo","A small thumbnail picture downloads cleanly.","PASS","uft,qa,picture_tools"
+"Test","TC-064","[Batch Resize Many Photos at Once] Upload 5 or 10 photos at the same time and resize all of them together","Test Case ID: TC-064
+Feature: Batch Resize Many Photos at Once
+Category: Picture Tools
+Summary: Upload 5 or 10 photos at the same time and resize all of them together","Picture Tools","High","Have 3 or more photos.","Step 1: Open the ""Batch Resize"" tool.
+Step 2: Upload 3 photos together.
+Step 3: Set target width: 800.
+Step 4: Click ""Resize All"" and download the ZIP file.","3 photos","A ZIP folder downloads with all 3 photos resized to the same width.","PASS","uft,qa,picture_tools"
+"Test","TC-065","[Remove Photo Background] Cut out a person or product and make the background transparent","Test Case ID: TC-065
+Feature: Remove Photo Background
+Category: Picture Tools
+Summary: Cut out a person or product and make the background transparent","Picture Tools","High","Have a photo of an object or person.","Step 1: Open the ""Remove Background"" tool.
+Step 2: Upload your photo.
+Step 3: Click ""Remove Background"" and download.","1 photo","The background is removed, leaving a transparent PNG of the subject.","PASS","uft,qa,picture_tools"
+"Test","TC-066","[Adjust Color Warmth (Gamma)] Make a photo warmer or cooler by adjusting the gamma slider","Test Case ID: TC-066
+Feature: Adjust Color Warmth (Gamma)
+Category: Picture Tools
+Summary: Make a photo warmer or cooler by adjusting the gamma slider","Picture Tools","Low","Have a photo.","Step 1: Open the ""Gamma Adjustment"" tool.
+Step 2: Upload photo.
+Step 3: Set gamma to 2.2.
+Step 4: Click ""Apply"" and download.","1 photo","The picture colors shift smoothly based on the gamma setting.","PASS","uft,qa,picture_tools"
+"Test","TC-067","[Ink Sketch Effect (Threshold)] Turn a photo into high-contrast black ink on white paper","Test Case ID: TC-067
+Feature: Ink Sketch Effect (Threshold)
+Category: Picture Tools
+Summary: Turn a photo into high-contrast black ink on white paper","Picture Tools","Low","Have a photo.","Step 1: Open the ""Threshold Image"" tool.
+Step 2: Upload photo.
+Step 3: Set threshold to 128.
+Step 4: Click ""Apply"" and download.","1 photo","The picture becomes a pure black-and-white ink stencil.","PASS","uft,qa,picture_tools"
+"Test","TC-068","[Stamp Watermark on Photo] Put copyright text (e.g. ""© 2026 MyBrand"") over a photo to stop theft","Test Case ID: TC-068
+Feature: Stamp Watermark on Photo
+Category: Picture Tools
+Summary: Put copyright text (e.g. ""© 2026 MyBrand"") over a photo to stop theft","Picture Tools","High","Have a photo.","Step 1: Open the ""Watermark Image"" tool.
+Step 2: Upload your photo.
+Step 3: Type text: ""CONFIDENTIAL"", position: Center.
+Step 4: Click ""Add Watermark"" and download.","1 photo","The photo downloads with the semi-transparent watermark text over it.","PASS","uft,qa,picture_tools"
+"Test","TC-069","[Convert iPhone HEIC Photos to JPG] Change iPhone .heic photos into standard .jpg photos that open on Windows","Test Case ID: TC-069
+Feature: Convert iPhone HEIC Photos to JPG
+Category: Picture Tools
+Summary: Change iPhone .heic photos into standard .jpg photos that open on Windows","Picture Tools","High","Have an iPhone .heic photo.","Step 1: Open ""Convert Image"".
+Step 2: Upload iPhone .heic photo.
+Step 3: Pick ""JPG"".
+Step 4: Click ""Convert"" and download.","1 HEIC photo","A standard .jpg photo downloads that opens on any computer.","PASS","uft,qa,picture_tools"
+"Test","TC-070","[Enlarge Small Picture (Upscale)] Make a small picture twice as big while keeping edges clean","Test Case ID: TC-070
+Feature: Enlarge Small Picture (Upscale)
+Category: Picture Tools
+Summary: Make a small picture twice as big while keeping edges clean","Picture Tools","Medium","Have a small picture (100x100).","Step 1: Open ""Resize Image"".
+Step 2: Set Width to 200%.
+Step 3: Click ""Resize"" and download.","1 small picture","The picture enlarges cleanly without looking pixelated.","PASS","uft,qa,picture_tools"
+"Test","TC-071","[Excel to CSV] Convert an Excel workbook (.xlsx or .xls) into a standard CSV file","Test Case ID: TC-071
+Feature: Excel to CSV
+Category: Spreadsheets
+Summary: Convert an Excel workbook (.xlsx or .xls) into a standard CSV file","Spreadsheets","High","Have an Excel spreadsheet file.","Step 1: Open the ""Excel to CSV"" tool.
+Step 2: Upload your Excel file.
+Step 3: Click ""Convert to CSV"" and download.","1 Excel file (data.xlsx)","A .csv text file downloads with all your table rows and columns intact.","PASS","uft,qa,spreadsheets"
+"Test","TC-072","[CSV to Excel] Turn a CSV file into a formatted Microsoft Excel spreadsheet (.xlsx)","Test Case ID: TC-072
+Feature: CSV to Excel
+Category: Spreadsheets
+Summary: Turn a CSV file into a formatted Microsoft Excel spreadsheet (.xlsx)","Spreadsheets","High","Have a CSV file.","Step 1: Open the ""CSV to Excel"" tool.
+Step 2: Upload your CSV file.
+Step 3: Click ""Convert to Excel"" and download.","1 CSV file (data.csv)","A Microsoft Excel (.xlsx) file downloads that opens cleanly in Excel or Google Sheets.","PASS","uft,qa,spreadsheets"
+"Test","TC-073","[Remove Duplicate Rows in CSV] Find and delete repeated duplicate rows in a customer or data list","Test Case ID: TC-073
+Feature: Remove Duplicate Rows in CSV
+Category: Spreadsheets
+Summary: Find and delete repeated duplicate rows in a customer or data list","Spreadsheets","High","Have a CSV file that has repeated rows.","Step 1: Open the ""Deduplicate CSV"" tool.
+Step 2: Upload your CSV file.
+Step 3: Click ""Remove Duplicates"" and download.","1 CSV file with repeated customer rows","A cleaned CSV file downloads with all duplicate rows removed.","PASS","uft,qa,spreadsheets"
+"Test","TC-074","[JSON to CSV] Turn programmer JSON data into an easy-to-read CSV table","Test Case ID: TC-074
+Feature: JSON to CSV
+Category: Data Tools
+Summary: Turn programmer JSON data into an easy-to-read CSV table","Data Tools","High","Have a JSON data file.","Step 1: Open the ""JSON to CSV"" tool.
+Step 2: Upload your JSON file.
+Step 3: Click ""Convert"" and download the CSV.","1 JSON file with an array of objects","A clean CSV file is created with headers for each field.","PASS","uft,qa,data_tools"
+"Test","TC-075","[CSV to JSON] Convert a CSV spreadsheet table into JSON data for websites and apps","Test Case ID: TC-075
+Feature: CSV to JSON
+Category: Data Tools
+Summary: Convert a CSV spreadsheet table into JSON data for websites and apps","Data Tools","High","Have a CSV file.","Step 1: Open the ""CSV to JSON"" tool.
+Step 2: Upload your CSV file.
+Step 3: Click ""Convert"" and download the JSON file.","1 CSV file","A clean JSON file downloads with all rows converted into data objects.","PASS","uft,qa,data_tools"
+"Test","TC-076","[JSON to Excel] Turn JSON data straight into an Excel spreadsheet (.xlsx)","Test Case ID: TC-076
+Feature: JSON to Excel
+Category: Spreadsheets
+Summary: Turn JSON data straight into an Excel spreadsheet (.xlsx)","Spreadsheets","High","Have a JSON file.","Step 1: Open the ""JSON to Excel"" tool.
+Step 2: Upload JSON file.
+Step 3: Click ""Convert"" and download.","1 JSON data file","An Excel spreadsheet downloads with columns matching the JSON keys.","PASS","uft,qa,spreadsheets"
+"Test","TC-077","[Excel to JSON] Convert an Excel file into a JSON data file","Test Case ID: TC-077
+Feature: Excel to JSON
+Category: Spreadsheets
+Summary: Convert an Excel file into a JSON data file","Spreadsheets","High","Have an Excel file.","Step 1: Open ""Excel to JSON"".
+Step 2: Upload Excel file.
+Step 3: Click ""Convert"" and download.","1 Excel file","A clean JSON file downloads with all spreadsheet rows.","PASS","uft,qa,spreadsheets"
+"Test","TC-078","[Excel to Web Table (HTML)] Turn an Excel spreadsheet into a webpage table you can embed on a website","Test Case ID: TC-078
+Feature: Excel to Web Table (HTML)
+Category: Spreadsheets
+Summary: Turn an Excel spreadsheet into a webpage table you can embed on a website","Spreadsheets","Medium","Have an Excel file.","Step 1: Open ""Excel to HTML"".
+Step 2: Upload Excel file.
+Step 3: Click ""Convert"" and download the HTML file.","1 Excel file","An HTML file downloads showing a styled table in any web browser.","PASS","uft,qa,spreadsheets"
+"Test","TC-079","[Combine Multiple Excel Sheets into One] Merge data from multiple tabs or sheets into a single sheet","Test Case ID: TC-079
+Feature: Combine Multiple Excel Sheets into One
+Category: Spreadsheets
+Summary: Merge data from multiple tabs or sheets into a single sheet","Spreadsheets","Medium","Have an Excel file with 2 or more sheet tabs.","Step 1: Open the ""Merge Sheets"" tool.
+Step 2: Upload your multi-tab Excel file.
+Step 3: Click ""Merge"" and download.","1 Excel workbook with Sheet1 and Sheet2","One combined sheet is created containing rows from all sheets.","PASS","uft,qa,spreadsheets"
+"Test","TC-080","[Swap Rows and Columns (Transpose)] Rotate a table so that rows become columns and columns become rows","Test Case ID: TC-080
+Feature: Swap Rows and Columns (Transpose)
+Category: Spreadsheets
+Summary: Rotate a table so that rows become columns and columns become rows","Spreadsheets","Medium","Have a spreadsheet table.","Step 1: Open the ""Transpose Sheet"" tool.
+Step 2: Upload your table.
+Step 3: Click ""Transpose"" and download.","1 spreadsheet file","The table flips sideways, turning rows into columns.","PASS","uft,qa,spreadsheets"
+"Test","TC-081","[Lock Excel File with Password] Add a password to an Excel workbook so unauthorized people cannot open it","Test Case ID: TC-081
+Feature: Lock Excel File with Password
+Category: Spreadsheets
+Summary: Add a password to an Excel workbook so unauthorized people cannot open it","Spreadsheets","Medium","Have an Excel file.","Step 1: Open ""Protect Workbook"".
+Step 2: Upload Excel file and type a password.
+Step 3: Click ""Protect"" and download.","1 Excel file, Password: ""Pass123""","The downloaded Excel file asks for password before opening.","PASS","uft,qa,spreadsheets"
+"Test","TC-082","[Split Excel File into Separate Files] Save each tab of an Excel workbook as its own separate Excel file","Test Case ID: TC-082
+Feature: Split Excel File into Separate Files
+Category: Spreadsheets
+Summary: Save each tab of an Excel workbook as its own separate Excel file","Spreadsheets","Medium","Have an Excel file with multiple tabs.","Step 1: Open the ""Split Workbook"" tool.
+Step 2: Upload your Excel file.
+Step 3: Click ""Split"" and download the ZIP file.","1 Excel file with 3 tabs","A ZIP folder downloads containing 3 separate Excel files, one for each tab.","PASS","uft,qa,spreadsheets"
+"Test","TC-083","[Find and Replace Words in Excel] Search for a word or number across a spreadsheet and replace it with a new one","Test Case ID: TC-083
+Feature: Find and Replace Words in Excel
+Category: Spreadsheets
+Summary: Search for a word or number across a spreadsheet and replace it with a new one","Spreadsheets","Medium","Have an Excel file.","Step 1: Open ""Find & Replace Excel"".
+Step 2: Upload your file.
+Step 3: Find: ""2025"", Replace with: ""2026"".
+Step 4: Click ""Replace"" and download.","1 Excel file","All occurrences of the word are replaced with the new word.","PASS","uft,qa,spreadsheets"
+"Test","TC-084","[Count Rows, Columns & Sheets in Excel] Get a quick summary report of how many rows, columns, and tabs are in an Excel file","Test Case ID: TC-084
+Feature: Count Rows, Columns & Sheets in Excel
+Category: Spreadsheets
+Summary: Get a quick summary report of how many rows, columns, and tabs are in an Excel file","Spreadsheets","Medium","Have an Excel file.","Step 1: Open ""Workbook Statistics"".
+Step 2: Upload your Excel file.
+Step 3: Click ""Get Stats"".","1 Excel file with 4 rows","A summary card shows total rows (4), total columns, and sheet names.","PASS","uft,qa,spreadsheets"
+"Test","TC-085","[Clean Up Messy JSON (Pretty Print)] Format scrambled or single-line JSON text with neat 2-space indentation","Test Case ID: TC-085
+Feature: Clean Up Messy JSON (Pretty Print)
+Category: Data Tools
+Summary: Format scrambled or single-line JSON text with neat 2-space indentation","Data Tools","Medium","Have a messy or minified JSON file.","Step 1: Open the ""Format JSON"" tool.
+Step 2: Upload your JSON file or paste text.
+Step 3: Click ""Format"" and download.","1 messy JSON string","Neat, color-coded, well-indented JSON is produced that is easy to read.","PASS","uft,qa,data_tools"
+"Test","TC-086","[Shrink JSON into One Line (Minify)] Remove all extra spaces and line breaks from JSON to make file size smaller","Test Case ID: TC-086
+Feature: Shrink JSON into One Line (Minify)
+Category: Data Tools
+Summary: Remove all extra spaces and line breaks from JSON to make file size smaller","Data Tools","Medium","Have a formatted JSON file.","Step 1: Open the ""Minify JSON"" tool.
+Step 2: Upload your JSON file.
+Step 3: Click ""Minify"" and download.","1 formatted JSON file","All whitespace is removed, creating a compact single-line file.","PASS","uft,qa,data_tools"
+"Test","TC-087","[Check JSON for Errors (Validate)] Test if a JSON file has missing brackets or syntax errors","Test Case ID: TC-087
+Feature: Check JSON for Errors (Validate)
+Category: Data Tools
+Summary: Test if a JSON file has missing brackets or syntax errors","Data Tools","High","Have a JSON file.","Step 1: Open the ""Validate JSON"" tool.
+Step 2: Upload JSON file.
+Step 3: Click ""Validate"".","1 healthy JSON file and 1 broken JSON file","Says ""Valid: True"" for good JSON, and points out the exact error line for bad JSON.","PASS","uft,qa,data_tools"
+"Test","TC-088","[JSON to XML] Convert JSON data into XML tags","Test Case ID: TC-088
+Feature: JSON to XML
+Category: Data Tools
+Summary: Convert JSON data into XML tags","Data Tools","Medium","Have a JSON file.","Step 1: Open ""JSON to XML"".
+Step 2: Upload JSON.
+Step 3: Click ""Convert"" and download XML.","1 JSON file","A clean XML document downloads with opening and closing tags.","PASS","uft,qa,data_tools"
+"Test","TC-089","[XML to JSON] Convert XML data into JSON objects","Test Case ID: TC-089
+Feature: XML to JSON
+Category: Data Tools
+Summary: Convert XML data into JSON objects","Data Tools","Medium","Have an XML file.","Step 1: Open ""XML to JSON"".
+Step 2: Upload XML.
+Step 3: Click ""Convert"" and download JSON.","1 XML file","A clean JSON file downloads with all XML attributes and elements.","PASS","uft,qa,data_tools"
+"Test","TC-090","[Clean Up Messy XML (Format XML)] Format scrambled XML text with neat line indents","Test Case ID: TC-090
+Feature: Clean Up Messy XML (Format XML)
+Category: Data Tools
+Summary: Format scrambled XML text with neat line indents","Data Tools","Medium","Have an unformatted XML file.","Step 1: Open ""Format XML"".
+Step 2: Upload XML.
+Step 3: Click ""Format"" and download.","1 single-line XML file","Neat, indented XML tags that are easy to read.","PASS","uft,qa,data_tools"
+"Test","TC-091","[JSON to YAML] Convert JSON into clean YAML configuration format","Test Case ID: TC-091
+Feature: JSON to YAML
+Category: Data Tools
+Summary: Convert JSON into clean YAML configuration format","Data Tools","Medium","Have a JSON file.","Step 1: Open ""JSON to YAML"".
+Step 2: Upload JSON.
+Step 3: Click ""Convert"" and download YAML.","1 JSON file","A clean .yaml file downloads with standard indentation.","PASS","uft,qa,data_tools"
+"Test","TC-092","[YAML to JSON] Convert YAML configuration files into JSON format","Test Case ID: TC-092
+Feature: YAML to JSON
+Category: Data Tools
+Summary: Convert YAML configuration files into JSON format","Data Tools","Medium","Have a YAML file.","Step 1: Open ""YAML to JSON"".
+Step 2: Upload YAML.
+Step 3: Click ""Convert"" and download JSON.","1 YAML file","A clean .json file downloads.","PASS","uft,qa,data_tools"
+"Test","TC-093","[Markdown to HTML Web Page] Turn Markdown notes (# Headers, **bold**, lists) into a finished HTML webpage","Test Case ID: TC-093
+Feature: Markdown to HTML Web Page
+Category: Data Tools
+Summary: Turn Markdown notes (# Headers, **bold**, lists) into a finished HTML webpage","Data Tools","High","Have a Markdown file (.md).","Step 1: Open the ""Markdown to HTML"" tool.
+Step 2: Upload your .md file.
+Step 3: Click ""Convert to HTML"" and download.","1 Markdown file with headers and bullet points","A styled HTML webpage downloads with clean headings and bullet lists.","PASS","uft,qa,data_tools"
+"Test","TC-094","[HTML Web Page to Markdown] Turn an HTML webpage or blog post back into clean Markdown text","Test Case ID: TC-094
+Feature: HTML Web Page to Markdown
+Category: Data Tools
+Summary: Turn an HTML webpage or blog post back into clean Markdown text","Data Tools","Medium","Have an HTML file.","Step 1: Open ""HTML to Markdown"".
+Step 2: Upload HTML file.
+Step 3: Click ""Convert"" and download .md.","1 HTML webpage file","A neat Markdown document downloads with headers and links intact.","PASS","uft,qa,data_tools"
+"Test","TC-095","[Filter and Sort CSV Rows] Sort a CSV table alphabetically or by numbers in a specific column","Test Case ID: TC-095
+Feature: Filter and Sort CSV Rows
+Category: Spreadsheets
+Summary: Sort a CSV table alphabetically or by numbers in a specific column","Spreadsheets","Medium","Have a CSV file.","Step 1: Open the ""Sort CSV"" tool.
+Step 2: Upload CSV and pick column name.
+Step 3: Click ""Sort"" and download.","1 CSV table","The downloaded CSV table has rows sorted in order.","PASS","uft,qa,spreadsheets"
+"Test","TC-096","[Text to Word Document (.docx)] Create a real Microsoft Word (.docx) document from plain text notes","Test Case ID: TC-096
+Feature: Text to Word Document (.docx)
+Category: Word Documents
+Summary: Create a real Microsoft Word (.docx) document from plain text notes","Word Documents","High","Have some text or a .txt file.","Step 1: Open the ""Text to DOCX"" tool.
+Step 2: Type or upload your text.
+Step 3: Click ""Create Word Document"" and download.","Plain text paragraphs","A real Microsoft Word (.docx) file downloads that opens in Word or Google Docs.","PASS","uft,qa,word_documents"
+"Test","TC-097","[Read All Text from Word Document] Extract all the words and paragraphs out of a Word document (.docx)","Test Case ID: TC-097
+Feature: Read All Text from Word Document
+Category: Word Documents
+Summary: Extract all the words and paragraphs out of a Word document (.docx)","Word Documents","High","Have a Word document (.docx).","Step 1: Open the ""Word to Text"" tool.
+Step 2: Upload your .docx file.
+Step 3: Click ""Extract Text"" and download .txt.","1 Word document (.docx)","A clean text file downloads with all sentences and paragraphs.","PASS","uft,qa,word_documents"
+"Test","TC-098","[Word Document to Web Page (HTML)] Convert a Word document into an HTML webpage you can read in Google Chrome","Test Case ID: TC-098
+Feature: Word Document to Web Page (HTML)
+Category: Word Documents
+Summary: Convert a Word document into an HTML webpage you can read in Google Chrome","Word Documents","Medium","Have a Word document (.docx).","Step 1: Open ""DOCX to HTML"".
+Step 2: Upload your .docx file.
+Step 3: Click ""Convert"" and download.","1 Word document","An HTML webpage downloads showing the document text and layout.","PASS","uft,qa,word_documents"
+"Test","TC-099","[Extract All Pictures from Word Document] Pull out every image and photo saved inside a Word document","Test Case ID: TC-099
+Feature: Extract All Pictures from Word Document
+Category: Word Documents
+Summary: Pull out every image and photo saved inside a Word document","Word Documents","Medium","Have a Word document that has pictures inside.","Step 1: Open the ""Extract DOCX Images"" tool.
+Step 2: Upload your Word file.
+Step 3: Click ""Extract"" and download the ZIP file.","1 Word document with pictures","A ZIP folder downloads with all the pictures saved at full resolution.","PASS","uft,qa,word_documents"
+"Test","TC-100","[Extract All Web Links from Word Document] List all website addresses and hyperlinks clicked inside a Word document","Test Case ID: TC-100
+Feature: Extract All Web Links from Word Document
+Category: Word Documents
+Summary: List all website addresses and hyperlinks clicked inside a Word document","Word Documents","Low","Have a Word document with web links.","Step 1: Open ""Extract DOCX Links"".
+Step 2: Upload Word file.
+Step 3: Click ""Extract Links"".","1 Word document with links","A list of all web URLs inside the document appears on screen.","PASS","uft,qa,word_documents"
+"Test","TC-101","[Word Document to Markdown] Convert a Word document into Markdown text (.md)","Test Case ID: TC-101
+Feature: Word Document to Markdown
+Category: Word Documents
+Summary: Convert a Word document into Markdown text (.md)","Word Documents","Medium","Have a Word document.","Step 1: Open ""DOCX to Markdown"".
+Step 2: Upload your Word file.
+Step 3: Click ""Convert"" and download .md.","1 Word document","A clean Markdown file downloads with headings and bold text.","PASS","uft,qa,word_documents"
+"Test","TC-102","[Combine Two Word Documents into One] Merge two separate Word files into one continuous document","Test Case ID: TC-102
+Feature: Combine Two Word Documents into One
+Category: Word Documents
+Summary: Merge two separate Word files into one continuous document","Word Documents","High","Have 2 Word documents (.docx).","Step 1: Open ""Merge DOCX"".
+Step 2: Upload Document 1 and Document 2.
+Step 3: Click ""Merge"" and download.","2 Word documents","One combined Word document downloads with all pages in order.","PASS","uft,qa,word_documents"
+"Test","TC-103","[Find and Replace Words in Word Document] Change a company name or word everywhere it appears in a Word document","Test Case ID: TC-103
+Feature: Find and Replace Words in Word Document
+Category: Word Documents
+Summary: Change a company name or word everywhere it appears in a Word document","Word Documents","Medium","Have a Word document.","Step 1: Open ""Replace Text DOCX"".
+Step 2: Upload file.
+Step 3: Find: ""Acme"", Replace with: ""Universal"".
+Step 4: Click ""Replace"" and download.","1 Word document","The downloaded Word document has the updated words everywhere.","PASS","uft,qa,word_documents"
+"Test","TC-104","[Read Comments and Notes in Word] Read reviewer comments and side notes from a Word document","Test Case ID: TC-104
+Feature: Read Comments and Notes in Word
+Category: Word Documents
+Summary: Read reviewer comments and side notes from a Word document","Word Documents","Low","Have a Word document with comments.","Step 1: Open ""Extract DOCX Comments"".
+Step 2: Upload file.
+Step 3: Click ""View Comments"".","1 Word document with comments","A list shows who made each comment and what they wrote.","PASS","uft,qa,word_documents"
+"Test","TC-105","[Word Count & Reading Time in Word] Count total words, paragraphs, and estimated minutes to read a Word file","Test Case ID: TC-105
+Feature: Word Count & Reading Time in Word
+Category: Word Documents
+Summary: Count total words, paragraphs, and estimated minutes to read a Word file","Word Documents","Medium","Have a Word document.","Step 1: Open ""Word Count DOCX"".
+Step 2: Upload file.
+Step 3: Click ""Calculate"".","1 Word document","Shows total words, characters, paragraphs, and reading time in minutes.","PASS","uft,qa,word_documents"
+"Test","TC-106","[Read Slide Text from PowerPoint (.pptx)] Extract all the words from every slide in a PowerPoint presentation","Test Case ID: TC-106
+Feature: Read Slide Text from PowerPoint (.pptx)
+Category: PowerPoint Tools
+Summary: Extract all the words from every slide in a PowerPoint presentation","PowerPoint Tools","High","Have a PowerPoint file (.pptx).","Step 1: Open ""PPTX to Text"".
+Step 2: Upload your PowerPoint file.
+Step 3: Click ""Extract Text"" and download.","1 PowerPoint presentation","A clean text file downloads with the text from each slide.","PASS","uft,qa,powerpoint_tools"
+"Test","TC-107","[Read Speaker Notes from PowerPoint] Pull out presenter speaking notes saved beneath PowerPoint slides","Test Case ID: TC-107
+Feature: Read Speaker Notes from PowerPoint
+Category: PowerPoint Tools
+Summary: Pull out presenter speaking notes saved beneath PowerPoint slides","PowerPoint Tools","Medium","Have a PowerPoint presentation with notes.","Step 1: Open ""PPTX Notes"".
+Step 2: Upload PowerPoint file.
+Step 3: Click ""Extract Notes"".","1 PowerPoint with presenter notes","A text file or list shows the speaking notes for each slide number.","PASS","uft,qa,powerpoint_tools"
+"Test","TC-108","[Extract Pictures from PowerPoint] Save all images and graphics used across PowerPoint slides","Test Case ID: TC-108
+Feature: Extract Pictures from PowerPoint
+Category: PowerPoint Tools
+Summary: Save all images and graphics used across PowerPoint slides","PowerPoint Tools","Medium","Have a PowerPoint file with photos.","Step 1: Open ""Extract PPTX Images"".
+Step 2: Upload PowerPoint.
+Step 3: Click ""Extract"" and download ZIP.","1 PowerPoint with slide photos","A ZIP folder downloads containing all high-resolution pictures from the slides.","PASS","uft,qa,powerpoint_tools"
+"Test","TC-109","[PowerPoint to Web Slideshow (HTML)] Turn a PowerPoint presentation into an HTML web slideshow viewable in Chrome","Test Case ID: TC-109
+Feature: PowerPoint to Web Slideshow (HTML)
+Category: PowerPoint Tools
+Summary: Turn a PowerPoint presentation into an HTML web slideshow viewable in Chrome","PowerPoint Tools","Medium","Have a PowerPoint file.","Step 1: Open ""PPTX to HTML"".
+Step 2: Upload file.
+Step 3: Click ""Convert"" and download.","1 PowerPoint file","An HTML webpage downloads that lets you click through slides in Chrome.","PASS","uft,qa,powerpoint_tools"
+"Test","TC-110","[Read PowerPoint Properties] Check total slide count, presentation title, author, and creation date","Test Case ID: TC-110
+Feature: Read PowerPoint Properties
+Category: PowerPoint Tools
+Summary: Check total slide count, presentation title, author, and creation date","PowerPoint Tools","Low","Have a PowerPoint file.","Step 1: Open ""PPTX Metadata"".
+Step 2: Upload file.
+Step 3: Click ""Read Info"".","1 PowerPoint file","Displays total slides, presentation author, and date created.","PASS","uft,qa,powerpoint_tools"
+"Test","TC-111","[Add Header & Footer to Word Document] Add a company header to the top and page numbers to the bottom of a Word file","Test Case ID: TC-111
+Feature: Add Header & Footer to Word Document
+Category: Word Documents
+Summary: Add a company header to the top and page numbers to the bottom of a Word file","Word Documents","Low","Have a Word document.","Step 1: Open Word Header/Footer tool.
+Step 2: Upload file.
+Step 3: Type header text and click ""Apply"".","1 Word document","The Word file downloads with the header appearing at the top of pages.","PASS","uft,qa,word_documents"
+"Test","TC-112","[Convert Word Document to Plain Text] Strip away all formatting and save Word file as a plain .txt file","Test Case ID: TC-112
+Feature: Convert Word Document to Plain Text
+Category: Word Documents
+Summary: Strip away all formatting and save Word file as a plain .txt file","Word Documents","Medium","Have a Word document.","Step 1: Open ""Word to Plain Text"".
+Step 2: Upload file.
+Step 3: Click ""Convert"" and download .txt.","1 Word document","A clean, lightweight text file downloads.","PASS","uft,qa,word_documents"
+"Test","TC-113","[Compare Two Word Documents] Spot differences between an old version and a new version of a Word file","Test Case ID: TC-113
+Feature: Compare Two Word Documents
+Category: Word Documents
+Summary: Spot differences between an old version and a new version of a Word file","Word Documents","Low","Have 2 versions of a Word document.","Step 1: Open ""Compare Documents"".
+Step 2: Upload Original and Revised files.
+Step 3: Click ""Compare"".","2 Word documents","A summary highlights what was added, removed, or changed.","PASS","uft,qa,word_documents"
+"Test","TC-114","[Clean Formatting in Word Document] Remove messy fonts and weird text colors to standardize a Word document","Test Case ID: TC-114
+Feature: Clean Formatting in Word Document
+Category: Word Documents
+Summary: Remove messy fonts and weird text colors to standardize a Word document","Word Documents","Low","Have a Word document with inconsistent fonts.","Step 1: Open ""Clean Word Formatting"".
+Step 2: Upload file.
+Step 3: Click ""Standardize"".","1 messy Word document","The document text is normalized to standard readable styling.","PASS","uft,qa,word_documents"
+"Test","TC-115","[PowerPoint Slides to PDF] Convert a PowerPoint presentation into a printable PDF handout","Test Case ID: TC-115
+Feature: PowerPoint Slides to PDF
+Category: PowerPoint Tools
+Summary: Convert a PowerPoint presentation into a printable PDF handout","PowerPoint Tools","High","Have a PowerPoint file.","Step 1: Open ""PPTX to PDF"".
+Step 2: Upload file.
+Step 3: Click ""Convert"" and download PDF.","1 PowerPoint file","A clean PDF document downloads with one slide per page.","PASS","uft,qa,powerpoint_tools"
+"Test","TC-116","[Compress Video File Size] Shrink a heavy MP4 or MKV video so it is easier to send or upload","Test Case ID: TC-116
+Feature: Compress Video File Size
+Category: Video & Audio
+Summary: Shrink a heavy MP4 or MKV video so it is easier to send or upload","Video & Audio","High","Have a video file.","Step 1: Open ""Compress Video"".
+Step 2: Upload your video.
+Step 3: Pick quality: Medium.
+Step 4: Click ""Compress"" and download.","1 video clip (test.mp4)","The video downloads with a smaller file size and plays smoothly in Chrome.","PASS","uft,qa,video___audio"
+"Test","TC-117","[Capture Video Snapshot (Thumbnail)] Take a clear still picture from any second of a video","Test Case ID: TC-117
+Feature: Capture Video Snapshot (Thumbnail)
+Category: Video & Audio
+Summary: Take a clear still picture from any second of a video","Video & Audio","Medium","Have a video file.","Step 1: Open ""Video Thumbnail"".
+Step 2: Upload video.
+Step 3: Type timestamp (e.g. ""00:00:01"").
+Step 4: Click ""Capture"" and download image.","1 video clip","A clean picture snapshot from that exact second downloads.","PASS","uft,qa,video___audio"
+"Test","TC-118","[Turn Video into Animated GIF] Convert a short video clip into a looping animated GIF meme or graphic","Test Case ID: TC-118
+Feature: Turn Video into Animated GIF
+Category: Video & Audio
+Summary: Convert a short video clip into a looping animated GIF meme or graphic","Video & Audio","High","Have a short video clip.","Step 1: Open ""Video to GIF"".
+Step 2: Upload video clip.
+Step 3: Click ""Create GIF"" and download.","1 short video clip","An animated .gif file downloads that loops continuously.","PASS","uft,qa,video___audio"
+"Test","TC-119","[Turn Animated GIF into MP4 Video] Convert an animated GIF into an MP4 video for smaller file size on Instagram/Twitter","Test Case ID: TC-119
+Feature: Turn Animated GIF into MP4 Video
+Category: Video & Audio
+Summary: Convert an animated GIF into an MP4 video for smaller file size on Instagram/Twitter","Video & Audio","Medium","Have an animated GIF.","Step 1: Open ""GIF to Video"".
+Step 2: Upload GIF.
+Step 3: Click ""Convert"" and download MP4.","1 animated GIF","A high-efficiency .mp4 video downloads.","PASS","uft,qa,video___audio"
+"Test","TC-119b","[Trim / Cut Video Clip] Cut out unwanted beginning or ending seconds from a video","Test Case ID: TC-119b
+Feature: Trim / Cut Video Clip
+Category: Video & Audio
+Summary: Cut out unwanted beginning or ending seconds from a video","Video & Audio","High","Have a video file.","Step 1: Open ""Trim Video"".
+Step 2: Upload video.
+Step 3: Enter start time (00:00:00) and end time (00:00:10).
+Step 4: Click ""Trim"" and download.","1 video file","A shortened video clip downloads containing only the seconds you picked.","PASS","uft,qa,video___audio"
+"Test","TC-120","[Mute / Remove Audio from Video] Remove background noise or audio track completely from a video","Test Case ID: TC-120
+Feature: Mute / Remove Audio from Video
+Category: Video & Audio
+Summary: Remove background noise or audio track completely from a video","Video & Audio","Medium","Have a video with sound.","Step 1: Open ""Mute Video"".
+Step 2: Upload video.
+Step 3: Click ""Remove Audio"" and download.","1 video file with sound","A silent video downloads with zero audio.","PASS","uft,qa,video___audio"
+"Test","TC-121","[Create ZIP Folder] Bundle multiple files and documents together into one compressed .zip folder","Test Case ID: TC-121
+Feature: Create ZIP Folder
+Category: Archive Tools
+Summary: Bundle multiple files and documents together into one compressed .zip folder","Archive Tools","High","Have 2 or more files.","Step 1: Open ""Create ZIP"".
+Step 2: Upload 2 or more files.
+Step 3: Click ""Create ZIP"" and download.","2 text files","A single .zip folder downloads containing all your files.","PASS","uft,qa,archive_tools"
+"Test","TC-122","[Unpack / Extract ZIP Folder] Unzip and extract all documents saved inside a .zip folder","Test Case ID: TC-122
+Feature: Unpack / Extract ZIP Folder
+Category: Archive Tools
+Summary: Unzip and extract all documents saved inside a .zip folder","Archive Tools","High","Have a .zip folder.","Step 1: Open ""Extract ZIP"".
+Step 2: Upload your .zip file.
+Step 3: Click ""Extract"".","1 ZIP folder","All files inside the ZIP are unpacked and ready to download.","PASS","uft,qa,archive_tools"
+"Test","TC-123","[Look Inside ZIP Folder (Inspect)] See the names and file sizes of items inside a ZIP file without extracting it","Test Case ID: TC-123
+Feature: Look Inside ZIP Folder (Inspect)
+Category: Archive Tools
+Summary: See the names and file sizes of items inside a ZIP file without extracting it","Archive Tools","Medium","Have a .zip folder.","Step 1: Open ""List Archive Contents"".
+Step 2: Upload your .zip file.
+Step 3: Click ""Inspect"".","1 ZIP folder","A table lists every file name and size inside the archive.","PASS","uft,qa,archive_tools"
+"Test","TC-124","[Compress File with GZIP (.gz)] Compress a large text, log, or data file into a lightweight .gz file","Test Case ID: TC-124
+Feature: Compress File with GZIP (.gz)
+Category: Archive Tools
+Summary: Compress a large text, log, or data file into a lightweight .gz file","Archive Tools","Medium","Have a text or log file.","Step 1: Open ""Compress GZIP"".
+Step 2: Upload file.
+Step 3: Click ""Compress"" and download .gz.","1 text file","A .gz compressed file downloads.","PASS","uft,qa,archive_tools"
+"Test","TC-125","[Decompress GZIP File (.gz)] Unpack and restore a .gz file back to its original uncompressed file","Test Case ID: TC-125
+Feature: Decompress GZIP File (.gz)
+Category: Archive Tools
+Summary: Unpack and restore a .gz file back to its original uncompressed file","Archive Tools","Medium","Have a .gz compressed file.","Step 1: Open ""Decompress GZIP"".
+Step 2: Upload your .gz file.
+Step 3: Click ""Decompress"" and download.","1 .gz file","The original uncompressed file downloads with 100% data accuracy.","PASS","uft,qa,archive_tools"
+"Test","TC-126","[Convert Audio to MP3] Change WAV, AAC, M4A, or FLAC audio into standard MP3 format","Test Case ID: TC-126
+Feature: Convert Audio to MP3
+Category: Video & Audio
+Summary: Change WAV, AAC, M4A, or FLAC audio into standard MP3 format","Video & Audio","High","Have an audio file.","Step 1: Open ""Convert Audio"".
+Step 2: Upload audio file.
+Step 3: Pick ""MP3"".
+Step 4: Click ""Convert"" and download.","1 audio file","A standard .mp3 audio file downloads that plays in any player.","PASS","uft,qa,video___audio"
+"Test","TC-127","[Extract Audio from Video] Rip the music or speech from a video file and save it as an MP3 song","Test Case ID: TC-127
+Feature: Extract Audio from Video
+Category: Video & Audio
+Summary: Rip the music or speech from a video file and save it as an MP3 song","Video & Audio","High","Have a video file with music or speech.","Step 1: Open ""Extract Audio from Video"".
+Step 2: Upload video.
+Step 3: Pick format: ""MP3"".
+Step 4: Click ""Extract"" and download.","1 video file","An .mp3 song file downloads containing the video's sound track.","PASS","uft,qa,video___audio"
+"Test","TC-128","[Trim Audio / Make Ringtone] Cut out your favorite 30 seconds of an audio song or recording","Test Case ID: TC-128
+Feature: Trim Audio / Make Ringtone
+Category: Video & Audio
+Summary: Cut out your favorite 30 seconds of an audio song or recording","Video & Audio","Medium","Have an audio song or voice recording.","Step 1: Open ""Trim Audio"".
+Step 2: Upload audio.
+Step 3: Set start: 00:00:10, end: 00:00:40.
+Step 4: Click ""Trim"" and download.","1 audio recording","A 30-second audio clip downloads cleanly.","PASS","uft,qa,video___audio"
+"Test","TC-129","[Speed Up or Slow Down Audio] Change audio speed (e.g. 1.25x faster for podcasts, or 0.75x slower)","Test Case ID: TC-129
+Feature: Speed Up or Slow Down Audio
+Category: Video & Audio
+Summary: Change audio speed (e.g. 1.25x faster for podcasts, or 0.75x slower)","Video & Audio","Low","Have an audio recording.","Step 1: Open ""Audio Speed"".
+Step 2: Upload audio.
+Step 3: Choose 1.5x.
+Step 4: Click ""Apply"" and download.","1 audio file","Audio plays back at the selected faster or slower speed.","PASS","uft,qa,video___audio"
+"Test","TC-130","[Create Visual Sound Wave (Waveform)] Generate a picture of the sound wave peaks from a voice or song recording","Test Case ID: TC-130
+Feature: Create Visual Sound Wave (Waveform)
+Category: Video & Audio
+Summary: Generate a picture of the sound wave peaks from a voice or song recording","Video & Audio","Low","Have an audio file.","Step 1: Open ""Audio to Waveform"".
+Step 2: Upload audio file.
+Step 3: Click ""Generate Waveform"".","1 audio file","A neat picture showing the sound wave peaks is displayed on screen.","PASS","uft,qa,video___audio"
+"Test","TC-131","[Scan Text from Picture (OCR)] Read printed text out of a photo, receipt, or scanned document using OCR","Test Case ID: TC-131
+Feature: Scan Text from Picture (OCR)
+Category: AI & Vision
+Summary: Read printed text out of a photo, receipt, or scanned document using OCR","AI & Vision","High","Have an image showing printed words.","Step 1: Open the ""Image to Text OCR"" tool.
+Step 2: Upload your picture or receipt.
+Step 3: Choose language: English.
+Step 4: Click ""Scan Text"".","1 photo of a printed receipt or page","The words from the picture are typed out on screen and ready to copy to clipboard.","PASS","uft,qa,ai___vision"
+"Test","TC-132","[Calculate File Fingerprint (SHA-256)] Create a unique cryptographic hash to prove a file has not been altered or tampered with","Test Case ID: TC-132
+Feature: Calculate File Fingerprint (SHA-256)
+Category: Security Tools
+Summary: Create a unique cryptographic hash to prove a file has not been altered or tampered with","Security Tools","High","Have any file on your computer.","Step 1: Open the ""Hash File"" tool.
+Step 2: Upload your file.
+Step 3: Choose ""SHA-256"".
+Step 4: Click ""Calculate Hash"".","1 file (test.txt)","A 64-character security fingerprint is shown (e.g. 149f6c211a9a61...) with a copy button.","PASS","uft,qa,security_tools"
+"Test","TC-133","[Calculate MD5 Checksum] Calculate the quick MD5 hash of a downloaded file to verify download completeness","Test Case ID: TC-133
+Feature: Calculate MD5 Checksum
+Category: Security Tools
+Summary: Calculate the quick MD5 hash of a downloaded file to verify download completeness","Security Tools","Medium","Have any file.","Step 1: Open ""Hash File"".
+Step 2: Upload file.
+Step 3: Select ""MD5"".
+Step 4: Click ""Calculate"".","1 file","A 32-character MD5 checksum is calculated and displayed on screen.","PASS","uft,qa,security_tools"
+"Test","TC-134","[Password-Lock a ZIP Folder] Encrypt a ZIP file with a password so only people who know it can unzip it","Test Case ID: TC-134
+Feature: Password-Lock a ZIP Folder
+Category: Archive Tools
+Summary: Encrypt a ZIP file with a password so only people who know it can unzip it","Archive Tools","Medium","Have files to bundle.","Step 1: Open ""Create ZIP"".
+Step 2: Upload files and enter a password.
+Step 3: Click ""Create Encrypted ZIP"" and download.","Files + password","The downloaded ZIP asks for a password before allowing extraction.","PASS","uft,qa,archive_tools"
+"Test","TC-135","[Extract Multi-Part ZIP Archives (.z01, .zip)] Unpack large files split across multiple zip chunks","Test Case ID: TC-135
+Feature: Extract Multi-Part ZIP Archives (.z01, .zip)
+Category: Archive Tools
+Summary: Unpack large files split across multiple zip chunks","Archive Tools","Low","Have split zip files.","Step 1: Open ""Extract ZIP"".
+Step 2: Upload all split parts.
+Step 3: Click ""Unpack"".","Split zip archive files","All chunks are merged and unpacked into the original file.","PASS","uft,qa,archive_tools"
+"Test","TC-136","[Summarize Long Text (AI)] Turn a long report or article into a quick 2 or 3 sentence executive summary","Test Case ID: TC-136
+Feature: Summarize Long Text (AI)
+Category: AI & Text Tools
+Summary: Turn a long report or article into a quick 2 or 3 sentence executive summary","AI & Text Tools","High","Have a long paragraph or article.","Step 1: Open the ""Summarize Text"" tool.
+Step 2: Paste your long article.
+Step 3: Set maximum sentences: 2.
+Step 4: Click ""Summarize"".","A 500-word news article or report","A clean 2-sentence summary highlighting the main points appears on screen.","PASS","uft,qa,ai___text_tools"
+"Test","TC-137","[Extract Top Keywords (AI)] Find the most important topics and keywords in a block of text","Test Case ID: TC-137
+Feature: Extract Top Keywords (AI)
+Category: AI & Text Tools
+Summary: Find the most important topics and keywords in a block of text","AI & Text Tools","High","Have a block of text.","Step 1: Open the ""Extract Keywords"" tool.
+Step 2: Paste your text.
+Step 3: Click ""Extract Keywords"".","A business proposal or product description","A list of keyword badges appears (e.g. ""software"", ""productivity"", ""management"").","PASS","uft,qa,ai___text_tools"
+"Test","TC-138","[Customer Sentiment Analysis (AI)] Detect if customer reviews or feedback are Positive, Neutral, or Negative","Test Case ID: TC-138
+Feature: Customer Sentiment Analysis (AI)
+Category: AI & Text Tools
+Summary: Detect if customer reviews or feedback are Positive, Neutral, or Negative","AI & Text Tools","High","Have customer feedback sentences.","Step 1: Open the ""Sentiment Analysis"" tool.
+Step 2: Paste review text: ""This tool is amazing and saved me 3 hours!"".
+Step 3: Click ""Analyze Sentiment"".","Customer review text","A green badge says ""Positive"" with a score between +0.5 and +1.0.","PASS","uft,qa,ai___text_tools"
+"Test","TC-139","[Word, Character & Reading Counter] Count total words, characters, sentences, and estimated reading time","Test Case ID: TC-139
+Feature: Word, Character & Reading Counter
+Category: AI & Text Tools
+Summary: Count total words, characters, sentences, and estimated reading time","AI & Text Tools","High","Have any text.","Step 1: Open the ""Word Count"" tool.
+Step 2: Paste your text.
+Step 3: Click ""Count"".","A 12-word test sentence","Accurately displays: 12 Words, 82 Characters, 1 Sentence, 1 Min Reading Time.","PASS","uft,qa,ai___text_tools"
+"Test","TC-140","[Mobile Phone Screen Test in Chrome] Open the website on a mobile phone in Chrome to make sure menus and buttons fit","Test Case ID: TC-140
+Feature: Mobile Phone Screen Test in Chrome
+Category: Google Chrome
+Summary: Open the website on a mobile phone in Chrome to make sure menus and buttons fit","Google Chrome","High","Open Chrome on a mobile phone or press F12 and toggle mobile device toolbar in Chrome.","Step 1: View the website on a 390px mobile screen.
+Step 2: Check that text does not overflow sideways.
+Step 3: Tap tool buttons and check that buttons are easy to touch.","Mobile Chrome browser","The layout adapts smoothly to the narrow phone screen with zero sideways scrolling.","PASS","uft,qa,google_chrome"
+"Test","TC-141","[Tablet & iPad Screen Test in Chrome] Open the website on an iPad or tablet in Chrome to check grid layout","Test Case ID: TC-141
+Feature: Tablet & iPad Screen Test in Chrome
+Category: Google Chrome
+Summary: Open the website on an iPad or tablet in Chrome to check grid layout","Google Chrome","Medium","Chrome browser at 768px - 1024px width.","Step 1: Resize Chrome window to tablet width.
+Step 2: Check that tools show in 2 columns.
+Step 3: Test touching buttons.","Tablet viewport","Grid smoothly transitions to 2 columns with easy-to-tap cards.","PASS","uft,qa,google_chrome"
+"Test","TC-142","[Fast Page Load Speed in Chrome] Check that pages open in less than 1 second in Google Chrome","Test Case ID: TC-142
+Feature: Fast Page Load Speed in Chrome
+Category: Google Chrome
+Summary: Check that pages open in less than 1 second in Google Chrome","Google Chrome","High","Website is running.","Step 1: Click between different pages in Chrome.
+Step 2: Observe loading time.
+Step 3: Check that pages feel instant.","None","Pages load smoothly and feel instant to the user (under 100ms on local, under 1s on web).","PASS","uft,qa,google_chrome"
+"Test","TC-143","[Upload Large 50MB File in Chrome] Upload a large 50MB file to verify the progress bar and make sure Chrome doesn't freeze","Test Case ID: TC-143
+Feature: Upload Large 50MB File in Chrome
+Category: Google Chrome
+Summary: Upload a large 50MB file to verify the progress bar and make sure Chrome doesn't freeze","Google Chrome","High","Have a 50MB file.","Step 1: Open ""Compress Video"" or ""Create ZIP"".
+Step 2: Upload the 50MB file.
+Step 3: Check that the browser remains responsive and shows a progress indicator.","1 large 50MB file","File uploads cleanly without Chrome showing an ""Out of Memory"" or ""Page Unresponsive"" popup.","PASS","uft,qa,google_chrome"
+"Test","TC-144","[Cancel File Upload in Progress] Click the ""X"" button next to a selected file to cancel it before running","Test Case ID: TC-144
+Feature: Cancel File Upload in Progress
+Category: Google Chrome
+Summary: Click the ""X"" button next to a selected file to cancel it before running","Google Chrome","Medium","A file is selected in the upload box.","Step 1: Select or drop a file into the upload box.
+Step 2: Notice the file card with its size.
+Step 3: Click the small ""X"" or trash can icon on the file card.
+Step 4: Check that the file is removed from the list.","1 file","The file is removed from the list immediately and the upload box resets.","PASS","uft,qa,google_chrome"
+"Test","TC-145","[Try Uploading an Empty (0-Byte) File] Test what happens if a user accidentally uploads a 0-byte blank file","Test Case ID: TC-145
+Feature: Try Uploading an Empty (0-Byte) File
+Category: Google Chrome
+Summary: Test what happens if a user accidentally uploads a 0-byte blank file","Google Chrome","Medium","Have an empty 0-byte text file.","Step 1: Upload a 0-byte empty file into any tool.
+Step 2: Click ""Run"" or ""Process"".
+Step 3: Check the message that appears.","0-byte empty file","A helpful warning message appears saying ""File is empty"" without crashing the website.","PASS","uft,qa,google_chrome"
+"Test","TC-146","[Try Uploading Wrong File Type] Test what happens if a user accidentally drops a music file into a PDF tool","Test Case ID: TC-146
+Feature: Try Uploading Wrong File Type
+Category: Google Chrome
+Summary: Test what happens if a user accidentally drops a music file into a PDF tool","Google Chrome","High","Have an MP3 audio file.","Step 1: Open the ""Merge PDF"" tool.
+Step 2: Try dropping an .mp3 audio file into the box.
+Step 3: Observe the dropzone reaction.","1 music file (song.mp3)","The box rejects the file or shows a clear message saying ""Please upload a PDF file"".","PASS","uft,qa,google_chrome"
+"Test","TC-147","[Privacy & Automatic File Deletion] Verify that uploaded files are automatically deleted after 1 hour for privacy","Test Case ID: TC-147
+Feature: Privacy & Automatic File Deletion
+Category: Security Tools
+Summary: Verify that uploaded files are automatically deleted after 1 hour for privacy","Security Tools","High","Check server temporary files folder.","Step 1: Process a file.
+Step 2: Check that the backend clean-up timer is running.
+Step 3: Verify files older than 1 hour are wiped clean automatically.","Temporary uploaded files","Uploaded files are temporary and cleaned up automatically so disk does not fill up.","PASS","uft,qa,security_tools"
+"Test","TC-148","[100% Zero-Leak Privacy Audit] Verify in Chrome DevTools that no private user files are sent to outside advertising or analytics servers","Test Case ID: TC-148
+Feature: 100% Zero-Leak Privacy Audit
+Category: Security Tools
+Summary: Verify in Chrome DevTools that no private user files are sent to outside advertising or analytics servers","Security Tools","High","Open Google Chrome DevTools (F12) > Network tab.","Step 1: Open Chrome DevTools Network tab.
+Step 2: Upload and process a file.
+Step 3: Check all outgoing web calls.
+Step 4: Verify that 0 calls are made to Google Analytics, Facebook, or third-party tracking servers.","1 test file","All processing stays 100% on your own server with zero data leaks to outside companies.","PASS","uft,qa,security_tools"
+"Test","TC-149","[Downloaded Files Have Correct Names] Check that downloaded files have the correct filename and extension (e.g. .pdf, .jpg, .xlsx)","Test Case ID: TC-149
+Feature: Downloaded Files Have Correct Names
+Category: Google Chrome
+Summary: Check that downloaded files have the correct filename and extension (e.g. .pdf, .jpg, .xlsx)","Google Chrome","High","Process any tool in Chrome.","Step 1: Run the ""Resize Image"" tool.
+Step 2: Click the ""Download"" button.
+Step 3: Look at the Chrome download bar at the bottom or top-right.
+Step 4: Check the downloaded file name.","1 photo","The file downloads with a proper name (like ""test_resized.png"") and opens directly in your picture viewer.","PASS","uft,qa,google_chrome"
+"Test","TC-150","[Internet Disconnect & Reconnect Handling] Test how the website behaves if the internet briefly disconnects while using it","Test Case ID: TC-150
+Feature: Internet Disconnect & Reconnect Handling
+Category: Google Chrome
+Summary: Test how the website behaves if the internet briefly disconnects while using it","Google Chrome","Medium","Website is open in Chrome.","Step 1: Disconnect Wi-Fi or turn on Airplane Mode in Chrome.
+Step 2: Try clicking menu tabs.
+Step 3: Reconnect Wi-Fi.
+Step 4: Check that the site continues working without crashing.","Network toggle","The website stays open, shows a friendly connection warning if offline, and resumes smoothly when reconnected.","PASS","uft,qa,google_chrome"

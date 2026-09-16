@@ -28,6 +28,14 @@ export function InteractiveDataWorkbench({
 
   useEffect(() => {
     setLoading(true);
+
+    const isExcel = dataFile.name.endsWith('.xlsx') || dataFile.name.endsWith('.xls') || toolId.includes('excel');
+    if (isExcel) {
+      // Excel files are binary; do not read as text to avoid gibberish
+      setLoading(false);
+      return;
+    }
+
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -135,6 +143,52 @@ export function InteractiveDataWorkbench({
           <div className="bg-slate-900 rounded-xl p-4 text-emerald-400 font-mono text-xs overflow-auto max-h-[360px]">
             <pre>{rawJson}</pre>
           </div>
+        ) : dataFile.name.endsWith('.xlsx') || dataFile.name.endsWith('.xls') || toolId.includes('excel') ? (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#c3c6d7] dark:border-slate-800 p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <FileSpreadsheet size={26} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#191b23] dark:text-white flex items-center gap-2">
+                  {dataFile.name}
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 uppercase tracking-wide">
+                    Excel Workbook
+                  </span>
+                </h4>
+                <p className="text-xs text-[#505f76] dark:text-slate-400 mt-0.5">
+                  {(dataFile.size / 1024).toFixed(1)} KB • Multi-Sheet ZIP Extraction Enabled
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="p-3 rounded-xl bg-[#f3f3fe] dark:bg-slate-800 border border-[#c3c6d7]/50 dark:border-slate-700/60 space-y-1">
+                <div className="text-xs font-bold text-[#191b23] dark:text-white flex items-center gap-1.5">
+                  🗂️ Separate All Sheets
+                </div>
+                <p className="text-[10px] text-[#737686]">
+                  If 3 sheets are detected, all 3 sheets are separated into individual CSV files.
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-[#f3f3fe] dark:bg-slate-800 border border-[#c3c6d7]/50 dark:border-slate-700/60 space-y-1">
+                <div className="text-xs font-bold text-[#191b23] dark:text-white flex items-center gap-1.5">
+                  📦 ZIP Folder Download
+                </div>
+                <p className="text-[10px] text-[#737686]">
+                  All separated CSVs are packaged into a single organized ZIP folder download.
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-[#f3f3fe] dark:bg-slate-800 border border-[#c3c6d7]/50 dark:border-slate-700/60 space-y-1">
+                <div className="text-xs font-bold text-[#191b23] dark:text-white flex items-center gap-1.5">
+                  ⚡ 1-Click Proceed
+                </div>
+                <p className="text-[10px] text-[#737686]">
+                  Click Convert to process workbook and download immediately.
+                </p>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="h-48 flex items-center justify-center text-xs text-[#737686]">
             File loaded ready for processing
@@ -143,7 +197,7 @@ export function InteractiveDataWorkbench({
       </div>
 
       <div className="px-5 py-2.5 bg-[#f8f9fe] dark:bg-slate-900 border-t border-[#ededf9] dark:border-slate-800 text-[11px] text-[#737686] flex items-center justify-between">
-        <span>Table schema detected automatically</span>
+        <span>{dataFile.name.endsWith('.xlsx') || dataFile.name.endsWith('.xls') || toolId.includes('excel') ? 'Excel workbook loaded' : 'Table schema detected automatically'}</span>
         <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
           <Check size={12} /> Ready to convert
         </span>

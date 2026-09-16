@@ -15,6 +15,7 @@ import {
   type FileInfo,
   type ProcessingResult,
   FileToolkitError,
+  ValidationError,
 } from '@uft/shared';
 
 /**
@@ -37,6 +38,9 @@ export async function extractUploadedFiles(
         chunks.push(chunk as Buffer);
       }
       const data = Buffer.concat(chunks);
+      if (data.length === 0) {
+        throw new ValidationError('The File You have uploaded is empty');
+      }
       const id = generateId();
       const name = sanitizeFilename(part.filename || 'unnamed');
       const ext = getExtension(name);
@@ -90,6 +94,9 @@ export async function extractFilesAndParams(
         chunks.push(chunk as Buffer);
       }
       const data = Buffer.concat(chunks);
+      if (data.length === 0) {
+        throw new ValidationError('The File You have uploaded is empty');
+      }
       const id = generateId();
       const name = sanitizeFilename(part.filename || 'unnamed');
       const ext = getExtension(name);

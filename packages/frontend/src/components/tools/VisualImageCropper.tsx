@@ -11,15 +11,71 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Crop as CropIcon, RotateCcw, Sparkles, Check, Move, Maximize2,
+  Crop as CropIcon, RotateCcw, Move, Maximize2,
   Smartphone, Monitor, Square, Image as ImageIcon
 } from 'lucide-react';
 
-interface VisualImageCropperProps {
+export interface VisualImageCropperProps {
   imageFile?: File | null;
   sampleImageUrl?: string;
+  cropValues?: { left: number; top: number; width: number; height: number };
+  aspectRatio?: string;
+  onAspectRatioChange?: (ratio: string) => void;
   onCropChange: (cropParams: { left: number; top: number; width: number; height: number }) => void;
   accentColor?: string;
+}
+
+const ASPECT_RATIOS: Record<string, number> = {
+  '1:1': 1,
+  '16:9': 16 / 9,
+  '9:16': 9 / 16,
+  '4:3': 4 / 3,
+  '3:2': 3 / 2,
+};
+
+/**
+ * Computes a normalized crop box (0.0 to 1.0) centered within the natural image
+ * matching the target aspect ratio preset.
+ */
+function computeRatioCrop(
+  preset: string,
+  natW: number,
+  natH: number
+): { x: number; y: number; w: number; h: number } {
+  if (preset === 'free' || !preset || !ASPECT_RATIOS[preset]) {
+    return { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
+  }
+
+  const targetRatio = ASPECT_RATIOS[preset];
+  const imgRatio = natW / natH;
+
+  let w: number;
+  let h: number;
+
+  if (imgRatio >= targetRatio) {
+    // Image is wider relative to target ratio -> height is bounded
+    h = 0.85;
+    w = (h * targetRatio) / imgRatio;
+    if (w > 0.95) {
+      w = 0.95;
+      h = (w * imgRatio) / targetRatio;
+    }
+  } else {
+    // Image is taller relative to target ratio -> width is bounded
+    w = 0.85;
+    h = (w * imgRatio) / targetRatio;
+    if (h > 0.95) {
+      h = 0.95;
+      w = (h * targetRatio) / imgRatio;
+    }
+  }
+
+  w = Math.min(1, Math.max(0.05, w));
+  h = Math.min(1, Math.max(0.05, h));
+  const x = Math.max(0, (1 - w) / 2);
+  const y = Math.max(0, (1 - h) / 2);
+
+  return { x, y, w, h };
 }
 
 type DragHandle = 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w' | null;
@@ -27,6 +83,9 @@ type DragHandle = 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w' | n
 export function VisualImageCropper({
   imageFile,
   sampleImageUrl,
+  cropValues,
+  aspectRatio: externalAspectRatio,
+  onAspectRatioChange,
   onCropChange,
   accentColor = '#00A3C4',
 }: VisualImageCropperProps) {
@@ -34,14 +93,14 @@ export function VisualImageCropper({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [imageObj, setImageObj] = useState<HTMLImageElement | null>(null);
-  const [aspectRatio, setAspectRatio] = useState<string>('free');
+  const [aspectRatio, setAspectRatio] = useState<string>(externalAspectRatio || 'free');
 
   // Normalized crop box coordinates relative to natural image dimensions (0.0 to 1.0)
   const [crop, setCrop] = useState<{ x: number; y: number; w: number; h: number }>({
-    x: 0.15,
-    y: 0.15,
-    w: 0.7,
-    h: 0.7,
+    x: 0.1,
+    y: 0.1,
+    w: 0.8,
+    h: 0.8,
   });
 
   const [activeHandle, setActiveHandle] = useState<DragHandle>(null);
@@ -54,32 +113,83 @@ export function VisualImageCropper({
     cropH: number;
   }>({ mouseX: 0, mouseY: 0, cropX: 0, cropY: 0, cropW: 0, cropH: 0 });
 
-  // Store onCropChange in ref to prevent infinite re-renders
+  // Store onCropChange and onAspectRatioChange in refs to prevent infinite re-renders
   const onCropChangeRef = useRef(onCropChange);
   useEffect(() => {
     onCropChangeRef.current = onCropChange;
   }, [onCropChange]);
 
-  // Load image object from File or sampleImageUrl or generate sample image
+  const onAspectRatioChangeRef = useRef(onAspectRatioChange);
   useEffect(() => {
+    onAspectRatioChangeRef.current = onAspectRatioChange;
+  }, [onAspectRatioChange]);
+
+  // Track the last values sent to parent so external cropValues echoing doesn't revert state
+  const lastSentCropRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const isPresetTransitionRef = useRef(false);
+  const externalAspectRatioRef = useRef(externalAspectRatio);
+  useEffect(() => {
+    externalAspectRatioRef.current = externalAspectRatio;
+  }, [externalAspectRatio]);
+
+  // Core function to switch aspect ratio preset and update coordinates immediately
+  const applyPreset = useCallback((preset: string, targetImg?: HTMLImageElement | null) => {
+    const currentImg = targetImg !== undefined ? targetImg : imageObj;
+    isPresetTransitionRef.current = true;
+    setAspectRatio(preset);
+    if (externalAspectRatioRef.current !== preset) {
+      onAspectRatioChangeRef.current?.(preset);
+    }
+    if (!currentImg) return;
+
+    const natW = currentImg.naturalWidth || 1200;
+    const natH = currentImg.naturalHeight || 800;
+    const newCrop = computeRatioCrop(preset, natW, natH);
+    setCrop(newCrop);
+
+    const left = Math.max(0, Math.round(newCrop.x * natW));
+    const top = Math.max(0, Math.round(newCrop.y * natH));
+    const width = Math.max(1, Math.round(newCrop.w * natW));
+    const height = Math.max(1, Math.round(newCrop.h * natH));
+
+    lastSentCropRef.current = { left, top, width, height };
+    onCropChangeRef.current?.({ left, top, width, height });
+  }, [imageObj]);
+
+  // Sync external aspectRatio prop (e.g. user clicked preset in sidebar)
+  useEffect(() => {
+    if (externalAspectRatio && externalAspectRatio !== aspectRatio) {
+      applyPreset(externalAspectRatio);
+    }
+  }, [externalAspectRatio, aspectRatio, applyPreset]);
+
+  // Load image object from File, sampleImageUrl, or default SVG sample
+  useEffect(() => {
+    let active = true;
+    let urlToRevoke: string | null = null;
+
+    const handleImgLoaded = (img: HTMLImageElement) => {
+      if (!active) return;
+      setImageObj(img);
+      const initialPreset = externalAspectRatio || aspectRatio || 'free';
+      applyPreset(initialPreset, img);
+    };
+
     if (sampleImageUrl) {
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        setImageObj(img);
-        setCrop({ x: 0.15, y: 0.15, w: 0.7, h: 0.7 });
-      };
+      img.onload = () => handleImgLoaded(img);
       img.src = sampleImageUrl;
-      return;
-    }
-    if (!imageFile) {
+    } else if (imageFile) {
+      urlToRevoke = URL.createObjectURL(imageFile);
+      const img = new Image();
+      img.onload = () => handleImgLoaded(img);
+      img.src = urlToRevoke;
+    } else {
       const img = new Image();
       img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        setImageObj(img);
-        setCrop({ x: 0.15, y: 0.15, w: 0.7, h: 0.7 });
-      };
-      // High-resolution SVG geometric landscape sample
+      img.onload = () => handleImgLoaded(img);
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
         <defs>
           <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -104,23 +214,15 @@ export function VisualImageCropper({
         <text x="600" y="720" fill="#ffffff" font-size="36" font-family="sans-serif" font-weight="bold" text-anchor="middle">Interactive Visual Canvas — Drag handles to crop</text>
       </svg>`;
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-      return;
     }
 
-    const url = URL.createObjectURL(imageFile);
-    const img = new Image();
-    img.onload = () => {
-      setImageObj(img);
-      setCrop({ x: 0.15, y: 0.15, w: 0.7, h: 0.7 });
-    };
-    img.src = url;
-
     return () => {
-      URL.revokeObjectURL(url);
+      active = false;
+      if (urlToRevoke) URL.revokeObjectURL(urlToRevoke);
     };
-  }, [imageFile]);
+  }, [imageFile, sampleImageUrl]);
 
-  // Update parent parameters when crop changes
+  // Update parent parameters when crop changes (from pointer dragging)
   useEffect(() => {
     if (!imageObj) return;
     const naturalWidth = imageObj.naturalWidth || 1200;
@@ -131,6 +233,18 @@ export function VisualImageCropper({
     const width = Math.max(1, Math.round(crop.w * naturalWidth));
     const height = Math.max(1, Math.round(crop.h * naturalHeight));
 
+    // Avoid redundant update cycles if already dispatched
+    if (
+      lastSentCropRef.current &&
+      lastSentCropRef.current.left === left &&
+      lastSentCropRef.current.top === top &&
+      lastSentCropRef.current.width === width &&
+      lastSentCropRef.current.height === height
+    ) {
+      return;
+    }
+
+    lastSentCropRef.current = { left, top, width, height };
     onCropChangeRef.current?.({ left, top, width, height });
   }, [crop, imageObj]);
 
@@ -148,8 +262,10 @@ export function VisualImageCropper({
     const displayWidth = Math.round(imageObj.naturalWidth * scale);
     const displayHeight = Math.round(imageObj.naturalHeight * scale);
 
-    canvas.width = displayWidth;
-    canvas.height = displayHeight;
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+      canvas.width = displayWidth;
+      canvas.height = displayHeight;
+    }
 
     // 1. Draw original image
     ctx.drawImage(imageObj, 0, 0, displayWidth, displayHeight);
@@ -259,6 +375,7 @@ export function VisualImageCropper({
     if (!handle) return;
 
     canvas.setPointerCapture(e.pointerId);
+    isDraggingRef.current = true;
     setActiveHandle(handle);
     setDragStart({
       mouseX: x / canvas.width,
@@ -294,41 +411,160 @@ export function VisualImageCropper({
 
     let { cropX, cropY, cropW, cropH } = dragStart;
 
+    const getTargetRatio = (r: string) => {
+      if (r === '1:1') return 1;
+      if (r === '16:9') return 16 / 9;
+      if (r === '9:16') return 9 / 16;
+      if (r === '4:3') return 4 / 3;
+      if (r === '3:2') return 3 / 2;
+      return 0; // free
+    };
+
+    const targetRatio = getTargetRatio(aspectRatio);
+    const naturalWidth = imageObj?.naturalWidth || 1200;
+    const naturalHeight = imageObj?.naturalHeight || 800;
+    const imgRatio = naturalWidth / naturalHeight;
+
     if (activeHandle === 'move') {
       cropX = Math.max(0, Math.min(1 - cropW, cropX + dx));
       cropY = Math.max(0, Math.min(1 - cropH, cropY + dy));
     } else if (activeHandle === 'se') {
       cropW = Math.max(0.05, Math.min(1 - cropX, cropW + dx));
-      cropH = Math.max(0.05, Math.min(1 - cropY, cropH + dy));
+      if (targetRatio > 0) {
+        cropH = (cropW * imgRatio) / targetRatio;
+        if (cropY + cropH > 1) {
+          cropH = 1 - cropY;
+          cropW = (cropH * targetRatio) / imgRatio;
+        }
+      } else {
+        cropH = Math.max(0.05, Math.min(1 - cropY, cropH + dy));
+      }
     } else if (activeHandle === 'nw') {
-      const newX = Math.max(0, Math.min(cropX + cropW - 0.05, cropX + dx));
-      const newY = Math.max(0, Math.min(cropY + cropH - 0.05, cropY + dy));
-      cropW = cropW + (cropX - newX);
-      cropH = cropH + (cropY - newY);
-      cropX = newX;
-      cropY = newY;
+      let newW = cropW - dx;
+      let newH = cropH - dy;
+      if (targetRatio > 0) {
+        newW = Math.max(0.05, Math.min(cropX + cropW, newW));
+        newH = (newW * imgRatio) / targetRatio;
+        let newX = cropX + cropW - newW;
+        let newY = cropY + cropH - newH;
+        if (newY < 0) {
+          newH = cropY + cropH;
+          newW = (newH * targetRatio) / imgRatio;
+          newY = 0;
+          newX = cropX + cropW - newW;
+        }
+        if (newX < 0) {
+          newW = cropX + cropW;
+          newH = (newW * imgRatio) / targetRatio;
+          newX = 0;
+          newY = cropY + cropH - newH;
+        }
+        cropX = newX;
+        cropY = newY;
+        cropW = newW;
+        cropH = newH;
+      } else {
+        const newX = Math.max(0, Math.min(cropX + cropW - 0.05, cropX + dx));
+        const newY = Math.max(0, Math.min(cropY + cropH - 0.05, cropY + dy));
+        cropW = cropW + (cropX - newX);
+        cropH = cropH + (cropY - newY);
+        cropX = newX;
+        cropY = newY;
+      }
     } else if (activeHandle === 'ne') {
-      const newY = Math.max(0, Math.min(cropY + cropH - 0.05, cropY + dy));
-      cropW = Math.max(0.05, Math.min(1 - cropX, cropW + dx));
-      cropH = cropH + (cropY - newY);
-      cropY = newY;
+      let newW = cropW + dx;
+      if (targetRatio > 0) {
+        newW = Math.max(0.05, Math.min(1 - cropX, newW));
+        const newH = (newW * imgRatio) / targetRatio;
+        let newY = cropY + cropH - newH;
+        if (newY < 0) {
+          const maxH = cropY + cropH;
+          newW = (maxH * targetRatio) / imgRatio;
+          newY = 0;
+          cropH = maxH;
+        } else {
+          cropH = newH;
+        }
+        cropY = newY;
+        cropW = newW;
+      } else {
+        const newY = Math.max(0, Math.min(cropY + cropH - 0.05, cropY + dy));
+        cropW = Math.max(0.05, Math.min(1 - cropX, cropW + dx));
+        cropH = cropH + (cropY - newY);
+        cropY = newY;
+      }
     } else if (activeHandle === 'sw') {
-      const newX = Math.max(0, Math.min(cropX + cropW - 0.05, cropX + dx));
-      cropW = cropW + (cropX - newX);
-      cropH = Math.max(0.05, Math.min(1 - cropY, cropH + dy));
-      cropX = newX;
+      let newW = cropW - dx;
+      if (targetRatio > 0) {
+        newW = Math.max(0.05, Math.min(cropX + cropW, newW));
+        const newH = (newW * imgRatio) / targetRatio;
+        let newX = cropX + cropW - newW;
+        if (cropY + newH > 1) {
+          const maxH = 1 - cropY;
+          newW = (maxH * targetRatio) / imgRatio;
+          newX = cropX + cropW - newW;
+          cropH = maxH;
+        } else {
+          cropH = newH;
+        }
+        cropX = newX;
+        cropW = newW;
+      } else {
+        const newX = Math.max(0, Math.min(cropX + cropW - 0.05, cropX + dx));
+        cropW = cropW + (cropX - newX);
+        cropH = Math.max(0.05, Math.min(1 - cropY, cropH + dy));
+        cropX = newX;
+      }
     } else if (activeHandle === 'e') {
       cropW = Math.max(0.05, Math.min(1 - cropX, cropW + dx));
+      if (targetRatio > 0) {
+        cropH = (cropW * imgRatio) / targetRatio;
+        if (cropH > 1) {
+          cropH = 1;
+          cropW = (cropH * targetRatio) / imgRatio;
+        }
+        const midY = cropY + cropH / 2;
+        cropY = Math.max(0, Math.min(1 - cropH, midY - cropH / 2));
+      }
     } else if (activeHandle === 'w') {
       const newX = Math.max(0, Math.min(cropX + cropW - 0.05, cropX + dx));
       cropW = cropW + (cropX - newX);
       cropX = newX;
+      if (targetRatio > 0) {
+        cropH = (cropW * imgRatio) / targetRatio;
+        if (cropH > 1) {
+          cropH = 1;
+          cropW = (cropH * targetRatio) / imgRatio;
+          cropX = cropX + cropW - (cropH * targetRatio) / imgRatio;
+        }
+        const midY = cropY + cropH / 2;
+        cropY = Math.max(0, Math.min(1 - cropH, midY - cropH / 2));
+      }
     } else if (activeHandle === 's') {
       cropH = Math.max(0.05, Math.min(1 - cropY, cropH + dy));
+      if (targetRatio > 0) {
+        cropW = (cropH * targetRatio) / imgRatio;
+        if (cropW > 1) {
+          cropW = 1;
+          cropH = (cropW * imgRatio) / targetRatio;
+        }
+        const midX = cropX + cropW / 2;
+        cropX = Math.max(0, Math.min(1 - cropW, midX - cropW / 2));
+      }
     } else if (activeHandle === 'n') {
       const newY = Math.max(0, Math.min(cropY + cropH - 0.05, cropY + dy));
       cropH = cropH + (cropY - newY);
       cropY = newY;
+      if (targetRatio > 0) {
+        cropW = (cropH * targetRatio) / imgRatio;
+        if (cropW > 1) {
+          cropW = 1;
+          cropH = (cropW * imgRatio) / targetRatio;
+          cropY = cropY + cropH - (cropW * imgRatio) / targetRatio;
+        }
+        const midX = cropX + cropW / 2;
+        cropX = Math.max(0, Math.min(1 - cropW, midX - cropW / 2));
+      }
     }
 
     setCrop({ x: cropX, y: cropY, w: cropW, h: cropH });
@@ -339,43 +575,58 @@ export function VisualImageCropper({
       canvasRef.current.releasePointerCapture(e.pointerId);
     }
     setActiveHandle(null);
+    isDraggingRef.current = false;
+
+    if (imageObj) {
+      const naturalWidth = imageObj.naturalWidth || 1200;
+      const naturalHeight = imageObj.naturalHeight || 800;
+      const left = Math.max(0, Math.round(crop.x * naturalWidth));
+      const top = Math.max(0, Math.round(crop.y * naturalHeight));
+      const width = Math.max(1, Math.round(crop.w * naturalWidth));
+      const height = Math.max(1, Math.round(crop.h * naturalHeight));
+      lastSentCropRef.current = { left, top, width, height };
+      onCropChangeRef.current?.({ left, top, width, height });
+    }
   };
 
-  // Preset aspect ratio handler
-  const applyPreset = (preset: string) => {
-    setAspectRatio(preset);
-    if (!imageObj) return;
+  // Sync external cropValues ONLY if edited manually in sidebar inputs
+  useEffect(() => {
+    if (!cropValues || !imageObj) return;
+    if (isDraggingRef.current) return;
 
-    const natW = imageObj.naturalWidth || 1200;
-    const natH = imageObj.naturalHeight || 800;
-    const imgRatio = natW / natH;
-
-    if (preset === 'free') {
-      setCrop({ x: 0.15, y: 0.15, w: 0.7, h: 0.7 });
+    // If transitioning to a new preset, ignore stale cropValues until parent catches up
+    if (isPresetTransitionRef.current) {
+      if (
+        lastSentCropRef.current &&
+        Math.abs(lastSentCropRef.current.width - cropValues.width) <= 2 &&
+        Math.abs(lastSentCropRef.current.height - cropValues.height) <= 2
+      ) {
+        isPresetTransitionRef.current = false;
+      }
       return;
     }
 
-    let targetRatio = 1;
-    if (preset === '1:1') targetRatio = 1;
-    else if (preset === '16:9') targetRatio = 16 / 9;
-    else if (preset === '9:16') targetRatio = 9 / 16;
-    else if (preset === '4:3') targetRatio = 4 / 3;
-
-    let w = 0.75;
-    let h = (w * imgRatio) / targetRatio;
-
-    if (h > 0.85) {
-      h = 0.85;
-      w = (h * targetRatio) / imgRatio;
+    // If cropValues matches what was just dispatched by this cropper, ignore echo
+    if (
+      lastSentCropRef.current &&
+      Math.abs(lastSentCropRef.current.left - cropValues.left) <= 2 &&
+      Math.abs(lastSentCropRef.current.top - cropValues.top) <= 2 &&
+      Math.abs(lastSentCropRef.current.width - cropValues.width) <= 2 &&
+      Math.abs(lastSentCropRef.current.height - cropValues.height) <= 2
+    ) {
+      return;
     }
 
-    setCrop({
-      x: Math.max(0, (1 - w) / 2),
-      y: Math.max(0, (1 - h) / 2),
-      w: Math.min(1, w),
-      h: Math.min(1, h),
-    });
-  };
+    const natW = imageObj.naturalWidth || 1200;
+    const natH = imageObj.naturalHeight || 800;
+    if (natW <= 0 || natH <= 0) return;
+
+    const nx = Math.max(0, Math.min(1, cropValues.left / natW));
+    const ny = Math.max(0, Math.min(1, cropValues.top / natH));
+    const nw = Math.max(0.05, Math.min(1 - nx, cropValues.width / natW));
+    const nh = Math.max(0.05, Math.min(1 - ny, cropValues.height / natH));
+    setCrop({ x: nx, y: ny, w: nw, h: nh });
+  }, [cropValues, imageObj]);
 
   const naturalWidth = imageObj?.naturalWidth || 1200;
   const naturalHeight = imageObj?.naturalHeight || 800;
@@ -410,6 +661,7 @@ export function VisualImageCropper({
             { id: '16:9', label: '16:9 Landscape', icon: Monitor },
             { id: '9:16', label: '9:16 Story', icon: Smartphone },
             { id: '4:3', label: '4:3 Standard', icon: Maximize2 },
+            { id: '3:2', label: '3:2 Photo', icon: ImageIcon },
           ].map((r) => {
             const Icon = r.icon;
             return (
@@ -419,9 +671,10 @@ export function VisualImageCropper({
                 onClick={() => applyPreset(r.id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                   aspectRatio === r.id
-                    ? 'bg-[#00A3C4] text-white font-bold shadow-xs'
+                    ? 'text-white font-bold shadow-xs'
                     : 'bg-[#ededf9] dark:bg-slate-800 text-[#434655] dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
+                style={aspectRatio === r.id ? { backgroundColor: accentColor } : {}}
               >
                 <Icon size={12} />
                 <span>{r.label}</span>

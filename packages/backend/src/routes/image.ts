@@ -41,11 +41,41 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
 
+      const left = parseInt(params.left || '0', 10);
+      const top = parseInt(params.top || '0', 10);
+      const width = parseInt(params.width || '0', 10);
+      const height = parseInt(params.height || '0', 10);
+
       const result = await imageService.cropImage(files[0].data, files[0].name, {
-        left: parseInt(params.left || '0'),
-        top: parseInt(params.top || '0'),
-        width: parseInt(params.width),
-        height: parseInt(params.height),
+        left: isNaN(left) ? 0 : left,
+        top: isNaN(top) ? 0 : top,
+        width: isNaN(width) ? 0 : width,
+        height: isNaN(height) ? 0 : height,
+      });
+
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) {
+      handleRouteError(reply, error);
+    }
+  });
+
+  app.post('/crop-image', {
+    schema: { tags: ['Image'], summary: 'Crop image alias', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('An image file is required');
+
+      const left = parseInt(params.left || '0', 10);
+      const top = parseInt(params.top || '0', 10);
+      const width = parseInt(params.width || '0', 10);
+      const height = parseInt(params.height || '0', 10);
+
+      const result = await imageService.cropImage(files[0].data, files[0].name, {
+        left: isNaN(left) ? 0 : left,
+        top: isNaN(top) ? 0 : top,
+        width: isNaN(width) ? 0 : width,
+        height: isNaN(height) ? 0 : height,
       });
 
       await sendProcessingResult(reply, result, outputDir);
@@ -307,7 +337,9 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
       const result = await imageService.thresholdImage(files[0].data, files[0].name, {
-        threshold: params.threshold ? parseInt(params.threshold) : undefined,
+        threshold: (params.threshold !== undefined && params.threshold !== '') ? parseInt(params.threshold, 10) : 128,
+        invert: params.invert === 'true',
+        background: params.background || 'transparent',
       });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -330,9 +362,34 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     schema: { tags: ['Image'], summary: 'Trim transparent edges', consumes: ['multipart/form-data'] },
   }, async (request, reply) => {
     try {
-      const { files } = await extractFilesAndParams(request, uploadDir, 1);
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
-      const result = await imageService.trimTransparentEdges(files[0].data, files[0].name);
+      const result = await imageService.trimTransparentEdges(files[0].data, files[0].name, {
+        threshold: params.threshold !== undefined && params.threshold !== '' ? parseInt(params.threshold, 10) : 10,
+        padding: params.padding !== undefined && params.padding !== '' ? parseInt(params.padding, 10) : 0,
+        mode: (params.mode as any) || 'transparent',
+      });
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) { handleRouteError(reply, error); }
+  });
+
+  // ── Watermark ─────────────────────────────────────────────
+  app.post('/watermark', {
+    schema: { tags: ['Image'], summary: 'Add watermark to image', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 2);
+      if (files.length < 1) throw new ValidationError('An image file is required');
+      const watermarkData = files.length > 1 ? files[1].data : undefined;
+      const result = await imageService.addImageWatermark(files[0].data, files[0].name, {
+        watermarkData,
+        text: params.text || (watermarkData ? undefined : 'CONFIDENTIAL'),
+        position: (params.position as any) || 'center',
+        opacity: params.opacity ? parseFloat(params.opacity) : 0.6,
+        fontSize: params.fontSize ? parseInt(params.fontSize) : 36,
+        color: params.color || '#ffffff',
+        angle: params.angle !== undefined && params.angle !== '' ? parseFloat(params.angle) : -30,
+      });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
   });
@@ -405,6 +462,45 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
       });
     } catch (error: any) {
       reply.status(500).send({ error: error.message || 'Crop failed' });
+    }
+  });
+
+  // ── Remove Background ──────────────────────────────────────
+  app.post('/remove-bg', {
+    schema: { tags: ['Image'], summary: 'Remove background from image', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('An image file is required');
+
+      const result = await imageService.removeBackground(files[0].data, files[0].name, {
+        model: (params.model as any) || 'u2net',
+        format: (params.format as any) || 'png',
+        bgcolor: params.bgcolor ? String(params.bgcolor) : undefined,
+      });
+
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) {
+      handleRouteError(reply, error);
+    }
+  });
+
+  app.post('/remove-background', {
+    schema: { tags: ['Image'], summary: 'Remove background alias', consumes: ['multipart/form-data'] },
+  }, async (request, reply) => {
+    try {
+      const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
+      if (files.length < 1) throw new ValidationError('An image file is required');
+
+      const result = await imageService.removeBackground(files[0].data, files[0].name, {
+        model: (params.model as any) || 'u2net',
+        format: (params.format as any) || 'png',
+        bgcolor: params.bgcolor ? String(params.bgcolor) : undefined,
+      });
+
+      await sendProcessingResult(reply, result, outputDir);
+    } catch (error) {
+      handleRouteError(reply, error);
     }
   });
 

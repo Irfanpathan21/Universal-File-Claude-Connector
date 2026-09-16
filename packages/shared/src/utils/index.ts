@@ -298,3 +298,166 @@ export function getConfig(): import('../types/index.js').ToolkitConfig {
     },
   };
 }
+
+// ─── JSON Tabular Normalizer ───────────────────────────────────
+
+export interface NormalizedTabularData {
+  rows: Record<string, any>[];
+  columns: string[];
+}
+
+/**
+ * Recursively flattens an object into a flat key-value map using dot notation for nested objects.
+ * Primitive arrays are formatted as readable delimited strings.
+ * Complex arrays/objects that remain inside a cell are safely serialized to JSON strings.
+ */
+export function flattenObject(
+  obj: Record<string, any>,
+  prefix = ''
+): Record<string, any> {
+  const result: Record<string, any> = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value !== null && typeof value === 'object') {
+      if (Array.isArray(value)) {
+        // If array of primitives (strings, numbers, booleans)
+        const isPrimitiveArray = value.every(
+          v => v === null || v === undefined || typeof v !== 'object'
+        );
+        if (isPrimitiveArray) {
+          result[fullKey] = value.join('; ');
+        } else {
+          // Complex array inside a single cell -> JSON stringify (never [object Object])
+          result[fullKey] = JSON.stringify(value);
+        }
+      } else {
+        // Nested dictionary/object -> recurse
+        const flattened = flattenObject(value, fullKey);
+        Object.assign(result, flattened);
+      }
+    } else {
+      result[fullKey] = value ?? '';
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Converts any arbitrary JSON structure into a clean tabular list of rows and column headers.
+ * - Detects and unrolls wrapper objects with collection arrays (e.g. { filename, total, keywords: [...] })
+ * - Flattens nested objects into dot-notation columns
+ * - Collects the full union of all columns across all rows in order of discovery
+ * - Guarantees zero `[object Object]` values
+ */
+export function normalizeJsonToTabularRows(jsonData: any): NormalizedTabularData {
+  if (jsonData === null || jsonData === undefined) {
+    return { rows: [], columns: [] };
+  }
+
+  let rawRows: Record<string, any>[] = [];
+
+  // 1. Root is a 2D Array / Matrix (e.g. [["header1", "header2"], ["val1", "val2"]])
+  if (Array.isArray(jsonData) && jsonData.length > 0 && Array.isArray(jsonData[0])) {
+    const headers: string[] = jsonData[0].map((h: any, idx: number) => String(h || `col_${idx + 1}`));
+    const dataRows = jsonData.slice(1);
+    rawRows = dataRows.map(rowArr => {
+      const rowObj: Record<string, any> = {};
+      headers.forEach((h, idx) => {
+        rowObj[h] = rowArr[idx] ?? '';
+      });
+      return rowObj;
+    });
+    return { rows: rawRows, columns: headers };
+  }
+
+  // 2. Root is a 1D Array of Primitives (e.g. ["a", "b", "c"] or [1, 2, 3])
+  if (Array.isArray(jsonData) && jsonData.length > 0 && (typeof jsonData[0] !== 'object' || jsonData[0] === null)) {
+    rawRows = jsonData.map(val => ({ value: val ?? '' }));
+    return { rows: rawRows, columns: ['value'] };
+  }
+
+  // 3. Root is an Array of Objects (standard tabular JSON)
+  if (Array.isArray(jsonData)) {
+    rawRows = jsonData.map(item => {
+      if (typeof item === 'object' && item !== null) {
+        return flattenObject(item);
+      }
+      return { value: item ?? '' };
+    });
+  } else if (typeof jsonData === 'object' && jsonData !== null) {
+    // 4. Root is a single Object. Check if it's a wrapper around a collection array!
+    const arrayKeys = Object.keys(jsonData).filter(k => Array.isArray(jsonData[k]));
+
+    if (arrayKeys.length > 0) {
+      // Prioritize common collection keys or the array with the most items
+      const preferredNames = ['keywords', 'data', 'items', 'records', 'results', 'rows', 'list', 'users', 'products', 'entries'];
+      const bestKey =
+        arrayKeys.find(k => preferredNames.includes(k.toLowerCase())) ||
+        arrayKeys.sort((a, b) => (jsonData[b]?.length || 0) - (jsonData[a]?.length || 0))[0];
+
+      const collection = jsonData[bestKey];
+
+      // Extract parent metadata properties (everything other than the collection array)
+      const parentMetadata: Record<string, any> = {};
+      for (const [k, v] of Object.entries(jsonData)) {
+        if (k !== bestKey) {
+          if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+            Object.assign(parentMetadata, flattenObject(v, k));
+          } else if (Array.isArray(v)) {
+            parentMetadata[k] = v.every(x => typeof x !== 'object' || x === null) ? v.join('; ') : JSON.stringify(v);
+          } else {
+            parentMetadata[k] = v ?? '';
+          }
+        }
+      }
+
+      if (Array.isArray(collection) && collection.length > 0) {
+        rawRows = collection.map(item => {
+          if (typeof item === 'object' && item !== null) {
+            return { ...parentMetadata, ...flattenObject(item) };
+          }
+          const singularKey = bestKey.endsWith('s') ? bestKey.slice(0, -1) : bestKey;
+          return { ...parentMetadata, [singularKey]: item ?? '' };
+        });
+      } else {
+        // Collection array was empty: return 1 row with parent metadata
+        rawRows = [parentMetadata];
+      }
+    } else {
+      // 5. Root is a single flat or nested object without collection arrays
+      rawRows = [flattenObject(jsonData)];
+    }
+  } else {
+    // 6. Root is a primitive value
+    rawRows = [{ value: jsonData }];
+  }
+
+  // Ensure all cell values are primitives or stringified JSON (NO [object Object] ever!)
+  const sanitizedRows: Record<string, any>[] = rawRows.map(row => {
+    const cleanRow: Record<string, any> = {};
+    for (const [k, v] of Object.entries(row)) {
+      if (v !== null && typeof v === 'object') {
+        cleanRow[k] = Array.isArray(v) ? v.join('; ') : JSON.stringify(v);
+      } else {
+        cleanRow[k] = v ?? '';
+      }
+    }
+    return cleanRow;
+  });
+
+  // Collect the complete union of columns across all rows in order of appearance
+  const columnSet = new Set<string>();
+  for (const row of sanitizedRows) {
+    for (const key of Object.keys(row)) {
+      columnSet.add(key);
+    }
+  }
+
+  const columns = Array.from(columnSet);
+
+  return { rows: sanitizedRows, columns };
+}
+

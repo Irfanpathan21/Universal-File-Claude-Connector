@@ -21,13 +21,13 @@ export default function App() {
     document.documentElement.classList.add(theme);
   }, [theme]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (Ctrl+K / Cmd+K to open Search Option)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + K → Command palette
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K' || e.code === 'KeyK')) {
         e.preventDefault();
-        useUIStore.getState().setCommandOpen(true);
+        const current = useUIStore.getState().commandOpen;
+        useUIStore.getState().setCommandOpen(!current);
       }
     };
 

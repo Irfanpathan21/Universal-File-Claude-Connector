@@ -79,6 +79,10 @@ export function InteractiveImageWorkbench({
       filterStr = 'invert(100%)';
     } else if (toolId === 'edge_detection') {
       filterStr = 'contrast(200%) grayscale(100%)';
+    } else if (toolId === 'threshold_image') {
+      const thresh = parseInt(params.threshold || '128', 10);
+      const brightnessShift = ((128 - thresh) / 255) * 100;
+      filterStr = `grayscale(100%) contrast(1000%) brightness(${100 + brightnessShift}%)`;
     }
   }
 
@@ -277,7 +281,22 @@ export function InteractiveImageWorkbench({
         )}
       </div>
 
-      {/* Live Feedback Footer for Compress/Convert/Resize */}
+      {/* Live Feedback Footer for Compress/Convert/Resize/Remove BG */}
+      {(toolId === 'remove_bg' || toolId === 'remove_background') && (
+        <div className="px-5 py-3 bg-purple-50 dark:bg-purple-950/40 border-t border-purple-200 dark:border-purple-800 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 font-bold text-purple-900 dark:text-purple-200">
+            <Sparkles size={16} className="text-purple-600 dark:text-purple-400" />
+            <span>AI Background Removal:</span>
+            <span className="px-2 py-0.5 rounded bg-purple-600 text-white text-[10px] tracking-wider uppercase font-extrabold">
+              {params.model === 'u2net' ? 'High Precision AI' : 'Fast AI (u2netp)'}
+            </span>
+          </div>
+          <span className="text-purple-700 dark:text-purple-300 font-semibold">
+            Target: {(params.format || 'png').toUpperCase()} (Transparent Alpha)
+          </span>
+        </div>
+      )}
+
       {toolId === 'compress_image' && (
         <div className="px-5 py-3 bg-[#e8f5e9] dark:bg-emerald-950/40 border-t border-emerald-200 dark:border-emerald-800 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -314,6 +333,21 @@ export function InteractiveImageWorkbench({
           </span>
           <span className="text-blue-700 dark:text-blue-300 font-bold">
             Target: {params.width || '1920'} × {params.height || '1080'} px
+          </span>
+        </div>
+      )}
+
+      {toolId === 'threshold_image' && (
+        <div className="px-5 py-3 bg-[#f8fafc] dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200">
+            <Sliders size={15} style={{ color: accentColor }} />
+            <span>Threshold Cutoff:</span>
+            <span className="px-2 py-0.5 rounded bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 text-[11px] font-extrabold">
+              {params.threshold || '128'}
+            </span>
+          </div>
+          <span className="text-[#505f76] dark:text-slate-400 font-semibold">
+            Cutoff: 0 - 255 (Standard Default: 128)
           </span>
         </div>
       )}
