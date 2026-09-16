@@ -18,7 +18,7 @@ This guide explains:
 |---|---|---|
 | **Web Frontend** | ✅ **Yes (100% Free)** | **GitHub Pages** can host your frontend static bundle (`HTML/CSS/JS`) for free forever. |
 | **Git Repository & CI/CD** | ✅ **Yes (100% Free)** | GitHub stores all code, issues, actions, and Docker images. |
-| **Active Node.js Backend API** | ❌ **No** | GitHub Pages *only* hosts static files. It cannot run Node.js, Fastify/Express, Sharp, FFmpeg, or LibreOffice. |
+| **Active Node.js Backend API** | ❌ **No** | GitHub Pages *only* hosts static files. It cannot run Node.js, Fastify/Express, Sharp, PyMuPDF, or LibreOffice. |
 | **24/7 Remote MCP SSE Link** | ❌ **No** | Claude Web/Mobile needs a persistent HTTPS SSE endpoint. GitHub Actions shuts down after jobs finish, and GitHub Codespaces shuts down after 30 minutes of inactivity. |
 
 ### The Good News:
@@ -128,7 +128,7 @@ In Claude Web or mobile devices:
    - **Name**: `Universal File Toolkit`
    - **URL / Endpoint**: `https://your-mcp-server.onrender.com/mcp` (or `/sse` for older SSE clients)
    - **Authentication**: None (`auth: none`)
-3. Hit Save. Claude will now have direct access to all **111 active file processing tools** right inside your chats from any device!
+3. Hit Save. Claude will now have direct access to all **100 active file processing tools** right inside your chats from any device!
 
 > **How Chat File Uploads Work in Claude Web**:
 > When you upload a file in chat and prompt Claude to process it:

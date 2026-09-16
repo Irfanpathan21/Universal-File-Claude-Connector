@@ -6,7 +6,6 @@
 - Node.js >= 20.0.0
 - pnpm >= 9.0.0
 - Python 3.10+ (for PyMuPDF advanced PDF processing, optional pure JS fallback included)
-- FFmpeg (optional, required for advanced audio/video transcoding)
 
 ### Steps
 
@@ -59,7 +58,7 @@ https://<your-mcp-subdomain>.onrender.com/mcp
 ```
 - Supports full base64 file payloads directly from Claude chat.
 - Automatically serves native image blocks for chat viewing and file resource blocks for download.
-- Health probe is available at `GET /health` (`toolsCount: 111`).
+- Health probe is available at `GET /health` (`toolsCount: 100`).
 
 See [Claude Web & Free Hosting Guide](FREE_HOSTING_AND_CLAUDE_GUIDE.md) and [MCP Setup Guide](mcp-setup.md) for full instructions.
 
@@ -67,7 +66,7 @@ See [Claude Web & Free Hosting Guide](FREE_HOSTING_AND_CLAUDE_GUIDE.md) and [MCP
 
 ## Docker Quick Start
 
-To run everything in Docker with pre-installed binary dependencies (FFmpeg, LibreOffice, Tesseract, Ghostscript):
+To run everything in Docker with pre-installed binary dependencies (LibreOffice, Tesseract, Ghostscript):
 
 ```bash
 docker compose -f docker/docker-compose.yml up --build -d

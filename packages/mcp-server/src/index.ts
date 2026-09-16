@@ -43,8 +43,6 @@ import {
   presentationService,
   textService,
   archiveService,
-  audioService,
-  videoService,
   ocrService,
   utilityService,
   aiService,
@@ -1298,146 +1296,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: 'convert_audio',
-        description: 'Convert audio format (MP3, WAV, AAC, OGG, FLAC, M4A). Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the audio file' },
-            targetFormat: { type: 'string', description: 'Target format (mp3, wav, aac, ogg, flac)' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file', 'targetFormat'],
-        },
-      },
-      {
-        name: 'extract_audio_from_video',
-        description: 'Extract audio track from MP4/MKV/AVI/MOV video file. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the video file' },
-            targetFormat: { type: 'string', description: 'Target audio format (mp3, wav, aac)' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'compress_video',
-        description: 'Reduce video file size using H.264 video compression. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the video file' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'generate_video_thumbnail',
-        description: 'Extract a frame from a video file at a given timestamp as a JPG image. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the video file' },
-            timestamp: { type: 'string', description: 'Timestamp (HH:MM:SS), default 00:00:01' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'trim_audio',
-        description: 'Cut audio clip between start and end timestamps. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the audio file' },
-            startTime: { type: 'string', description: 'Start timestamp (HH:MM:SS)' },
-            endTime: { type: 'string', description: 'End timestamp (HH:MM:SS)' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'change_audio_speed',
-        description: 'Adjust audio playback speed (0.5x to 2.0x). Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the audio file' },
-            speed: { type: 'number', description: 'Playback speed multiplier (e.g. 1.5)' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'audio_to_waveform',
-        description: 'Generate a visual waveform PNG image of an audio file. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the audio file' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'video_to_gif',
-        description: 'Convert video clip into a smooth animated GIF file. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the video file' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'gif_to_video',
-        description: 'Convert an animated GIF into an MP4 video clip. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the GIF file' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'trim_video',
-        description: 'Cut video clip between start and end timestamps. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the video file' },
-            startTime: { type: 'string', description: 'Start timestamp (HH:MM:SS)' },
-            endTime: { type: 'string', description: 'End timestamp (HH:MM:SS)' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
-        name: 'mute_video',
-        description: 'Remove audio stream from video file to create a silent video. Local MCP tool.',
-        inputSchema: {
-          type: 'object' as const,
-          properties: {
-            file: { type: 'string', description: 'Path to the video file' },
-            outputPath: { type: 'string' },
-          },
-          required: ['file'],
-        },
-      },
-      {
         name: 'compress_gzip',
         description: 'Compress a file using GZIP compression algorithm (.gz). Local MCP tool.',
         inputSchema: {
@@ -2247,96 +2105,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return { content: [{ type: 'text', text: result.outputFiles[0].data.toString('utf-8') }] };
       }
 
-      // ── Audio Tools (Phase 3) ────────────────────────────
-      case 'convert_audio': {
-        const data = await readInputFile(args.file as string);
-        const result = await audioService.convertAudio(data, basename(args.file as string), { targetFormat: args.targetFormat as any });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, `.${args.targetFormat}`);
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Converted audio to ${args.targetFormat} → ${outputPath}` }] };
-      }
-
-      case 'extract_audio_from_video': {
-        const data = await readInputFile(args.file as string);
-        const result = await audioService.extractAudioFromVideo(data, basename(args.file as string), { targetFormat: (args.targetFormat as any) || 'mp3' });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, `_audio.${args.targetFormat || 'mp3'}`);
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Extracted audio track from video → ${outputPath}` }] };
-      }
-
-      // ── Video Tools (Phase 3) ────────────────────────────
-      case 'compress_video': {
-        const data = await readInputFile(args.file as string);
-        const result = await videoService.compressVideo(data, basename(args.file as string));
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_compressed.mp4');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Compressed video (${result.metadata?.compressionRatio} reduction) → ${outputPath}` }] };
-      }
-
-      case 'generate_video_thumbnail': {
-        const data = await readInputFile(args.file as string);
-        const result = await videoService.generateVideoThumbnail(data, basename(args.file as string), { timestamp: args.timestamp as string });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_thumb.jpg');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Extracted video thumbnail frame → ${outputPath}` }] };
-      }
-
-      case 'trim_audio': {
-        const data = await readInputFile(args.file as string);
-        const result = await audioService.trimAudio(data, basename(args.file as string), { startTime: args.startTime as string, endTime: args.endTime as string });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_trimmed.mp3');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Trimmed audio clip → ${outputPath}` }] };
-      }
-
-      case 'change_audio_speed': {
-        const data = await readInputFile(args.file as string);
-        const result = await audioService.changeAudioSpeed(data, basename(args.file as string), { speed: args.speed as number });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_speed.mp3');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Changed audio playback speed → ${outputPath}` }] };
-      }
-
-      case 'audio_to_waveform': {
-        const data = await readInputFile(args.file as string);
-        const result = await audioService.audioToWaveform(data, basename(args.file as string));
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_waveform.png');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Generated audio waveform PNG → ${outputPath}` }] };
-      }
-
-      case 'video_to_gif': {
-        const data = await readInputFile(args.file as string);
-        const result = await videoService.videoToGif(data, basename(args.file as string));
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '.gif');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Converted video to smooth animated GIF → ${outputPath}` }] };
-      }
-
-      case 'gif_to_video': {
-        const data = await readInputFile(args.file as string);
-        const result = await videoService.gifToVideo(data, basename(args.file as string));
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '.mp4');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Converted animated GIF to MP4 video → ${outputPath}` }] };
-      }
-
-      case 'trim_video': {
-        const data = await readInputFile(args.file as string);
-        const result = await videoService.trimVideo(data, basename(args.file as string), { startTime: args.startTime as string, endTime: args.endTime as string });
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_trimmed.mp4');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Trimmed video clip → ${outputPath}` }] };
-      }
-
-      case 'mute_video': {
-        const data = await readInputFile(args.file as string);
-        const result = await videoService.muteVideo(data, basename(args.file as string));
-        const outputPath = (args.outputPath as string) || getOutputPath(args.file as string, '_muted.mp4');
-        await writeOutputFile(result.outputFiles[0].data as Buffer, outputPath);
-        return { content: [{ type: 'text', text: `✅ Muted video (removed audio stream) → ${outputPath}` }] };
-      }
-
       case 'compress_gzip': {
         const data = await readInputFile(args.file as string);
         const result = await archiveService.compressGzip(data, basename(args.file as string));
@@ -2717,7 +2485,7 @@ async function main() {
             messages: '/messages',
             health: '/health'
           },
-          toolsCount: 111,
+          toolsCount: 100,
           timestamp: new Date().toISOString()
         }));
         return;

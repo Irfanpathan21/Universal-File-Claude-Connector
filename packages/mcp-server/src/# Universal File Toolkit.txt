@@ -1,24 +1,23 @@
-# 🛠️ Universal File Toolkit — Available Tools (111 Active Tools)
+# 🛠️ Universal File Toolkit — Available Tools (100 Active Tools)
 
-> Complete directory of all 111 file processing tools available via MCP (Claude Desktop, Claude Web, Cursor, VS Code) and REST API.
+> Complete directory of all 100 file processing tools available via MCP (Claude Desktop, Claude Web, Cursor, VS Code) and REST API.
 
 ## Quick Summary by Category
 
 | Category | Tools | Highlights |
 | :--- | :---: | :--- |
-| **PDF Professional Toolkit** | **28** | `merge_pdf`, `split_pdf`, `compress_pdf`, `rotate_pdf`, ... |
-| **Image Processing Toolkit** | **21** | `resize_image`, `crop_image`, `rotate_image`, `flip_image`, ... |
-| **Data Interchange & Parsing** | **12** | `json_to_csv`, `csv_to_json`, `json_to_xml`, `xml_to_json`, ... |
-| **Word Document Processing** | **10** | `extract_docx_text`, `docx_to_html`, `extract_docx_images`, `extract_docx_hyperlinks`, ... |
-| **Excel & Spreadsheets** | **12** | `excel_to_csv`, `csv_to_excel`, `excel_to_json`, `merge_excel_sheets`, ... |
-| **PowerPoint Presentations** | **6** | `extract_pptx_text`, `extract_pptx_notes`, `extract_pptx_images`, `pptx_to_pdf`, ... |
+| **PDF Professional Toolkit** | **28** | `merge_pdf`, `split_pdf`, `compress_pdf`, `rotate_pdf`, `pdf_to_images`, `crop_pdf`, `insert_pages`, `duplicate_pages`, ... |
+| **Image Processing Toolkit** | **21** | `resize_image`, `crop_image`, `rotate_image`, `flip_image`, `compress_image`, `convert_image`, `remove_bg`, `dominant_colors`, ... |
+| **Data Interchange & Parsing** | **12** | `json_to_csv`, `csv_to_json`, `json_to_xml`, `xml_to_json`, `json_to_yaml`, `format_json`, `markdown_to_html`, ... |
+| **Word Document Processing** | **10** | `extract_docx_text`, `docx_to_html`, `extract_docx_images`, `extract_docx_hyperlinks`, `docx_to_markdown`, `merge_docx`, ... |
+| **Excel & Spreadsheets** | **12** | `excel_to_csv`, `csv_to_excel`, `excel_to_json`, `merge_excel_sheets`, `remove_csv_duplicates`, `split_workbook`, ... |
+| **PowerPoint Presentations** | **6** | `extract_pptx_text`, `extract_pptx_notes`, `extract_pptx_images`, `pptx_to_pdf`, `pptx_to_html`, `read_pptx_metadata` |
 | **Text Analytics & Word Count** | **1** | `word_count` |
-| **Archives & Compression** | **5** | `create_zip`, `extract_zip`, `list_archive_contents`, `compress_gzip`, ... |
-| **Audio Processing** | **5** | `convert_audio`, `extract_audio_from_video`, `trim_audio`, `change_audio_speed`, ... |
-| **Video Processing (FFmpeg)** | **6** | `compress_video`, `generate_video_thumbnail`, `video_to_gif`, `gif_to_video`, ... |
+| **Archives & Compression** | **5** | `create_zip`, `extract_zip`, `list_archive_contents`, `compress_gzip`, `decompress_gzip` |
 | **Optical Character Recognition (OCR)** | **1** | `extract_text_from_image_ocr` |
-| **Checksum & Metadata** | **1** | `hash_file` |
+| **Checksum & Security** | **1** | `hash_file` |
 | **AI Document Intelligence** | **3** | `summarize_text`, `extract_keywords`, `sentiment_analysis` |
+| **Total** | **100** | |
 
 ---
 
@@ -110,7 +109,7 @@
 | `extract_docx_hyperlinks` | **Extract Word Links** | Extract all embedded URLs and hyperlinks from a Word document | .docx | .json |
 | `docx_to_markdown` | **Word to Markdown** | Convert DOCX Word documents to Markdown format | .docx | .md |
 | `text_to_docx` | **Text to Word** | Convert plain text or Markdown files into a Word DOCX document | .txt, .md | .docx |
-| `merge_docx` | **Merge Word Documents** | Merge multiple Word (.docx) files into a single unified document with perfect alignment, styles, and tables preserved | .docx | .docx |
+| `merge_docx` | **Merge Word Documents** | Merge multiple Word (.docx) files into a single unified document with styles preserved | .docx | .docx |
 | `replace_text_docx` | **Find & Replace Word Text** | Find and replace target text occurrences inside a Word document | .docx | .docx |
 | `extract_docx_comments` | **Extract Word Comments** | Extract reviewer comments and notes from a Word document | .docx | .json |
 | `word_count_docx` | **Word Count & Statistics** | Calculate word count, character count, sentence count, and reading time in Word documents | .docx | .json |
@@ -128,7 +127,7 @@
 | `transpose_sheet` | **Transpose Spreadsheet** | Transpose rows and columns in a CSV / spreadsheet | .csv | .csv |
 | `excel_to_html` | **Excel to HTML Table** | Convert Excel spreadsheet to an HTML formatted table | .xlsx, .xls | .html |
 | `protect_workbook` | **Protect Excel Workbook** | Add password protection to an Excel workbook (requires password to open) | .xlsx, .xls | .xlsx |
-| `split_workbook` | **Split Excel Workbook** | Split a multi-sheet Excel workbook into separate well-structured individual sheet files preserving all formatting and layout | .xlsx, .xls | .xlsx, .zip |
+| `split_workbook` | **Split Excel Workbook** | Split a multi-sheet Excel workbook into separate individual sheet files | .xlsx, .xls | .xlsx, .zip |
 | `find_replace_excel` | **Find & Replace Excel Cells** | Find and replace target cell values across all Excel worksheets | .xlsx, .xls | .xlsx |
 | `workbook_statistics` | **Workbook Statistics** | Analyze Excel workbook structure, sheet counts, row counts, and stats | .xlsx, .xls, .csv | .json |
 
@@ -143,7 +142,7 @@
 | `pptx_to_html` | **PowerPoint to HTML Deck** | Convert PowerPoint (.pptx) presentation slides into a web HTML slide deck | .pptx | .html |
 | `read_pptx_metadata` | **PowerPoint Metadata & Stats** | Extract presentation slide counts, speaker notes count, media count, and metadata | .pptx | .json |
 
-### Text Analytics & Word Count (1 Tools)
+### Text Analytics & Word Count (1 Tool)
 
 | Tool ID | Name | Description | Inputs | Outputs |
 | :--- | :--- | :--- | :--- | :--- |
@@ -159,34 +158,13 @@
 | `compress_gzip` | **GZIP Compress File** | Compress any single file using GZIP compression algorithm (.gz) | * | .gz |
 | `decompress_gzip` | **GZIP Decompress File** | Decompress GZIP (.gz) archive file | .gz | * |
 
-### Audio Processing (5 Tools)
-
-| Tool ID | Name | Description | Inputs | Outputs |
-| :--- | :--- | :--- | :--- | :--- |
-| `convert_audio` | **Convert Audio Format** | Convert audio files between MP3, WAV, AAC, OGG, FLAC, and M4A formats | .mp3, .wav, .aac, .ogg, .flac, .m4a | .mp3, .wav, .aac, .ogg, .flac, .m4a |
-| `extract_audio_from_video` | **Extract Audio from Video** | Extract high-quality audio stream from MP4, MKV, AVI, or MOV video | .mp4, .mkv, .avi, .mov, .webm | .mp3, .wav, .aac |
-| `trim_audio` | **Trim Audio** | Cut audio clip between start and end timestamps | .mp3, .wav, .aac, .ogg, .flac, .m4a | .mp3, .wav, .aac, .ogg, .flac |
-| `change_audio_speed` | **Change Audio Speed** | Adjust audio playback speed (0.5x slow-motion to 2.0x fast-forward) | .mp3, .wav, .aac, .ogg, .flac, .m4a | .mp3, .wav, .aac |
-| `audio_to_waveform` | **Audio Waveform Image** | Generate a visual waveform PNG image of any audio track | .mp3, .wav, .aac, .ogg, .flac, .m4a | .png |
-
-### Video Processing (FFmpeg) (6 Tools)
-
-| Tool ID | Name | Description | Inputs | Outputs |
-| :--- | :--- | :--- | :--- | :--- |
-| `compress_video` | **Compress Video** | Reduce video file size using H.264 video compression | .mp4, .mkv, .avi, .mov, .webm | .mp4 |
-| `generate_video_thumbnail` | **Video Frame Thumbnail** | Extract a high-resolution JPG thumbnail image from any video frame timestamp | .mp4, .mkv, .avi, .mov, .webm | .jpg |
-| `video_to_gif` | **Video to Animated GIF** | Convert video clip into a smooth animated GIF file | .mp4, .mkv, .avi, .mov, .webm | .gif |
-| `gif_to_video` | **GIF to MP4 Video** | Convert animated GIF files into lightweight MP4 video clips | .gif | .mp4 |
-| `trim_video` | **Trim Video Clip** | Cut video clip between start and end timestamps | .mp4, .mkv, .avi, .mov, .webm | .mp4 |
-| `mute_video` | **Mute Video (Strip Audio)** | Remove audio track from video file to create a silent video | .mp4, .mkv, .avi, .mov, .webm | .mp4 |
-
-### Optical Character Recognition (OCR) (1 Tools)
+### Optical Character Recognition (OCR) (1 Tool)
 
 | Tool ID | Name | Description | Inputs | Outputs |
 | :--- | :--- | :--- | :--- | :--- |
 | `extract_text_from_image_ocr` | **Image OCR Text Extractor** | Perform Optical Character Recognition on PNG, JPG, or TIFF images to extract text | .png, .jpg, .jpeg, .tiff, .bmp, .webp | .txt |
 
-### Checksum & Metadata (1 Tools)
+### Checksum & Security (1 Tool)
 
 | Tool ID | Name | Description | Inputs | Outputs |
 | :--- | :--- | :--- | :--- | :--- |

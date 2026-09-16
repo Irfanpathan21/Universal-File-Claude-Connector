@@ -13,9 +13,9 @@ Health Check: `GET http://localhost:3001/health`
 
 - `GET /` — API root service discovery, documentation links, and system status
 - `GET /health` — Service health probe and uptime check
-- `GET /api/tools` — List all 111 available file tools (Query params: `q`, `category`)
+- `GET /api/tools` — List all 100 available file tools (Query params: `q`, `category`)
 - `GET /api/tools/:id` — Get detailed metadata, parameters, and input/output formats for a tool
-- `GET /api/categories` — List all 13 tool categories with tool counts
+- `GET /api/categories` — List all 11 tool categories with tool counts
 - `GET /api/download/:id/:filename` — Download a processed output file by job ID
 - `GET /api/formats` — List all supported file extensions and MIME types
 - `GET /api/version` — Get current API server version and release information
@@ -153,27 +153,6 @@ Health Check: `GET http://localhost:3001/health`
 - `POST /api/archive/list-contents` (multipart: `file`)
 - `POST /api/archive/compress-gzip` (multipart: `file`)
 - `POST /api/archive/decompress-gzip` (multipart: `file`)
-
----
-
-## Audio Processing (`/api/audio`) — 5 Tools
-
-- `POST /api/audio/convert` (multipart: `file`, `targetFormat`, `bitrate`)
-- `POST /api/audio/extract-from-video` (multipart: `file`, `audioFormat`)
-- `POST /api/audio/trim` (multipart: `file`, `startTime`, `duration`)
-- `POST /api/audio/change-speed` (multipart: `file`, `speedMultiplier`)
-- `POST /api/audio/waveform` (multipart: `file`, `width`, `height`)
-
----
-
-## Video Processing (`/api/video`) — 6 Tools
-
-- `POST /api/video/compress` (multipart: `file`, `crf`, `preset`)
-- `POST /api/video/thumbnail` (multipart: `file`, `timestamp`, `width`)
-- `POST /api/video/to-gif` (multipart: `file`, `fps`, `width`, `startTime`, `duration`)
-- `POST /api/video/from-gif` (multipart: `file`)
-- `POST /api/video/trim` (multipart: `file`, `startTime`, `duration`)
-- `POST /api/video/mute` (multipart: `file`)
 
 ---
 

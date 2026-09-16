@@ -7,10 +7,10 @@
 
 ## 🎯 1. Design Vision & Core Principles
 
-The **Universal File Toolkit Web Application** provides an intuitive, friction-free interface for processing 111+ file types locally or via API.
+The **Universal File Toolkit Web Application** provides an intuitive, friction-free interface for processing 100+ file types locally or via API.
 
 1. **Simplicity First (iLovePDF Style)**:
-   - Top navbar features **dropdown menus grouped by file domain** (PDF, Image, Document, Spreadsheet, Presentation, Audio, Video, Archive, OCR, AI).
+   - Top navbar features **dropdown menus grouped by file domain** (PDF, Image, Document, Spreadsheet, Presentation, Archive, OCR, AI).
    - Users can jump directly to any conversion tool within 1 click.
 2. **Color-Coded File Categories**:
    - Distinct color themes per file domain give instant visual feedback and aesthetic warmth.
@@ -30,7 +30,6 @@ The **Universal File Toolkit Web Application** provides an intuitive, friction-f
 | **Word / Docs** | 🔷 Royal Blue | `blue-600` / `indigo-500` | `#2B6CB0` | DOCX to PDF, Merge Docs, Word Count, Text Extract |
 | **Spreadsheets** | 🟩 Emerald Green | `emerald-600` / `green-500` | `#2F855A` | Excel to CSV, Merge XLSX, Formula Evaluator, Clean Data |
 | **Presentations** | 🟧 Coral & Amber | `amber-500` / `orange-500` | `#DD6B20` | PPTX to PDF, Extract Slides, Compress PPT |
-| **Video & Audio** | 🟪 Violet & Indigo | `violet-600` / `purple-500` | `#805AD5` | Compress Video, MP4 to MP3, Trim Audio, Convert MKV |
 | **Archives** | 🟫 Warm Slate | `slate-600` / `zinc-700` | `#4A5568` | Extract ZIP/7Z, Create Zip, Compress Archive |
 | **OCR & AI** | 🌸 Fuchsia & Magenta | `fuchsia-600` / `pink-500` | `#D69E2E` | Image to Text (OCR), AI Summarize, Metadata Cleaner |
 
@@ -41,7 +40,7 @@ The **Universal File Toolkit Web Application** provides an intuitive, friction-f
 ### Top Navigation Bar (iLovePDF Model)
 
 ```text
-[ 📁 Universal File Toolkit ]  [ 📄 PDF ▾ ]  [ 🖼️ Image ▾ ]  [ 📝 Word ▾ ]  [ 📊 Excel ▾ ]  [ 🎬 Media ▾ ]  [ ⚡ All 111 Tools ]  [ 🌙 Dark Mode ]
+[ 📁 Universal File Toolkit ]  [ 📄 PDF ▾ ]  [ 🖼️ Image ▾ ]  [ 📝 Word ▾ ]  [ 📊 Excel ▾ ]  [ ⚡ All 100 Tools ]  [ 🌙 Dark Mode ]
 ```
 
 ### Dropdown Menu Layout (Example: PDF Dropdown)
@@ -67,7 +66,7 @@ When a user hovers or clicks on `📄 PDF ▾`, a rich 3-column megamenu appears
    - Headline: *"Every file tool you need, 100% private and in one place."*
    - Large Universal File Dropzone with dashed border and pulsating upload icon.
 2. **Category Quick Pills**:
-   - Filter pills (`All`, `PDF`, `Images`, `Documents`, `Spreadsheets`, `Video`, `Audio`, `OCR`).
+   - Filter pills (`All`, `PDF`, `Images`, `Documents`, `Spreadsheets`, `Archives`, `OCR/AI`).
 3. **Tool Cards Grid (3 to 4 columns)**:
    - Clean card layout with subtle hover elevation (`hover:-translate-y-1 hover:shadow-xl`).
    - Icon, tool title, short description, and category badge.
@@ -116,4 +115,4 @@ When a user hovers or clicks on `📄 PDF ▾`, a rich 3-column megamenu appears
 
 ---
 
-> 💡 **Design Goal**: Achieve the instant familiarity of **iLovePDF** while empowering users with 111+ universal file operations.
+> 💡 **Design Goal**: Achieve the instant familiarity of **iLovePDF** while empowering users with 100+ universal file operations.

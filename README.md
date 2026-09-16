@@ -1,34 +1,33 @@
 # 🚀 Universal File Claude Connector
 
-> **The Ultimate All-in-One Local 111-Tool File Processing Engine for Claude Desktop**
+> **The Ultimate All-in-One Local 100-Tool File Processing Engine for Claude Desktop**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol_v1.x-brightgreen.svg)](https://modelcontextprotocol.io/)
-[![Tools Count](https://img.shields.io/badge/Tools-111_Active_Tools-orange.svg)](#-tool-directory-111-tools)
+[![Tools Count](https://img.shields.io/badge/Tools-100_Active_Tools-orange.svg)](#-tool-directory-100-tools)
 
 ---
 
 ## 🎯 Aim & Mission
 
-**Universal File Claude Connector** turns your Claude Desktop application into a powerful, local file-processing suite equivalent to iLovePDF, Smallpdf, TinyPNG, ImageMagick, Pandoc, and FFmpeg combined — **without uploading any of your files to third-party cloud servers**.
+**Universal File Claude Connector** turns your Claude Desktop application into a powerful, local file-processing suite equivalent to iLovePDF, Smallpdf, TinyPNG, ImageMagick, and Pandoc combined — **without uploading any of your files to third-party cloud servers**.
 
-When you ask Claude to merge PDFs, crop images, convert Excel files, compress videos, or extract OCR text, **all operations execute 100% locally on your computer's CPU and disk** via standard Model Context Protocol (MCP) STDIO.
+When you ask Claude to merge PDFs, crop images, convert Excel files, or extract OCR text, **all operations execute 100% locally on your computer's CPU and disk** via standard Model Context Protocol (MCP) STDIO.
 
 ---
 
 ## ✨ Key Highlights
 
-- 🔒 **100% Privacy & Local File Safety**: Your binary files (PDFs, DOCX, XLSX, Images, Videos, MP3s) never leave your machine when using Claude Desktop.
+- 🔒 **100% Privacy & Local File Safety**: Your binary files (PDFs, DOCX, XLSX, Images, Documents) never leave your machine when using Claude Desktop.
 - 🌐 **Full Claude Web & Mobile Support**: Connect directly from **claude.ai** and mobile apps using Streamable HTTP (`/mcp`) or SSE (`/sse`) with automatic base64 chat file processing and inline image returns.
-- ⚡ **111 Active Professional Tools**: Manipulate documents, media, data structures, archives, and AI analysis.
+- ⚡ **100 Active Professional Tools**: Manipulate documents, images, data structures, spreadsheets, archives, and AI analysis.
 - 🪄 **1-Click Auto Connector Setup**: Non-technical users can double-click `install.bat` to automatically configure `claude_desktop_config.json` with zero manual JSON editing.
-- 🎥 **Bundled FFmpeg Media Engine**: Video thumbnail extraction, compression, GIF conversion, and audio slicing work right out of the box.
 
 ---
 
-## 🛠️ Tool Directory (111 Tools Across 13 Categories)
+## 🛠️ Tool Directory (100 Tools Across 11 Categories)
 
-See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete directory of all 111 tools with descriptions and supported formats:
+See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete directory of all 100 tools with descriptions and supported formats:
 
 | Category | Tools | Description & Capabilities |
 | :--- | :---: | :--- |
@@ -38,13 +37,12 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete direct
 | **📊 Data Interchange** | **12** | JSON ↔ CSV, JSON ↔ XML, JSON ↔ YAML, Markdown ↔ HTML, formatting, minification |
 | **📝 Word Documents** | **10** | Extract text/images/links, **`docx_to_html`**, **`docx_to_markdown`**, **`text_to_docx`**, **`merge_docx`**, **`replace_text_docx`**, **`extract_docx_comments`**, **`word_count_docx`** |
 | **🖥️ PowerPoint Presentation** | **6** | Extract slide text, speaker notes, images, **`pptx_to_pdf`**, **`pptx_to_html`**, **`read_pptx_metadata`** |
-| **🎬 Video Processing (FFmpeg)** | **6** | **`generate_video_thumbnail`**, **`compress_video`**, **`video_to_gif`**, **`gif_to_video`**, **`trim_video`**, **`mute_video`** |
-| **🎵 Audio Processing** | **5** | Convert audio, Extract audio from video, **`trim_audio`**, **`change_audio_speed`**, **`audio_to_waveform`** |
 | **📦 Archives & Compression** | **5** | Create ZIP, Extract ZIP, List contents, **`compress_gzip`**, **`decompress_gzip`** |
 | **🤖 AI Document Intelligence** | **3** | **`summarize_text`**, **`extract_keywords`**, **`sentiment_analysis`** |
 | **🔍 OCR Text Extraction** | **1** | **`extract_text_from_image_ocr`** (Tesseract OCR on PNG, JPG, TIFF) |
 | **🔒 Checksum & Security** | **1** | **`hash_file`** (MD5, SHA1, SHA256, SHA512) |
 | **✍️ Text Analytics** | **1** | Word count, character count, readability metrics, reading time |
+| **Total** | **100** | |
 
 ---
 
@@ -65,9 +63,9 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete direct
                                                                  └──────────────────────────────────┘
 ```
 
-1. **Prompt Command**: You ask Claude: *"Merge these 3 PDFs"* or *"Generate a YouTube thumbnail from my video"*.
+1. **Prompt Command**: You ask Claude: *"Merge these 3 PDFs"* or *"Convert this Excel spreadsheet to CSV"*.
 2. **Local MCP Request**: Claude Desktop sends a command payload over local STDIO to `Universal File Claude Connector`.
-3. **Local Execution**: Node.js and bundled FFmpeg process the binary file directly on your hard drive.
+3. **Local Execution**: Node.js processes the binary file directly on your hard drive.
 4. **Result Output**: The modified file is saved to your disk and reported back in chat!
 
 ---
@@ -81,7 +79,7 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete direct
    - **Windows**: Double-click **`install.bat`**
    - **macOS / Linux**: Open Terminal in the project directory and run `node install.js`
 3. **Follow Prompt**: Choose package option `1` (Complete Suite).
-4. **Restart Claude Desktop**: Open or restart Claude Desktop, and all **111 tools** will automatically be active!
+4. **Restart Claude Desktop**: Open or restart Claude Desktop, and all **100 tools** will automatically be active!
 
 ---
 
@@ -129,7 +127,7 @@ You can connect Claude directly from your browser or mobile phone:
    ```text
    https://<your-mcp-subdomain>.onrender.com/mcp
    ```
-4. Claude Web will immediately connect to all **111 tools**. Chat file uploads and base64 documents are processed seamlessly with inline preview images and downloadable output attachments!
+4. Claude Web will immediately connect to all **100 tools**. Chat file uploads and base64 documents are processed seamlessly with inline preview images and downloadable output attachments!
 
 For step-by-step free deployment instructions, see [Free Hosting & Claude Guide](docs/FREE_HOSTING_AND_CLAUDE_GUIDE.md).
 
@@ -142,7 +140,6 @@ For step-by-step free deployment instructions, see [Free Hosting & Claude Guide]
 - **Image Engine**: `sharp`, `tesseract.js`
 - **Spreadsheet Engine**: `exceljs`, `papaparse`
 - **Document Engine**: `docx`, `mammoth`, `jszip`
-- **Media Engine**: FFmpeg (via `@ffmpeg-installer/ffmpeg`)
 - **Protocol**: Official Model Context Protocol SDK (`@modelcontextprotocol/sdk` v1.x)
 
 ---

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Universal File Toolkit — Available Tools (111 Active Tools)</title>
+    <title>Universal File Toolkit — Available Tools (100 Active Tools)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
@@ -244,10 +244,10 @@
     <div class="container">
       <header>
         <h1>🛠️ Universal File Toolkit</h1>
-        <p class="subtitle">Complete Directory of All 111 Active Tools across 13 Categories for Claude Desktop, Claude Web, Cursor, and REST API</p>
+        <p class="subtitle">Complete Directory of All 100 Active Tools across 11 Categories for Claude Desktop, Claude Web, Cursor, and REST API</p>
         <div class="badges-row">
-          <span class="badge">111 Active Tools</span>
-          <span class="badge">13 Categories</span>
+          <span class="badge">100 Active Tools</span>
+          <span class="badge">11 Categories</span>
           <span class="badge">Model Context Protocol v1.x</span>
           <span class="badge">Streamable HTTP /mcp</span>
           <span class="badge">STDIO</span>
@@ -398,21 +398,6 @@
         { id: "list_archive_contents", cat: "Archive", name: "List Archive Contents", desc: "Inspect files and folders inside a ZIP archive without extracting", in: [".zip"], out: [".json"] },
         { id: "compress_gzip", cat: "Archive", name: "GZIP Compress File", desc: "Compress any single file using GZIP compression algorithm (.gz)", in: ["*"], out: [".gz"] },
         { id: "decompress_gzip", cat: "Archive", name: "GZIP Decompress File", desc: "Decompress GZIP (.gz) archive file", in: [".gz"], out: ["*"] },
-
-        // Audio (5)
-        { id: "convert_audio", cat: "Audio", name: "Convert Audio Format", desc: "Convert audio files between MP3, WAV, AAC, OGG, FLAC, and M4A formats", in: [".mp3", ".wav", ".aac", ".ogg", ".flac"], out: [".mp3", ".wav", ".aac"] },
-        { id: "extract_audio_from_video", cat: "Audio", name: "Extract Audio from Video", desc: "Extract high-quality audio stream from MP4, MKV, AVI, or MOV video", in: [".mp4", ".mkv", ".avi", ".mov"], out: [".mp3", ".wav"] },
-        { id: "trim_audio", cat: "Audio", name: "Trim Audio", desc: "Cut audio clip between start and end timestamps", in: [".mp3", ".wav", ".aac"], out: [".mp3", ".wav"] },
-        { id: "change_audio_speed", cat: "Audio", name: "Change Audio Speed", desc: "Adjust audio playback speed (0.5x slow-motion to 2.0x fast-forward)", in: [".mp3", ".wav"], out: [".mp3", ".wav"] },
-        { id: "audio_to_waveform", cat: "Audio", name: "Audio Waveform Image", desc: "Generate a visual waveform PNG image of any audio track", in: [".mp3", ".wav"], out: [".png"] },
-
-        // Video (6)
-        { id: "compress_video", cat: "Video", name: "Compress Video", desc: "Reduce video file size using H.264 video compression", in: [".mp4", ".mkv", ".avi", ".mov"], out: [".mp4"] },
-        { id: "generate_video_thumbnail", cat: "Video", name: "Video Frame Thumbnail", desc: "Extract a high-resolution JPG thumbnail image from any video frame timestamp", in: [".mp4", ".mkv", ".mov"], out: [".jpg"] },
-        { id: "video_to_gif", cat: "Video", name: "Video to Animated GIF", desc: "Convert video clip into a smooth animated GIF file", in: [".mp4", ".mkv", ".mov"], out: [".gif"] },
-        { id: "gif_to_video", cat: "Video", name: "GIF to MP4 Video", desc: "Convert animated GIF files into lightweight MP4 video clips", in: [".gif"], out: [".mp4"] },
-        { id: "trim_video", cat: "Video", name: "Trim Video Clip", desc: "Cut video clip between start and end timestamps", in: [".mp4", ".mkv", ".mov"], out: [".mp4"] },
-        { id: "mute_video", cat: "Video", name: "Mute Video (Strip Audio)", desc: "Remove audio track from video file to create a silent video", in: [".mp4", ".mkv", ".mov"], out: [".mp4"] },
 
         // OCR (1)
         { id: "extract_text_from_image_ocr", cat: "OCR", name: "Image OCR Text Extractor", desc: "Perform Optical Character Recognition on PNG, JPG, or TIFF images to extract text", in: [".png", ".jpg", ".tiff"], out: [".txt"] },
