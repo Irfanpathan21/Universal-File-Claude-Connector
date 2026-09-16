@@ -29,8 +29,10 @@ import {
   ListPromptsRequestSchema,
   GetPromptRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { tmpdir } from 'node:os';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join, dirname, resolve, basename } from 'node:path';
+import { join, dirname, resolve, basename, extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import {
   pdfService,
@@ -67,6 +69,173 @@ const server = new Server(
   }
 );
 
+// ─── Output Tracking & Claude Web Support ────────────────────
+
+interface CapturedOutput {
+  path: string;
+  data: Buffer;
+  mimeType: string;
+}
+
+const requestOutputsStorage = new AsyncLocalStorage<CapturedOutput[]>();
+
+function getMimeTypeFromExt(filePath: string): string {
+  const ext = extname(filePath).toLowerCase();
+  const mimeMap: Record<string, string> = {
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+    '.bmp': 'image/bmp',
+    '.tiff': 'image/tiff',
+    '.pdf': 'application/pdf',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.zip': 'application/zip',
+    '.tar': 'application/x-tar',
+    '.gz': 'application/gzip',
+    '.txt': 'text/plain',
+    '.html': 'text/html',
+    '.csv': 'text/csv',
+    '.json': 'application/json',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
+    '.ogg': 'audio/ogg',
+    '.flac': 'audio/flac',
+    '.m4a': 'audio/mp4',
+    '.aac': 'audio/aac',
+    '.mp4': 'video/mp4',
+    '.mkv': 'video/x-matroska',
+    '.avi': 'video/x-msvideo',
+    '.mov': 'video/quicktime',
+  };
+  return mimeMap[ext] || 'application/octet-stream';
+}
+
+function isDataUri(str: string): boolean {
+  return typeof str === 'string' && str.startsWith('data:') && str.includes(';base64,');
+}
+
+function isLikelyBase64(str: string): boolean {
+  if (typeof str !== 'string') return false;
+  if (str.includes('/') && !str.includes(';base64,') && !str.includes(' ') && str.length < 260 && existsSync(resolve(str))) {
+    return false;
+  }
+  if (str.includes('\\') && existsSync(resolve(str))) {
+    return false;
+  }
+  const clean = str.replace(/[\r\n\s]/g, '');
+  return clean.length > 50 && /^[A-Za-z0-9+/=]+$/.test(clean);
+}
+
+async function saveInputToTemp(input: string | any, preferredName?: string): Promise<string> {
+  const uploadDir = join(tmpdir(), 'uft_remote_uploads');
+  await mkdir(uploadDir, { recursive: true });
+
+  if (typeof input === 'string' && existsSync(resolve(input))) {
+    return resolve(input);
+  }
+
+  let buffer: Buffer;
+  let filename = preferredName || `input_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.bin`;
+
+  if (typeof input === 'object' && input !== null) {
+    if (input.data) {
+      return saveInputToTemp(input.data, input.name || preferredName);
+    }
+  }
+
+  if (typeof input === 'string') {
+    if (isDataUri(input)) {
+      const commaIdx = input.indexOf(',');
+      const header = input.slice(0, commaIdx);
+      const b64 = input.slice(commaIdx + 1);
+      buffer = Buffer.from(b64.trim(), 'base64');
+      if (!preferredName) {
+        const mime = header.split(';')[0].replace('data:', '');
+        const ext = mime.includes('/') ? mime.split('/')[1] : 'bin';
+        filename = `upload_${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
+      }
+    } else if (isLikelyBase64(input)) {
+      buffer = Buffer.from(input.replace(/[\r\n\s]/g, ''), 'base64');
+    } else {
+      const resolved = resolve(input);
+      if (existsSync(resolved)) return resolved;
+      try {
+        buffer = Buffer.from(input, 'base64');
+      } catch {
+        throw new Error(`File not found: ${input}`);
+      }
+    }
+  } else {
+    throw new Error('Invalid file input');
+  }
+
+  const filePath = join(uploadDir, filename);
+  await writeFile(filePath, buffer);
+  return filePath;
+}
+
+function enhanceToolDefinition(tool: any): any {
+  const enhanced = {
+    ...tool,
+    inputSchema: {
+      ...tool.inputSchema,
+      properties: { ...(tool.inputSchema?.properties || {}) },
+    },
+  };
+
+  // Clean description: remove local disk restrictions so Claude Web calls it freely
+  let desc = enhanced.description || '';
+  desc = desc.replace(/Local MCP tool with full disk access to [A-Za-z]:\\? file paths\. Call this tool directly when requested\./gi, '');
+  desc = desc.replace(/Local MCP tool with (full )?disk access\.?/gi, '');
+  desc = desc.replace(/Local MCP tool\.?/gi, '');
+  desc = desc.trim();
+  desc += ' Supports both local file paths and direct base64 data / data URIs (works seamlessly in Claude Web and remote sessions).';
+  enhanced.description = desc;
+
+  // Single file parameters: teach Claude Web to send base64 or fileData
+  if (enhanced.inputSchema.properties.file) {
+    enhanced.inputSchema.properties.file = {
+      type: 'string',
+      description: 'File path OR base64 data URI (e.g. "data:application/pdf;base64,...") OR raw base64 string. In Claude Web, provide the file content as base64.',
+    };
+    enhanced.inputSchema.properties.fileData = {
+      type: 'string',
+      description: 'Optional base64-encoded file data or data URI (alternative to file path for Claude Web)',
+    };
+    enhanced.inputSchema.properties.fileName = {
+      type: 'string',
+      description: 'Optional filename with extension (e.g. "document.pdf", "receipt.png")',
+    };
+  }
+
+  // Multi file parameters: support base64 array
+  if (enhanced.inputSchema.properties.files) {
+    enhanced.inputSchema.properties.files = {
+      type: 'array',
+      items: { type: 'string' },
+      description: 'Array of file paths OR array of base64 data URIs / base64 strings. In Claude Web, pass base64 data URIs.',
+    };
+    enhanced.inputSchema.properties.fileList = {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          data: { type: 'string' },
+        },
+      },
+      description: 'Optional array of base64 file objects [{ name, data }] for Claude Web',
+    };
+  }
+
+  return enhanced;
+}
+
 // ─── Helper Functions ────────────────────────────────────────
 
 async function readInputFile(filePath: string): Promise<Buffer> {
@@ -81,6 +250,15 @@ async function writeOutputFile(data: Buffer | Uint8Array, outputPath: string): P
   const resolved = resolve(outputPath);
   await mkdir(dirname(resolved), { recursive: true });
   await writeFile(resolved, data);
+  const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+  const store = requestOutputsStorage.getStore();
+  if (store) {
+    store.push({
+      path: resolved,
+      data: buf,
+      mimeType: getMimeTypeFromExt(resolved),
+    });
+  }
   return resolved;
 }
 
@@ -1318,7 +1496,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['file'],
         },
       },
-    ],
+    ].map(enhanceToolDefinition),
   };
 });
 
@@ -1329,7 +1507,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const args: Record<string, any> = request.params.arguments || {};
 
   try {
-    switch (name) {
+    // 1. Normalize single-file inputs from base64/data URIs to temporary files
+    if (args.fileData && typeof args.fileData === 'string') {
+      args.file = await saveInputToTemp(args.fileData, (args.fileName as string) || 'document.bin');
+    } else if (typeof args.file === 'string' && (isDataUri(args.file) || isLikelyBase64(args.file))) {
+      args.file = await saveInputToTemp(args.file, (args.fileName as string) || 'document.bin');
+    }
+
+    // 2. Normalize multi-file inputs from base64/data URIs to temporary files
+    if (Array.isArray(args.fileList) && args.fileList.length > 0) {
+      const files: string[] = [];
+      for (let i = 0; i < args.fileList.length; i++) {
+        const item = args.fileList[i];
+        const p = await saveInputToTemp(item, item?.name || `file_${i + 1}`);
+        files.push(p);
+      }
+      args.files = files;
+    } else if (Array.isArray(args.files)) {
+      const files: string[] = [];
+      for (let i = 0; i < args.files.length; i++) {
+        const item = args.files[i];
+        if (typeof item === 'string' && (isDataUri(item) || isLikelyBase64(item))) {
+          const p = await saveInputToTemp(item, `file_${i + 1}`);
+          files.push(p);
+        } else if (typeof item === 'object' && item?.data) {
+          const p = await saveInputToTemp(item, item.name || `file_${i + 1}`);
+          files.push(p);
+        } else {
+          files.push(item);
+        }
+      }
+      args.files = files;
+    }
+
+    const capturedOutputs: CapturedOutput[] = [];
+    const toolResult: any = await requestOutputsStorage.run(capturedOutputs, async () => {
+      switch (name) {
       // ── PDF Tools ──────────────────────────────────────
       case 'merge_pdf': {
         const files = await readMultipleFiles(args.files as string[]);
@@ -2151,6 +2364,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       default:
         return { content: [{ type: 'text', text: `Unknown tool: ${name}` }], isError: true };
     }
+    });
+
+    // Attach captured output files (images as direct MCP image blocks, other files as resources)
+    if (capturedOutputs.length > 0 && toolResult && !toolResult.isError) {
+      toolResult.content = toolResult.content || [];
+      for (const out of capturedOutputs) {
+        const isImage = out.mimeType.startsWith('image/') && out.mimeType !== 'image/svg+xml';
+        if (isImage) {
+          toolResult.content.push({
+            type: 'image',
+            data: out.data.toString('base64'),
+            mimeType: out.mimeType,
+          });
+        } else {
+          toolResult.content.push({
+            type: 'resource',
+            resource: {
+              uri: `data:${out.mimeType};base64,${out.data.toString('base64')}`,
+              mimeType: out.mimeType,
+              text: basename(out.path),
+              blob: out.data.toString('base64'),
+            },
+          });
+        }
+      }
+    }
+
+    return toolResult;
   } catch (error) {
     return {
       content: [{ type: 'text', text: `Error: ${(error as Error).message}` }],

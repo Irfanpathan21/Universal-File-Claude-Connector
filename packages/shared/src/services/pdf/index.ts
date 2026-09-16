@@ -1131,6 +1131,80 @@ export interface PdfToImagesOptions {
   format?: 'png' | 'jpg' | 'jpeg' | string;
 }
 
+async function extractEmbeddedImagesPureJs(
+  data: Buffer | Uint8Array,
+  baseName: string,
+  preferredFmt = 'png'
+): Promise<OutputFile[]> {
+  const outputFiles: OutputFile[] = [];
+  try {
+    const pdfDoc = await PDFDocument.load(data, { ignoreEncryption: true });
+    const enumerated = pdfDoc.context.enumerateIndirectObjects();
+    let imgIdx = 1;
+
+    for (const [ref, obj] of enumerated) {
+      if (obj instanceof PDFRawStream) {
+        const dict = obj.dict;
+        const subtype = dict.get(PDFName.of('Subtype'));
+        if (subtype === PDFName.of('Image')) {
+          const filter = dict.get(PDFName.of('Filter'));
+          const filterName = filter instanceof PDFName ? filter.asString() : String(filter || '');
+
+          if (filterName === '/DCTDecode' || filterName.includes('DCTDecode')) {
+            const imgBuf = Buffer.from(obj.contents);
+            outputFiles.push({
+              name: `${baseName}_img_${imgIdx}.jpg`,
+              data: imgBuf,
+              mimeType: 'image/jpeg',
+              extension: '.jpg',
+              size: imgBuf.length,
+            });
+            imgIdx++;
+          } else {
+            try {
+              const sharpMod = await import('sharp');
+              const sharp = sharpMod.default;
+              const width = dict.get(PDFName.of('Width'))?.toString();
+              const height = dict.get(PDFName.of('Height'))?.toString();
+              const w = width ? parseInt(width, 10) : 0;
+              const h = height ? parseInt(height, 10) : 0;
+
+              let decompressed = Buffer.from(obj.contents);
+              if (filterName.includes('FlateDecode')) {
+                const zlib = await import('node:zlib');
+                try {
+                  decompressed = zlib.inflateSync(decompressed);
+                } catch {
+                  // Ignore inflation error if raw
+                }
+              }
+
+              if (w > 0 && h > 0) {
+                const channels = decompressed.length >= w * h * 4 ? 4 : (decompressed.length >= w * h * 3 ? 3 : 1);
+                const img = sharp(decompressed, { raw: { width: w, height: h, channels: channels as any } });
+                const pngBuf = await img.png().toBuffer();
+                outputFiles.push({
+                  name: `${baseName}_img_${imgIdx}.png`,
+                  data: pngBuf,
+                  mimeType: 'image/png',
+                  extension: '.png',
+                  size: pngBuf.length,
+                });
+                imgIdx++;
+              }
+            } catch {
+              // Ignore unparseable raw stream
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // Pure JS extraction error ignored
+  }
+  return outputFiles;
+}
+
 export async function pdfToImages(
   data: Buffer | Uint8Array,
   filename: string,
@@ -1182,37 +1256,43 @@ export async function pdfToImages(
           const { stdout } = await execFileAsync('python3', [scriptPath, inputPdfPath, outputImgDir, baseName, mode, preferredFmt]);
           jsonOutput = stdout;
         } catch (err2: any) {
-          throw new ProcessingError(`Python image extraction failed: ${err2.message || err.message}`);
+          // Python execution failed, will fallback to pure JS below
         }
       }
-    } else {
-      throw new ProcessingError('extract_pdf_images.py helper script could not be located');
     }
 
-    // Parse RESULT_JSON from stdout
+    let outputFiles: OutputFile[] = [];
+
+    // Parse RESULT_JSON from stdout if Python succeeded
     const marker = 'RESULT_JSON:';
-    const markerIndex = jsonOutput.indexOf(marker);
-    if (markerIndex === -1) {
-      throw new ProcessingError(`Image extraction failed: unexpected python response: ${jsonOutput}`);
+    const markerIndex = jsonOutput ? jsonOutput.indexOf(marker) : -1;
+    if (markerIndex !== -1) {
+      try {
+        const parsedJsonStr = jsonOutput.slice(markerIndex + marker.length).trim();
+        const extractedList: Array<{ name: string; path: string; size: number; mimeType: string; extension: string }> = JSON.parse(parsedJsonStr);
+
+        for (const item of extractedList) {
+          const fileData = await readFile(item.path);
+          outputFiles.push({
+            name: item.name,
+            data: fileData,
+            mimeType: item.mimeType,
+            extension: item.extension,
+            size: fileData.length,
+          });
+        }
+      } catch {
+        // Fallback to pure JS below if JSON parsing fails
+      }
     }
 
-    const parsedJsonStr = jsonOutput.slice(markerIndex + marker.length).trim();
-    const extractedList: Array<{ name: string; path: string; size: number; mimeType: string; extension: string }> = JSON.parse(parsedJsonStr);
-
-    if (!extractedList || extractedList.length === 0) {
-      throw new ValidationError('No images could be extracted or generated from this PDF');
+    // Pure JS fallback: extract embedded images directly using pdf-lib and sharp
+    if (outputFiles.length === 0) {
+      outputFiles = await extractEmbeddedImagesPureJs(data, baseName, preferredFmt);
     }
 
-    const outputFiles: OutputFile[] = [];
-    for (const item of extractedList) {
-      const fileData = await readFile(item.path);
-      outputFiles.push({
-        name: item.name,
-        data: fileData,
-        mimeType: item.mimeType,
-        extension: item.extension,
-        size: fileData.length,
-      });
+    if (outputFiles.length === 0) {
+      throw new ValidationError('No images could be extracted or found in this PDF');
     }
 
     return {
