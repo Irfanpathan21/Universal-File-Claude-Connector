@@ -49,7 +49,7 @@ export function Header() {
         </Link>
 
         {/* Center: Navigation Links (Never forces overflow, smoothly adapts) */}
-        <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-1 xl:gap-2.5 2xl:gap-5 h-full mx-1 xl:mx-3 2xl:mx-6 overflow-hidden">
+        <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-0.5 xl:gap-1.5 2xl:gap-3 h-full mx-1 xl:mx-2 2xl:mx-4 overflow-hidden">
           {NAV_TABS.map((tab) => {
             const isActive =
               location.pathname === tab.path ||
@@ -66,7 +66,7 @@ export function Header() {
               <Link
                 key={tab.label}
                 to={tab.path}
-                className={`relative h-full flex items-center text-xs xl:text-sm 2xl:text-[15px] font-bold transition-all no-underline whitespace-nowrap px-1.5 xl:px-2.5 2xl:px-3 hover:text-[#004ac6] dark:hover:text-blue-400 ${
+                className={`relative h-full flex items-center text-xs xl:text-sm 2xl:text-[15px] font-bold transition-all no-underline whitespace-nowrap px-1 xl:px-1.5 2xl:px-2.5 hover:text-[#004ac6] dark:hover:text-blue-400 ${
                   isActive
                     ? 'text-[#004ac6] dark:text-blue-400 font-extrabold'
                     : 'text-[#434655] dark:text-slate-300'
@@ -114,15 +114,6 @@ export function Header() {
             )}
           </button>
 
-          {/* Log In Button */}
-          <button className="hidden sm:inline-flex items-center justify-center font-bold text-xs sm:text-sm text-[#191b23] dark:text-slate-200 hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors cursor-pointer px-2.5 sm:px-3 py-1.5 rounded-xl hover:bg-[#ededf9] dark:hover:bg-slate-800 whitespace-nowrap flex-shrink-0">
-            Log In
-          </button>
-
-          {/* Sign Up Button (Guaranteed to fit inside screen) */}
-          <button className="bg-[#004ac6] hover:bg-[#003da6] text-white px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full font-bold text-xs sm:text-sm hover:scale-105 transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center whitespace-nowrap flex-shrink-0">
-            Sign Up
-          </button>
 
           {/* Mobile Menu Toggle */}
           <button

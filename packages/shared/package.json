@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs=require('fs'),path=require('path');const dirs=['pdf','spreadsheet','image'];dirs.forEach(d=>{const src=path.join('src','services',d),dst=path.join('dist','services',d);if(fs.existsSync(src)){fs.readdirSync(src).filter(f=>f.endsWith('.py')).forEach(f=>{if(fs.existsSync(dst))fs.copyFileSync(path.join(src,f),path.join(dst,f))})}})\"",
     "dev": "tsc --watch",
     "clean": "rimraf dist",
     "test": "vitest run",
