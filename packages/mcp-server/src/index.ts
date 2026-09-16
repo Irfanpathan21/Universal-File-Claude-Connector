@@ -2404,11 +2404,7 @@ async function main() {
     const port = parseInt(process.env.PORT || '3002', 10);
     const host = process.env.HOST || '0.0.0.0';
 
-    // Streamable HTTP Transport (Official modern transport for Claude Web, Mobile, and Desktop)
-    const streamableTransport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
-    await server.connect(streamableTransport);
+    // Streamable HTTP Transport setup removed from here — handled per-request below for stateless mode
 
     // Active SSE sessions for legacy SSE clients
     const sseTransports = new Map<string, SSEServerTransport>();
@@ -2416,7 +2412,7 @@ async function main() {
     const httpServer = http.createServer(async (req, res) => {
       // Enable CORS for web MCP clients and Claude
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS, HEAD');
       res.setHeader('Access-Control-Allow-Headers', '*');
       res.setHeader('Access-Control-Expose-Headers', '*');
 
@@ -2468,9 +2464,9 @@ async function main() {
         return;
       }
 
-      // Parse POST request body and buffer rawBody for reliable stream conversion
+      // Parse POST/DELETE request body
       let parsedBody: any = undefined;
-      if (req.method === 'POST') {
+      if (req.method === 'POST' || req.method === 'DELETE') {
         const chunks: Buffer[] = [];
         for await (const chunk of req) {
           chunks.push(chunk);
@@ -2503,16 +2499,28 @@ async function main() {
         return;
       }
 
-      // 4. Streamable HTTP Transport (/mcp, POST /, etc.)
-      try {
-        await streamableTransport.handleRequest(req, res, parsedBody);
-      } catch (err: any) {
-        console.error('streamableTransport error:', err);
-        if (!res.headersSent) {
-          res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: err?.message || 'Internal Server Error' }));
+      // 4. Streamable HTTP Transport (/mcp — stateless, per-request transport for Claude Web)
+      if (url.pathname === '/mcp' && (req.method === 'POST' || req.method === 'DELETE')) {
+        try {
+          const transport = new StreamableHTTPServerTransport({
+            sessionIdGenerator: undefined,
+          });
+          const clientServer = cloneServer(server);
+          await clientServer.connect(transport);
+          await transport.handleRequest(req, res, parsedBody);
+        } catch (err: any) {
+          console.error('streamableTransport error:', err);
+          if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: err?.message || 'Internal Server Error' }));
+          }
         }
+        return;
       }
+
+      // 5. Fallback — 404 for unhandled routes
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not found', availableEndpoints: ['/mcp', '/sse', '/health'] }));
     });
 
     httpServer.listen(port, host, () => {
