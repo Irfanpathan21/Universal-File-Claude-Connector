@@ -9,6 +9,7 @@
     "dev:backend": "turbo run dev --filter=@uft/backend",
     "dev:frontend": "turbo run dev --filter=@uft/frontend",
     "dev:web": "turbo run dev --filter=@uft/backend --filter=@uft/frontend",
+    "start:web": "turbo run start --filter=@uft/backend --filter=@uft/frontend",
     "build": "turbo run build",
     "build:shared": "turbo run build --filter=@uft/shared",
     "build:backend": "pnpm --filter @uft/shared build && pnpm --filter @uft/backend build",
@@ -37,7 +38,7 @@
     "@types/node": "^22.0.0"
   },
   "engines": {
-    "node": "22.x",
+    "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@9.12.0"

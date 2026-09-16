@@ -55,6 +55,19 @@ async function main() {
   const choice = await ask('Select package choice [1-4] (default: 1): ');
   const selectedChoice = choice.trim() || '1';
 
+  console.log('\n📦 Installing workspace dependencies...');
+  try {
+    execSync('npx -y pnpm@9 install', { stdio: 'inherit', cwd: process.cwd() });
+    console.log('✅ Dependencies installed successfully!');
+  } catch (err) {
+    console.log('⚠️ Install note: Retrying with --no-frozen-lockfile...');
+    try {
+      execSync('npx -y pnpm@9 install --no-frozen-lockfile', { stdio: 'inherit', cwd: process.cwd() });
+    } catch (e) {
+      console.log('⚠️ Proceeding with existing packages...');
+    }
+  }
+
   console.log('\n🔨 Building & Verifying local MCP Server binaries...');
   try {
     execSync('npx -y pnpm@9 build', { stdio: 'inherit', cwd: process.cwd() });

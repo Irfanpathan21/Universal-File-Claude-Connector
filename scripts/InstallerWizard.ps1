@@ -171,17 +171,69 @@ $btnInstall.Add_Click({
         Set-Progress 10 "Checking environment & dependencies..."
         Append-Log "Beginning setup in: $RootDir"
 
+        # 0. Check Node.js runtime
+        Set-Progress 5 "Checking Node.js environment..."
+        $nodeCmd = Get-Command "node" -ErrorAction SilentlyContinue
+        if (-not $nodeCmd) {
+            # Check default install locations
+            if (Test-Path "C:\Program Files\nodejs\node.exe") {
+                $env:PATH = "C:\Program Files\nodejs;$env:PATH"
+            } elseif (Test-Path "$env:LOCALAPPDATA\Programs\node\node.exe") {
+                $env:PATH = "$env:LOCALAPPDATA\Programs\node;$env:PATH"
+            }
+        }
+        $nodeTest = Start-Process -FilePath "cmd.exe" -ArgumentList "/c node -v" -NoNewWindow -PassThru -Wait
+        if ($nodeTest.ExitCode -ne 0) {
+            Append-Log "[!] Node.js was not detected. Attempting automatic installation via winget..."
+            $wingetTest = Start-Process -FilePath "cmd.exe" -ArgumentList "/c winget install OpenJS.NodeJS.LTS -h --accept-source-agreements --accept-package-agreements" -NoNewWindow -PassThru -Wait
+            if ($wingetTest.ExitCode -eq 0 -and (Test-Path "C:\Program Files\nodejs\node.exe")) {
+                $env:PATH = "C:\Program Files\nodejs;$env:PATH"
+                Append-Log "[+] Node.js installed successfully!"
+            } else {
+                Append-Log "[ERROR] Node.js is required to run Universal File Toolkit."
+                Append-Log "Opening Node.js download page: https://nodejs.org"
+                Start-Process "https://nodejs.org/en/download"
+                throw "Node.js is not installed. Please install Node.js and restart setup."
+            }
+        } else {
+            Append-Log "Node.js runtime verified."
+        }
+
+        # Determine package manager command
+        $pkgMgr = "npx -y pnpm@9"
+        $pnpmTest = Start-Process -FilePath "cmd.exe" -ArgumentList "/c pnpm -v" -NoNewWindow -PassThru -Wait
+        if ($pnpmTest.ExitCode -eq 0) {
+            $pkgMgr = "pnpm"
+        }
+        Append-Log "Using package manager: $pkgMgr"
+
         # 1. Build icon if missing
         if (-not (Test-Path "$RootDir\assets\app-icon.ico")) {
             Append-Log "Generating application icons..."
             & powershell -ExecutionPolicy Bypass -File "$RootDir\scripts\create-icon.ps1" | Out-Null
         }
 
-        # 2. Build packages if checked
+        # 2. Install workspace dependencies if needed
+        if ($chkBuild.IsChecked -or (-not (Test-Path "$RootDir\node_modules"))) {
+            Set-Progress 20 "Installing workspace dependencies ($pkgMgr install)..."
+            Append-Log "Installing project dependencies (first run, this may take 1-2 minutes)..."
+            $installProc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pkgMgr install" -WorkingDirectory $RootDir -NoNewWindow -PassThru -Wait
+            if ($installProc.ExitCode -ne 0) {
+                Append-Log "Notice: Retrying install with --no-frozen-lockfile..."
+                $installProc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pkgMgr install --no-frozen-lockfile" -WorkingDirectory $RootDir -NoNewWindow -PassThru -Wait
+            }
+            if ($installProc.ExitCode -eq 0) {
+                Append-Log "Dependencies installed successfully!"
+            } else {
+                Append-Log "Warning: Dependency installation returned code $($installProc.ExitCode). Proceeding..."
+            }
+        }
+
+        # 3. Build workspace packages if checked
         if ($chkBuild.IsChecked) {
-            Set-Progress 25 "Building workspace packages (turbo run build)..."
-            Append-Log "Executing 'npx -y pnpm@9 build'..."
-            $buildProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c npx -y pnpm@9 build" -WorkingDirectory $RootDir -NoNewWindow -PassThru -Wait
+            Set-Progress 45 "Building workspace packages ($pkgMgr build)..."
+            Append-Log "Executing '$pkgMgr build'..."
+            $buildProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $pkgMgr build" -WorkingDirectory $RootDir -NoNewWindow -PassThru -Wait
             if ($buildProcess.ExitCode -eq 0) {
                 Append-Log "Build completed successfully!"
             } else {
@@ -189,9 +241,9 @@ $btnInstall.Add_Click({
             }
         }
 
-        # 3. Configure Claude PC
+        # 4. Configure Claude PC
         if ($chkClaude.IsChecked) {
-            Set-Progress 55 "Configuring Claude Desktop PC connector..."
+            Set-Progress 70 "Configuring Claude Desktop PC connector..."
             $claudeConfigPath = "$env:APPDATA\Claude\claude_desktop_config.json"
             $claudeConfigDir = [System.IO.Path]::GetDirectoryName($claudeConfigPath)
 
@@ -229,9 +281,9 @@ $btnInstall.Add_Click({
             Append-Log "  $claudeConfigPath"
         }
 
-        # 4. Create Desktop Shortcut
+        # 5. Create Desktop Shortcut
         if ($chkShortcut.IsChecked) {
-            Set-Progress 80 "Creating Windows Desktop Shortcut..."
+            Set-Progress 85 "Creating Windows Desktop Shortcut..."
             & powershell -ExecutionPolicy Bypass -File "$RootDir\scripts\create-desktop-shortcut.ps1" -RootDir $RootDir | Out-Null
             Append-Log "Desktop Shortcut 'Universal File Toolkit.lnk' created on your Desktop!"
         }
@@ -245,7 +297,7 @@ $btnInstall.Add_Click({
         $btnInstall.Content = "✅ Installed Successfully"
         $btnLaunch.Background = [System.Windows.Media.BrushConverter]::new().ConvertFromString("#004ac6")
 
-        # 5. Launch if checked
+        # 6. Launch if checked
         if ($chkLaunch.IsChecked) {
             Append-Log "Launching web application..."
             Start-Process -FilePath "$RootDir\launch.bat" -WorkingDirectory $RootDir
