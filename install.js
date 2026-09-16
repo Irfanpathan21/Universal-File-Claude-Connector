@@ -5,7 +5,8 @@
  * 
  * Automatically detects Claude Desktop config location on Windows/Mac/Linux,
  * presents an interactive tool category selection menu, builds local MCP packages,
- * and writes the MCP configuration into claude_desktop_config.json automatically!
+ * creates Windows Desktop shortcut with Chrome launcher, and writes the MCP
+ * configuration into claude_desktop_config.json automatically!
  */
 
 import fs from 'node:fs';
@@ -40,15 +41,15 @@ function getClaudeConfigPath() {
 async function main() {
   console.clear();
   console.log('================================================================');
-  console.log('🚀 Universal File Toolkit — 1-Click Claude Connector Installer');
+  console.log('🚀 Universal File Toolkit — 1-Click Setup & Connector Installer');
   console.log('================================================================');
-  console.log('\nWelcome! This setup wizard will install and connect the 111 File Tools');
-  console.log('directly to your Claude Desktop application automatically.\n');
+  console.log('\nWelcome! This setup wizard will configure all 100 File Tools');
+  console.log('for local execution, create a desktop shortcut, and connect to Claude PC.\n');
 
   console.log('📋 Available Tool Packages:');
-  console.log('  [1] Complete Suite (All 111 Tools — PDF, Image, Word, Excel, Video, Audio, OCR, AI)');
-  console.log('  [2] Documents & Data (PDF, Word DOCX, Excel XLSX, JSON, CSV)');
-  console.log('  [3] Media & Processing (Images, Video FFmpeg, Audio, OCR, AI)');
+  console.log('  [1] Complete Suite (All 100 Tools — PDF, Image, Word, Excel, PPTX, Data, Archives, OCR, AI)');
+  console.log('  [2] Documents & Spreadsheets (PDF, Word DOCX, Excel XLSX, PPTX)');
+  console.log('  [3] Images, Data & AI (Images, JSON, CSV, YAML, OCR, AI Intelligence)');
   console.log('  [4] Custom Selection\n');
 
   const choice = await ask('Select package choice [1-4] (default: 1): ');
@@ -62,6 +63,7 @@ async function main() {
     console.log('⚠️ Build note: Attempting direct execution setup...');
   }
 
+  // 1. Update Claude Desktop config
   const configPath = getClaudeConfigPath();
   const configDir = path.dirname(configPath);
 
@@ -92,14 +94,30 @@ async function main() {
 
   fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
 
+  // 2. Create Desktop Shortcut if on Windows
+  if (os.platform() === 'win32') {
+    console.log('\n🖥️ Creating Windows Desktop Shortcut...');
+    try {
+      const shortcutScript = path.resolve(process.cwd(), 'scripts', 'create-desktop-shortcut.ps1');
+      if (fs.existsSync(shortcutScript)) {
+        execSync(`powershell -ExecutionPolicy Bypass -File "${shortcutScript}"`, { stdio: 'inherit' });
+      }
+    } catch (e) {
+      console.log('⚠️ Could not automatically create desktop shortcut:', e.message);
+    }
+  }
+
   console.log('\n================================================================');
   console.log('🎉 INSTALLATION & CONNECTOR SETUP COMPLETE!');
   console.log('================================================================');
-  console.log(`\n📁 Claude Desktop Config Updated At:`);
+  console.log(`\n📁 Claude Desktop Config Updated:`);
   console.log(`   ${configPath}`);
-  console.log(`\n🔌 Connector Executable Registered At:`);
+  console.log(`\n🔌 Local MCP Connector Registered:`);
   console.log(`   ${mcpServerScriptPath}`);
-  console.log('\n👉 NEXT STEP: Simply RESTART Claude Desktop, and all selected tools');
+  console.log(`\n🚀 Launching Web App & Chrome Window:`);
+  console.log(`   - Double-click "Universal File Toolkit.lnk" on your Desktop`);
+  console.log(`   - Or execute "launch.bat" in this directory`);
+  console.log('\n👉 NEXT STEP FOR CLAUDE PC: Restart Claude Desktop, and all 100 tools');
   console.log('   will appear ready to use in your Claude chat sessions!\n');
 
   rl.close();

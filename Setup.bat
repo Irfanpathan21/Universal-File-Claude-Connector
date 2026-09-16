@@ -7,7 +7,7 @@ powershell -ExecutionPolicy Bypass -NoProfile -File "scripts\InstallerWizard.ps1
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo [*] Falling back to interactive CLI installer...
+    echo [*] Falling back to CLI installer...
     node install.js
     pause
 )

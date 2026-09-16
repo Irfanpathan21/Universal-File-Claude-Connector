@@ -72,14 +72,18 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete direct
 
 ## 📥 Installation & Setup Guide
 
-### Option 1: 1-Click Auto Setup (Recommended for Non-Tech Users)
+### Option 1: 1-Click Windows App Setup Wizard (Recommended)
 
-1. **Download & Extract** this repository to any folder on your computer.
-2. **Run Installer**:
-   - **Windows**: Double-click **`install.bat`**
-   - **macOS / Linux**: Open Terminal in the project directory and run `node install.js`
-3. **Follow Prompt**: Choose package option `1` (Complete Suite).
-4. **Restart Claude Desktop**: Open or restart Claude Desktop, and all **100 tools** will automatically be active!
+1. **Download or Clone** this repository to any folder on your computer.
+2. **Launch Setup**:
+   - **Windows**: Double-click **`Setup.bat`** (or `install.bat`) to launch the native **Windows Setup Wizard GUI**.
+   - **macOS / Linux**: Open Terminal and run `node install.js`
+3. **What the Setup Wizard does automatically**:
+   - 🔨 Compiles and verifies all local workspace packages
+   - 🔌 Connects the local MCP server to Claude PC (`claude_desktop_config.json`)
+   - 🖥️ Creates a **"Universal File Toolkit" Desktop Shortcut** with custom application icon
+   - 🌐 Automatically launches the local backend and frontend in a dedicated **Google Chrome Application window** (`http://localhost:3000`)
+4. **Daily Use**: Simply double-click the **Universal File Toolkit** shortcut on your Windows Desktop anytime to start the toolkit!
 
 ---
 
