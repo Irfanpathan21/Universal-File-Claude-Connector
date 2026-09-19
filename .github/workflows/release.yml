@@ -44,6 +44,11 @@ jobs:
             - **Live Web App**: [https://uftapp.onrender.com](https://uftapp.onrender.com)
             
             ### 📦 Download:
-            - **`UniversalFileToolkit-Setup.zip`**: Complete Windows setup & launcher bundle. Extract and double-click `Setup.exe` to run.
+            - **`UniversalFileToolkit-Setup.zip`**: Complete Windows setup & launcher bundle.
+            
+            ### 🛠️ How to Install on Windows:
+            1. **Option 1 (GUI Wizard)**: Double-click `Setup.exe`.
+            2. **Option 2 (1-Click Script)**: Double-click `Install.cmd` (or `setup.bat`).
+            3. **Option 3 (CLI Package)**: Run `npm start` or `node bin/uft.js`.
           files: |
             UniversalFileToolkit-Setup.zip

@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A production-ready, open-source Universal File Toolkit with Web App, REST API, MCP Server, and CLI",
   "license": "MIT",
+  "bin": {
+    "universal-file-toolkit": "./bin/uft.js",
+    "uft": "./bin/uft.js"
+  },
   "scripts": {
+    "start": "node bin/uft.js",
     "dev": "turbo run dev",
     "dev:backend": "turbo run dev --filter=@uft/backend",
     "dev:frontend": "turbo run dev --filter=@uft/frontend",
