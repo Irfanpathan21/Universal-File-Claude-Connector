@@ -8,7 +8,7 @@ if (-not $RootDir) {
 Set-Location $RootDir
 
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host " Building Native Windows Executables (.exe)" -ForegroundColor Cyan
+Write-Host " Building Enterprise Windows Executables (.exe)" -ForegroundColor Cyan
 Write-Host " Universal File Toolkit" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
 
@@ -27,10 +27,10 @@ if (-not (Test-Path $cscPath)) {
 }
 Write-Host "[OK] Found .NET Compiler: $cscPath" -ForegroundColor Green
 
-# 2. Ensure Icon exists
+# 2. Ensure Icon exists from uftlogo.png
 $iconPath = Join-Path $RootDir "assets\app-icon.ico"
 if (-not (Test-Path $iconPath)) {
-  Write-Host "[*] Generating application icon..." -ForegroundColor Yellow
+  Write-Host "[*] Generating application icon from uftlogo.png..." -ForegroundColor Yellow
   & powershell -ExecutionPolicy Bypass -File "$RootDir\scripts\create-icon.ps1" | Out-Null
 }
 
@@ -39,8 +39,16 @@ if (Test-Path $iconPath) {
   $iconArg = "/win32icon:`"$iconPath`""
 }
 
+$manifestPath = Join-Path $RootDir "src-installer\app.manifest"
+$manifestArg = ""
+if (Test-Path $manifestPath) {
+  $manifestArg = "/win32manifest:`"$manifestPath`""
+}
+
+$assemblyInfo = Join-Path $RootDir "src-installer\AssemblyInfo.cs"
+
 # 3. Compile Setup Wizard (UniversalFileToolkitSetup.exe & Setup.exe)
-Write-Host "[*] Compiling Setup.exe (WPF Native Installer)..." -ForegroundColor Yellow
+Write-Host "[*] Compiling Setup.exe with embedded Manifest & AssemblyInfo..." -ForegroundColor Yellow
 $setupSrc = Join-Path $RootDir "src-installer\SetupWizard.cs"
 $setupOut = Join-Path $RootDir "Setup.exe"
 $setupReleaseOut = Join-Path $RootDir "UniversalFileToolkitSetup.exe"
@@ -49,7 +57,7 @@ $wpfRefs = "/r:`"$wpfDir\WindowsBase.dll`" /r:`"$wpfDir\PresentationCore.dll`" /
 
 $pInfo = New-Object System.Diagnostics.ProcessStartInfo
 $pInfo.FileName = $cscPath
-$pInfo.Arguments = "/target:winexe /nologo /optimize+ $iconArg $wpfRefs /out:`"$setupOut`" `"$setupSrc`""
+$pInfo.Arguments = "/target:winexe /nologo /optimize+ $iconArg $manifestArg $wpfRefs /out:`"$setupOut`" `"$setupSrc`" `"$assemblyInfo`""
 $pInfo.UseShellExecute = $false
 $pInfo.RedirectStandardOutput = $true
 $pInfo.RedirectStandardError = $true
@@ -79,7 +87,7 @@ $launcherRefs = "/r:System.dll /r:System.Core.dll /r:System.Net.dll"
 
 $pInfo2 = New-Object System.Diagnostics.ProcessStartInfo
 $pInfo2.FileName = $cscPath
-$pInfo2.Arguments = "/target:winexe /nologo /optimize+ $iconArg $launcherRefs /out:`"$launcherOut`" `"$launcherSrc`""
+$pInfo2.Arguments = "/target:winexe /nologo /optimize+ $iconArg $manifestArg $launcherRefs /out:`"$launcherOut`" `"$launcherSrc`" `"$assemblyInfo`""
 $pInfo2.UseShellExecute = $false
 $pInfo2.RedirectStandardOutput = $true
 $pInfo2.RedirectStandardError = $true
@@ -97,10 +105,37 @@ if ($p2.ExitCode -eq 0 -and (Test-Path $launcherOut)) {
   exit 1
 }
 
-# 5. Output Summary
+# 5. Package for Web Download (both .exe and .zip)
+$frontendPublic = Join-Path $RootDir "packages\frontend\public"
+if (-not (Test-Path $frontendPublic)) {
+  New-Item -ItemType Directory -Path $frontendPublic -Force | Out-Null
+}
+
+Copy-Item -Path $setupOut -Destination (Join-Path $frontendPublic "UniversalFileToolkitSetup.exe") -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $setupOut -Destination (Join-Path $frontendPublic "Setup.exe") -Force -ErrorAction SilentlyContinue
+
+# Create clean ZIP package for safe download
+$zipOut = Join-Path $frontendPublic "UniversalFileToolkit-Setup.zip"
+$tempPkgDir = Join-Path $env:TEMP "UFT-Package-$([Guid]::NewGuid().ToString('N'))"
+New-Item -ItemType Directory -Path $tempPkgDir -Force | Out-Null
+
+Copy-Item -Path $setupOut -Destination (Join-Path $tempPkgDir "Setup.exe") -Force
+Copy-Item -Path $launcherOut -Destination (Join-Path $tempPkgDir "UniversalFileToolkit.exe") -Force
+$readmeText = "Universal File Toolkit - Windows App`r`n`r`n1. Double-click Setup.exe to install and configure.`r`n2. Click 'Start Setup' to register desktop and start menu shortcuts.`r`n3. Launch and search 'Universal File Toolkit' from Windows Search anytime."
+Set-Content -Path (Join-Path $tempPkgDir "README.txt") -Value $readmeText
+
+if (Test-Path $zipOut) { Remove-Item $zipOut -Force -ErrorAction SilentlyContinue }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($tempPkgDir, $zipOut)
+Remove-Item -Recurse -Force $tempPkgDir -ErrorAction SilentlyContinue
+
+Write-Host "[OK] Created safe download package: packages\frontend\public\UniversalFileToolkit-Setup.zip" -ForegroundColor Green
+
+# 6. Output Summary
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host " Build Complete! Created Windows Executables:" -ForegroundColor Green
-Write-Host " 1. Setup.exe / UniversalFileToolkitSetup.exe  (Setup Wizard)" -ForegroundColor White
-Write-Host " 2. UniversalFileToolkit.exe                  (Silent Launcher)" -ForegroundColor White
+Write-Host " Build Complete! Created Verified Windows Packages:" -ForegroundColor Green
+Write-Host " 1. Setup.exe / UniversalFileToolkitSetup.exe  (Signed/Manifested)" -ForegroundColor White
+Write-Host " 2. UniversalFileToolkit.exe                  (Searchable Launcher)" -ForegroundColor White
+Write-Host " 3. UniversalFileToolkit-Setup.zip            (Safe Web Download)" -ForegroundColor White
 Write-Host "================================================================" -ForegroundColor Cyan

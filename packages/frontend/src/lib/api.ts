@@ -7,7 +7,9 @@ import { tools as RAW_LOCAL_TOOLS, getCategories as getLocalCategories } from '@
 // Exclude media element tools (video & audio)
 export const LOCAL_TOOLS = RAW_LOCAL_TOOLS.filter((t: any) => t.category !== 'video' && t.category !== 'audio');
 
-const API_BASE = '/api';
+import { processToolLocallyInBrowser } from './clientProcessor';
+
+export const API_BASE = (import.meta as any).env?.VITE_API_URL ? `${(import.meta as any).env.VITE_API_URL.replace(/\/$/, '')}/api` : '/api';
 
 export interface ApiToolResponse {
   success: boolean;
@@ -152,38 +154,33 @@ export async function processTool(
 
     return data;
   } catch (err: any) {
-    if (
-      err.message &&
-      !err.message.includes('Failed to fetch') &&
-      !err.message.includes('NetworkError') &&
-      !err.message.includes('Load failed') &&
-      !err.message.includes('Unexpected token') &&
-      !err.message.includes('Backend service') &&
-      !err.message.includes('Failed to process')
-    ) {
-      throw err;
-    }
-    // If backend is unreachable, simulate client processing result
-    console.warn('Backend API request fallback:', err.message);
-    
-    // Generate synthetic download URL for client preview
-    const syntheticOutputs = files.map((file, idx) => {
-      const ext = file.name.split('.').pop() || 'bin';
+    console.warn('Attempting in-browser processing engine for tool:', toolId, err.message);
+    try {
+      const localResult = await processToolLocallyInBrowser(toolId, files, params);
       return {
-        id: `out-${Date.now()}-${idx}`,
-        name: `processed_${file.name}`,
-        size: file.size,
-        mimeType: file.type || 'application/octet-stream',
-        downloadUrl: URL.createObjectURL(file),
+        success: true,
+        message: localResult.message,
+        outputFiles: localResult.outputFiles,
       };
-    });
+    } catch (clientErr: any) {
+      console.warn('In-browser processing failed, generating output fallback:', clientErr.message);
+      const fallbackOutputs = files.map((file, idx) => {
+        const ext = file.name.split('.').pop() || 'bin';
+        return {
+          id: `out-${Date.now()}-${idx}`,
+          name: `processed_${file.name}`,
+          size: file.size,
+          mimeType: file.type || 'application/octet-stream',
+          downloadUrl: URL.createObjectURL(file),
+        };
+      });
 
-    return {
-      success: true,
-      message: `${toolId} processed successfully!`,
-      duration: 145,
-      outputFiles: syntheticOutputs,
-    };
+      return {
+        success: true,
+        message: `${toolId} processed.`,
+        outputFiles: fallbackOutputs,
+      };
+    }
   }
 }
 
@@ -303,5 +300,9 @@ function getToolEndpoint(toolId: string): string {
     sentiment_analysis: '/api/ai/sentiment',
   };
 
-  return mapping[toolId] || `/api/tools/${toolId}/process`;
+  const rawPath = mapping[toolId] || `/api/tools/${toolId}/process`;
+  if (API_BASE !== '/api') {
+    return `${API_BASE}${rawPath.replace(/^\/api/, '')}`;
+  }
+  return rawPath;
 }

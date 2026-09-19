@@ -44,9 +44,11 @@ export function Layout() {
             {/* Column 1 (Span 2): Brand & Copyright */}
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#004ac6] text-white font-black text-base flex items-center justify-center shadow-xs">
-                  U
-                </div>
+                <img
+                  src="/uftlogo.png"
+                  alt="Universal File Toolkit"
+                  className="w-9 h-9 rounded-xl object-contain shadow-xs flex-shrink-0"
+                />
                 <span className="text-2xl font-black text-[#004ac6] dark:text-blue-400 tracking-tight">
                   Universal File Toolkit
                 </span>
@@ -67,14 +69,14 @@ export function Layout() {
                   GitHub Repo
                 </a>
                 <a
-                  href="/UniversalFileToolkitSetup.exe"
-                  download="UniversalFileToolkitSetup.exe"
+                  href="/UniversalFileToolkit-Setup.zip"
+                  download="UniversalFileToolkit-Setup.zip"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 text-[#004ac6] dark:text-blue-400 transition-colors border border-blue-200/60 dark:border-blue-800/60"
                 >
                   <svg className="w-4 h-4 fill-none stroke-current stroke-2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  Download Windows App (.exe)
+                  Download Windows App (.zip)
                 </a>
               </div>
               <p className="text-xs text-[#505f76] dark:text-slate-400 font-semibold pt-1">

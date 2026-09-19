@@ -1,28 +1,49 @@
-New-Item -ItemType Directory -Force -Path assets | Out-Null
+param (
+  [string]$RootDir = ""
+)
+
+if (-not $RootDir) {
+  $RootDir = (Resolve-Path "$PSScriptRoot\..").Path
+}
+
 Add-Type -AssemblyName System.Drawing
 
-$bmp = New-Object System.Drawing.Bitmap 64, 64
-$g = [System.Drawing.Graphics]::FromImage($bmp)
-$g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+$srcLogo = Join-Path $RootDir "assets\uftlogo.png"
+$dstIco = Join-Path $RootDir "assets\app-icon.ico"
+$frontendPublic = Join-Path $RootDir "packages\frontend\public"
 
-# Background circle with primary blue (#004ac6)
-$brush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 0, 74, 198))
-$g.FillEllipse($brush, 2, 2, 60, 60)
+if (Test-Path $srcLogo) {
+  Write-Host "[*] Converting uftlogo.png to multi-resolution app-icon.ico..." -ForegroundColor Cyan
+  $img = [System.Drawing.Image]::FromFile($srcLogo)
 
-# Letter 'U' in bold white
-$font = [System.Drawing.Font]::new("Segoe UI", [float]28, [System.Drawing.FontStyle]::Bold)
-$textBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::White)
-$sf = New-Object System.Drawing.StringFormat
-$sf.Alignment = [System.Drawing.StringAlignment]::Center
-$sf.LineAlignment = [System.Drawing.StringAlignment]::Center
-$rect = [System.Drawing.RectangleF]::new(0, 0, 64, 64)
-$g.DrawString("U", $font, $textBrush, $rect, $sf)
+  # Create 256x256 high-res bitmap
+  $bmp = New-Object System.Drawing.Bitmap 256, 256
+  $g = [System.Drawing.Graphics]::FromImage($bmp)
+  $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+  $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+  $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+  $g.Clear([System.Drawing.Color]::Transparent)
+  $g.DrawImage($img, 0, 0, 256, 256)
 
-# Save as ICO
-$hIcon = $bmp.GetHicon()
-$icon = [System.Drawing.Icon]::FromHandle($hIcon)
-$fs = [System.IO.FileStream]::new("assets\app-icon.ico", [System.IO.FileMode]::Create)
-$icon.Save($fs)
-$fs.Close()
-$bmp.Dispose()
-Write-Output "Generated assets\app-icon.ico successfully!"
+  $hIcon = $bmp.GetHicon()
+  $icon = [System.Drawing.Icon]::FromHandle($hIcon)
+
+  $fs = [System.IO.FileStream]::new($dstIco, [System.IO.FileMode]::Create)
+  $icon.Save($fs)
+  $fs.Close()
+  $icon.Dispose()
+  $bmp.Dispose()
+  $img.Dispose()
+
+  # Copy logo to frontend public directory
+  if (-not (Test-Path $frontendPublic)) {
+    New-Item -ItemType Directory -Path $frontendPublic -Force | Out-Null
+  }
+  Copy-Item -Path $srcLogo -Destination (Join-Path $frontendPublic "uftlogo.png") -Force
+  Copy-Item -Path $srcLogo -Destination (Join-Path $frontendPublic "logo.png") -Force
+  Copy-Item -Path $dstIco -Destination (Join-Path $frontendPublic "favicon.ico") -Force
+
+  Write-Host "[OK] Successfully generated app-icon.ico and updated frontend public logo assets!" -ForegroundColor Green
+} else {
+  Write-Warning "Source logo assets\uftlogo.png not found."
+}

@@ -40,9 +40,11 @@ export function Header() {
         
         {/* Left Corner: Brand Logo — Universal File Toolkit */}
         <Link to="/" className="flex items-center gap-2.5 sm:gap-3 no-underline flex-shrink-0 group">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl bg-[#004ac6] text-white font-black text-base sm:text-lg xl:text-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform flex-shrink-0">
-            U
-          </div>
+          <img
+            src="/uftlogo.png"
+            alt="Universal File Toolkit"
+            className="w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl object-contain shadow-xs group-hover:scale-105 transition-transform flex-shrink-0"
+          />
           <span className="text-lg sm:text-xl xl:text-2xl font-black text-[#004ac6] dark:text-blue-400 tracking-tight whitespace-nowrap">
             Universal File Toolkit
           </span>
