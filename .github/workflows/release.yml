@@ -49,5 +49,3 @@ jobs:
           files: |
             UniversalFileToolkit-Setup.zip
             Setup.exe
-            UniversalFileToolkit.exe
-            UniversalFileToolkitSetup.exe

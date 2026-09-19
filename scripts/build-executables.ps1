@@ -47,11 +47,10 @@ if (Test-Path $manifestPath) {
 
 $assemblyInfo = Join-Path $RootDir "src-installer\AssemblyInfo.cs"
 
-# 3. Compile Setup Wizard (UniversalFileToolkitSetup.exe & Setup.exe)
+# 3. Compile Setup Wizard (Setup.exe)
 Write-Host "[*] Compiling Setup.exe with embedded Manifest & AssemblyInfo..." -ForegroundColor Yellow
 $setupSrc = Join-Path $RootDir "src-installer\SetupWizard.cs"
 $setupOut = Join-Path $RootDir "Setup.exe"
-$setupReleaseOut = Join-Path $RootDir "UniversalFileToolkitSetup.exe"
 
 $wpfRefs = "/r:`"$wpfDir\WindowsBase.dll`" /r:`"$wpfDir\PresentationCore.dll`" /r:`"$wpfDir\PresentationFramework.dll`" /r:`"$frameworkDir\System.Xaml.dll`" /r:System.dll /r:System.Core.dll /r:System.Xml.dll /r:Microsoft.CSharp.dll"
 
@@ -67,10 +66,7 @@ $err = $p.StandardError.ReadToEnd()
 $p.WaitForExit()
 
 if ($p.ExitCode -eq 0 -and (Test-Path $setupOut)) {
-  try {
-    Copy-Item -Path $setupOut -Destination $setupReleaseOut -Force -ErrorAction SilentlyContinue
-  } catch {}
-  Write-Host "[OK] Successfully compiled Setup.exe and UniversalFileToolkitSetup.exe" -ForegroundColor Green
+  Write-Host "[OK] Successfully compiled Setup.exe" -ForegroundColor Green
 } else {
   Write-Host $out
   Write-Host $err -ForegroundColor Red
@@ -111,11 +107,11 @@ if (-not (Test-Path $frontendPublic)) {
   New-Item -ItemType Directory -Path $frontendPublic -Force | Out-Null
 }
 
-Copy-Item -Path $setupOut -Destination (Join-Path $frontendPublic "UniversalFileToolkitSetup.exe") -Force -ErrorAction SilentlyContinue
 Copy-Item -Path $setupOut -Destination (Join-Path $frontendPublic "Setup.exe") -Force -ErrorAction SilentlyContinue
 
 # Create clean ZIP package for safe download
 $zipOut = Join-Path $frontendPublic "UniversalFileToolkit-Setup.zip"
+$rootZipOut = Join-Path $RootDir "UniversalFileToolkit-Setup.zip"
 $tempPkgDir = Join-Path $env:TEMP "UFT-Package-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $tempPkgDir -Force | Out-Null
 
@@ -127,15 +123,15 @@ Set-Content -Path (Join-Path $tempPkgDir "README.txt") -Value $readmeText
 if (Test-Path $zipOut) { Remove-Item $zipOut -Force -ErrorAction SilentlyContinue }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory($tempPkgDir, $zipOut)
+Copy-Item -Path $zipOut -Destination $rootZipOut -Force -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force $tempPkgDir -ErrorAction SilentlyContinue
 
-Write-Host "[OK] Created safe download package: packages\frontend\public\UniversalFileToolkit-Setup.zip" -ForegroundColor Green
+Write-Host "[OK] Created safe download package: UniversalFileToolkit-Setup.zip" -ForegroundColor Green
 
 # 6. Output Summary
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host " Build Complete! Created Verified Windows Packages:" -ForegroundColor Green
-Write-Host " 1. Setup.exe / UniversalFileToolkitSetup.exe  (Signed/Manifested)" -ForegroundColor White
-Write-Host " 2. UniversalFileToolkit.exe                  (Searchable Launcher)" -ForegroundColor White
-Write-Host " 3. UniversalFileToolkit-Setup.zip            (Safe Web Download)" -ForegroundColor White
+Write-Host " Build Complete! Created 2 Primary Windows Packages:" -ForegroundColor Green
+Write-Host " 1. UniversalFileToolkit-Setup.zip (Recommended Web Download)" -ForegroundColor White
+Write-Host " 2. Setup.exe                     (1-Click Windows Installer)" -ForegroundColor White
 Write-Host "================================================================" -ForegroundColor Cyan
