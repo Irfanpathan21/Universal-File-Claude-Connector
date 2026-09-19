@@ -117,7 +117,7 @@ export function Layout() {
               <ul className="space-y-2.5 text-sm sm:text-[15px] text-[#434655] dark:text-slate-300 font-medium">
                 <li><Link to="/help" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Contact Us</Link></li>
                 <li><Link to="/help" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Help Center</Link></li>
-                <li><a href="/UniversalFileToolkitSetup.exe" download="UniversalFileToolkitSetup.exe" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Download Desktop (.exe)</a></li>
+                <li><a href="/UniversalFileToolkit-Setup.zip" download="UniversalFileToolkit-Setup.zip" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Download Windows Package (.zip)</a></li>
               </ul>
             </div>
 

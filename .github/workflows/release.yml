@@ -43,9 +43,7 @@ jobs:
             - **Claude Desktop Integration**: Connects seamlessly via Model Context Protocol.
             - **Live Web App**: [https://uftapp.onrender.com](https://uftapp.onrender.com)
             
-            ### 📦 Direct Downloads:
-            - **`UniversalFileToolkit-Setup.zip`**: Complete Windows setup & launcher bundle.
-            - **`Setup.exe`**: 1-click Windows Installer wizard.
+            ### 📦 Download:
+            - **`UniversalFileToolkit-Setup.zip`**: Complete Windows setup & launcher bundle. Extract and double-click `Setup.exe` to run.
           files: |
             UniversalFileToolkit-Setup.zip
-            Setup.exe

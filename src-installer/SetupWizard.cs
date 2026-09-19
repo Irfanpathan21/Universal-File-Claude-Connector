@@ -809,11 +809,20 @@ namespace UniversalFileToolkit.Installer
                     }
                 }
 
-                // Minimize Setup Wizard window so the launched app screen pops up in front
-                Dispatcher.Invoke(new Action(() =>
+                AppendLog("Universal File Toolkit launched successfully. Closing setup wizard...");
+                Task.Factory.StartNew(() =>
                 {
-                    this.WindowState = WindowState.Minimized;
-                }));
+                    Thread.Sleep(1200);
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        try
+                        {
+                            this.Close();
+                            Application.Current.Shutdown();
+                        }
+                        catch { }
+                    }));
+                });
             }
             catch (Exception ex)
             {

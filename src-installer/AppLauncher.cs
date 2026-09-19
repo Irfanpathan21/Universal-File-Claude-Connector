@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -10,6 +11,29 @@ namespace UniversalFileToolkit.Launcher
 {
     public static class Program
     {
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool BringWindowToTop(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        private const int SW_RESTORE = 9;
+        private const int SW_SHOW = 5;
+        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+        private const uint SWP_NOSIZE = 0x0001;
+        private const uint SWP_NOMOVE = 0x0002;
+        private const uint SWP_SHOWWINDOW = 0x0040;
+
         [STAThread]
         public static void Main(string[] args)
         {
@@ -32,7 +56,6 @@ namespace UniversalFileToolkit.Launcher
                 }
                 else
                 {
-                    // If system is not yet installed, launch Setup.exe
                     string setupExe = Path.Combine(rootDir, "Setup.exe");
                     if (File.Exists(setupExe))
                     {
@@ -87,7 +110,7 @@ namespace UniversalFileToolkit.Launcher
                 int attempts = 0;
                 while (attempts < 60)
                 {
-                    Thread.Sleep(400);
+                    Thread.Sleep(350);
                     bool feReady = IsPortOpen("127.0.0.1", 3000);
                     bool beReady = IsPortOpen("127.0.0.1", 3001);
                     if (feReady && beReady)
@@ -98,9 +121,9 @@ namespace UniversalFileToolkit.Launcher
                 }
 
                 // Brief pause to allow routes registration
-                Thread.Sleep(250);
+                Thread.Sleep(200);
 
-                // 4. Open in Chrome App Mode / Edge App Mode
+                // 4. Open in Chrome App Mode / Edge App Mode and force to foreground
                 LaunchInAppMode("http://localhost:3000");
             }
             catch (Exception)
@@ -180,9 +203,31 @@ namespace UniversalFileToolkit.Launcher
                 {
                     FileName = browserPath,
                     Arguments = string.Format("--app={0} --user-data-dir=\"{1}\" --no-first-run --no-default-browser-check", url, profileDir),
-                    UseShellExecute = true
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Normal
                 };
-                Process.Start(psi);
+                
+                var browserProc = Process.Start(psi);
+                
+                // Force foreground activation
+                if (browserProc != null)
+                {
+                    for (int i = 0; i < 15; i++)
+                    {
+                        Thread.Sleep(200);
+                        browserProc.Refresh();
+                        IntPtr handle = browserProc.MainWindowHandle;
+                        if (handle != IntPtr.Zero)
+                        {
+                            ShowWindowAsync(handle, SW_RESTORE);
+                            SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                            SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                            BringWindowToTop(handle);
+                            SetForegroundWindow(handle);
+                            break;
+                        }
+                    }
+                }
             }
             else
             {
