@@ -16,13 +16,38 @@ namespace UniversalFileToolkit.Launcher
             try
             {
                 string rootDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-                if (!File.Exists(Path.Combine(rootDir, "package.json")) && File.Exists(Path.Combine(rootDir, "..", "package.json")))
+                string localAppDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UniversalFileToolkit", "app");
+
+                if (File.Exists(Path.Combine(rootDir, "package.json")))
+                {
+                    // Use current directory
+                }
+                else if (File.Exists(Path.Combine(rootDir, "..", "package.json")))
                 {
                     rootDir = Path.GetFullPath(Path.Combine(rootDir, ".."));
                 }
+                else if (File.Exists(Path.Combine(localAppDir, "package.json")))
+                {
+                    rootDir = localAppDir;
+                }
+                else
+                {
+                    // If system is not yet installed, launch Setup.exe
+                    string setupExe = Path.Combine(rootDir, "Setup.exe");
+                    if (File.Exists(setupExe))
+                    {
+                        Process.Start(setupExe);
+                        return;
+                    }
+                    string localSetup = Path.Combine(localAppDir, "Setup.exe");
+                    if (File.Exists(localSetup))
+                    {
+                        Process.Start(localSetup);
+                        return;
+                    }
+                }
 
                 // 1. Force kill any existing/stale processes on ports 3000 and 3001
-                // This guarantees port 3000 is 100% free exclusively for Universal File Toolkit!
                 KillProcessOnPort(3000);
                 KillProcessOnPort(3001);
                 Thread.Sleep(300);
@@ -92,7 +117,6 @@ namespace UniversalFileToolkit.Launcher
         {
             try
             {
-                // Find PID listening on port
                 var psi = new ProcessStartInfo("cmd.exe", string.Format("/c for /f \"tokens=5\" %a in ('netstat -aon ^| findstr \":{0} \" ^| findstr \"LISTENING\"') do taskkill /f /pid %a", port))
                 {
                     CreateNoWindow = true,

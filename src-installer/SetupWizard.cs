@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,8 @@ namespace UniversalFileToolkit.Installer
     public class SetupWindow : Window
     {
         private string rootDir;
+        private string targetInstallDir;
+        private bool isStandaloneInstaller;
         private TextBlock txtNodeStatus;
         private TextBlock txtDepStatus;
         private TextBlock txtPath;
@@ -54,10 +57,28 @@ namespace UniversalFileToolkit.Installer
 
         public SetupWindow()
         {
-            rootDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            if (!File.Exists(Path.Combine(rootDir, "package.json")) && File.Exists(Path.Combine(rootDir, "..", "package.json")))
+            string currentBase = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            targetInstallDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UniversalFileToolkit", "app");
+
+            if (File.Exists(Path.Combine(currentBase, "package.json")))
             {
-                rootDir = Path.GetFullPath(Path.Combine(rootDir, ".."));
+                rootDir = currentBase;
+                isStandaloneInstaller = false;
+            }
+            else if (File.Exists(Path.Combine(currentBase, "..", "package.json")))
+            {
+                rootDir = Path.GetFullPath(Path.Combine(currentBase, ".."));
+                isStandaloneInstaller = false;
+            }
+            else if (File.Exists(Path.Combine(targetInstallDir, "package.json")))
+            {
+                rootDir = targetInstallDir;
+                isStandaloneInstaller = false;
+            }
+            else
+            {
+                rootDir = targetInstallDir;
+                isStandaloneInstaller = true;
             }
 
             InitializeComponent();
@@ -127,7 +148,7 @@ namespace UniversalFileToolkit.Installer
             };
             var subtitleText = new TextBlock
             {
-                Text = "Business Setup & Windows Service Installer",
+                Text = "Windows Application & Enterprise Service Setup",
                 Foreground = (Brush)new BrushConverter().ConvertFromString("#475569"),
                 FontSize = 13,
                 Margin = new Thickness(0, 2, 0, 0)
@@ -161,7 +182,7 @@ namespace UniversalFileToolkit.Installer
 
             var lblNode = new TextBlock { Text = "Node.js Runtime:", FontWeight = FontWeights.SemiBold, Foreground = (Brush)new BrushConverter().ConvertFromString("#334155"), FontSize = 12, Margin = new Thickness(0, 0, 8, 4) };
             txtNodeStatus = new TextBlock { Text = "Checking...", Foreground = (Brush)new BrushConverter().ConvertFromString("#1d4ed8"), FontSize = 12, FontWeight = FontWeights.Medium, Margin = new Thickness(0, 0, 16, 4) };
-            var lblDep = new TextBlock { Text = "Dependencies:", FontWeight = FontWeights.SemiBold, Foreground = (Brush)new BrushConverter().ConvertFromString("#334155"), FontSize = 12, Margin = new Thickness(0, 0, 8, 4) };
+            var lblDep = new TextBlock { Text = "System Package:", FontWeight = FontWeights.SemiBold, Foreground = (Brush)new BrushConverter().ConvertFromString("#334155"), FontSize = 12, Margin = new Thickness(0, 0, 8, 4) };
             txtDepStatus = new TextBlock { Text = "Checking...", Foreground = (Brush)new BrushConverter().ConvertFromString("#1d4ed8"), FontSize = 12, FontWeight = FontWeights.Medium, Margin = new Thickness(0, 0, 0, 4) };
 
             Grid.SetRow(lblNode, 0); Grid.SetColumn(lblNode, 0);
@@ -185,7 +206,7 @@ namespace UniversalFileToolkit.Installer
             Grid.SetRow(statusCard, 1);
             mainGrid.Children.Add(statusCard);
 
-            // --- 2. Big, Spacious Checkboxes ---
+            // --- 2. Options (Big checkboxes) ---
             var optCard = new Border
             {
                 Background = Brushes.White,
@@ -197,10 +218,10 @@ namespace UniversalFileToolkit.Installer
             };
             var optStack = new StackPanel();
 
-            chkInstall = CreateLargeOption("Install & verify project packages", "Validates workspace dependencies and builds packages if missing.", true);
-            chkShortcut = CreateLargeOption("Create Desktop & Start Menu application shortcuts", "Makes Universal File Toolkit searchable in Windows Search and adds Desktop launcher.", true);
-            chkClaude = CreateLargeOption("Configure Claude Desktop MCP Connector (Optional)", "Enables Claude Desktop PC to directly execute all 100+ file tools.", false);
-            chkLaunch = CreateLargeOption("Launch Universal File Toolkit immediately after setup", "Frees ports 3000/3001 and opens the app in a dedicated Google Chrome / Edge window.", true);
+            chkInstall = CreateLargeOption("Download and configure system packages", "Installs core application engine, dependencies, and compiles background workers.", true);
+            chkShortcut = CreateLargeOption("Create Desktop & Start Menu application shortcuts", "Registers Universal File Toolkit into Windows Search and creates Desktop launcher.", true);
+            chkClaude = CreateLargeOption("Configure Claude Desktop MCP Connector (Optional)", "Allows Claude Desktop app to directly access all 100+ file manipulation tools.", false);
+            chkLaunch = CreateLargeOption("Launch Universal File Toolkit immediately after setup", "Frees ports 3000/3001 and opens in dedicated Chrome/Edge App Mode.", true);
 
             optStack.Children.Add(chkInstall);
             optStack.Children.Add(chkShortcut);
@@ -211,7 +232,7 @@ namespace UniversalFileToolkit.Installer
             Grid.SetRow(optCard, 2);
             mainGrid.Children.Add(optCard);
 
-            // --- 3. Clean Monospace Log Box ---
+            // --- 3. Monospace Log Box ---
             var logBorder = new Border
             {
                 Background = (Brush)new BrushConverter().ConvertFromString("#f8fafc"),
@@ -231,7 +252,7 @@ namespace UniversalFileToolkit.Installer
                 FontSize = 11,
                 IsReadOnly = true,
                 TextWrapping = TextWrapping.Wrap,
-                Text = "Ready. Click 'Start Setup' to proceed.\r\n"
+                Text = "Ready. Click 'Start Setup' to install and launch Universal File Toolkit.\r\n"
             };
             scrollLog.Content = txtLog;
             logBorder.Child = scrollLog;
@@ -274,7 +295,7 @@ namespace UniversalFileToolkit.Installer
             Grid.SetRow(progStack, 4);
             mainGrid.Children.Add(progStack);
 
-            // --- 5. Action Buttons (Modern Blue & Crisp Borders) ---
+            // --- 5. Action Buttons ---
             var btnGrid = new Grid();
             btnGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             btnGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -375,6 +396,7 @@ namespace UniversalFileToolkit.Installer
             Task.Factory.StartNew(() =>
             {
                 string nodeVer = GetNodeVersion();
+                bool hasPackageJson = File.Exists(Path.Combine(rootDir, "package.json"));
                 bool hasModules = Directory.Exists(Path.Combine(rootDir, "node_modules"));
                 bool hasBuild = File.Exists(Path.Combine(rootDir, "packages", "backend", "dist", "index.js"));
 
@@ -383,28 +405,33 @@ namespace UniversalFileToolkit.Installer
                     if (!string.IsNullOrEmpty(nodeVer))
                     {
                         txtNodeStatus.Text = string.Format("Installed ({0})", nodeVer);
-                        txtNodeStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#15803d"); // Green
+                        txtNodeStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#15803d");
                     }
                     else
                     {
                         txtNodeStatus.Text = "Not detected (Auto-install)";
-                        txtNodeStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#b45309"); // Amber
+                        txtNodeStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#b45309");
                     }
 
-                    if (hasModules && hasBuild)
+                    if (hasPackageJson && hasModules && hasBuild)
                     {
                         txtDepStatus.Text = "Installed & Built (Ready)";
                         txtDepStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#15803d");
                     }
-                    else if (hasModules)
+                    else if (hasPackageJson && hasModules)
                     {
                         txtDepStatus.Text = "Packages Installed";
                         txtDepStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#1d4ed8");
                     }
+                    else if (hasPackageJson)
+                    {
+                        txtDepStatus.Text = "Source Ready (Install needed)";
+                        txtDepStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#1d4ed8");
+                    }
                     else
                     {
-                        txtDepStatus.Text = "Not Installed";
-                        txtDepStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#b45309");
+                        txtDepStatus.Text = "Will auto-download repository";
+                        txtDepStatus.Foreground = (Brush)new BrushConverter().ConvertFromString("#1d4ed8");
                     }
                 }));
             });
@@ -412,7 +439,7 @@ namespace UniversalFileToolkit.Installer
 
         private string GetNodeVersion()
         {
-            var res = RunCommand("node -v", rootDir);
+            var res = RunCommand("node -v", AppDomain.CurrentDomain.BaseDirectory);
             if (res.ExitCode == 0 && !string.IsNullOrEmpty(res.Output))
             {
                 return res.Output.Trim();
@@ -422,7 +449,7 @@ namespace UniversalFileToolkit.Installer
             {
                 string path = Environment.GetEnvironmentVariable("PATH") ?? "";
                 Environment.SetEnvironmentVariable("PATH", pfNode + ";" + path);
-                var retry = RunCommand("node -v", rootDir);
+                var retry = RunCommand("node -v", AppDomain.CurrentDomain.BaseDirectory);
                 if (retry.ExitCode == 0 && !string.IsNullOrEmpty(retry.Output))
                 {
                     return retry.Output.Trim();
@@ -472,14 +499,14 @@ namespace UniversalFileToolkit.Installer
             try
             {
                 SetProgress(5, "Verifying Node.js environment...");
-                AppendLog(string.Format("Setup started in: {0}", rootDir));
+                AppendLog("Beginning Universal File Toolkit installation...");
 
                 // 1. Verify Node.js
                 string nodeVer = GetNodeVersion();
                 if (string.IsNullOrEmpty(nodeVer))
                 {
                     AppendLog("Node.js was not detected. Installing automatically via winget...");
-                    RunCommand("winget install OpenJS.NodeJS.LTS -h --accept-source-agreements --accept-package-agreements", rootDir);
+                    RunCommand("winget install OpenJS.NodeJS.LTS -h --accept-source-agreements --accept-package-agreements", AppDomain.CurrentDomain.BaseDirectory);
                     nodeVer = GetNodeVersion();
                     if (string.IsNullOrEmpty(nodeVer))
                     {
@@ -494,6 +521,66 @@ namespace UniversalFileToolkit.Installer
                     AppendLog(string.Format("Node.js verified: {0}", nodeVer));
                 }
 
+                // 2. Download source repository if running outside repo
+                if (isStandaloneInstaller || !File.Exists(Path.Combine(rootDir, "package.json")))
+                {
+                    SetProgress(15, "Downloading Universal File Toolkit core system...");
+                    AppendLog(string.Format("Target installation directory: {0}", targetInstallDir));
+                    if (!Directory.Exists(targetInstallDir))
+                    {
+                        Directory.CreateDirectory(targetInstallDir);
+                    }
+
+                    string tempZip = Path.Combine(Path.GetTempPath(), "uft-source.zip");
+                    string tempExtract = Path.Combine(Path.GetTempPath(), "uft-extract-" + Guid.NewGuid().ToString("N"));
+
+                    AppendLog("Downloading latest release archive from GitHub...");
+                    using (var wc = new WebClient())
+                    {
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                        wc.Headers.Add("User-Agent", "UniversalFileToolkit-Installer");
+                        wc.DownloadFile("https://github.com/Irfanpathan21/Universal-File-Claude-Connector/archive/refs/heads/last.zip", tempZip);
+                    }
+
+                    SetProgress(25, "Extracting system files...");
+                    AppendLog("Extracting repository files...");
+                    RunCommand(string.Format("powershell -Command \"Expand-Archive -Path '{0}' -DestinationPath '{1}' -Force\"", tempZip, tempExtract), targetInstallDir);
+
+                    // Move contents of extracted directory (e.g. Universal-File-Claude-Connector-last) into targetInstallDir
+                    string[] subDirs = Directory.GetDirectories(tempExtract);
+                    string sourceDir = subDirs.Length > 0 ? subDirs[0] : tempExtract;
+
+                    CopyDirectory(sourceDir, targetInstallDir);
+
+                    // Clean up temp
+                    try
+                    {
+                        File.Delete(tempZip);
+                        Directory.Delete(tempExtract, true);
+                    }
+                    catch { }
+
+                    rootDir = targetInstallDir;
+                    Dispatcher.Invoke(new Action(() => { txtPath.Text = rootDir; }));
+                    AppendLog("Repository downloaded and extracted successfully.");
+                }
+
+                // Ensure executables are present in rootDir
+                string currentExe = Process.GetCurrentProcess().MainModule.FileName;
+                string destSetup = Path.Combine(rootDir, "Setup.exe");
+                if (File.Exists(currentExe) && !string.Equals(currentExe, destSetup, StringComparison.OrdinalIgnoreCase))
+                {
+                    try { File.Copy(currentExe, destSetup, true); } catch { }
+                }
+
+                // Copy UniversalFileToolkit.exe if next to current exe
+                string currentLauncher = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UniversalFileToolkit.exe");
+                string destLauncher = Path.Combine(rootDir, "UniversalFileToolkit.exe");
+                if (File.Exists(currentLauncher) && !File.Exists(destLauncher))
+                {
+                    try { File.Copy(currentLauncher, destLauncher, true); } catch { }
+                }
+
                 // Determine package manager
                 string pkgMgr = "pnpm";
                 var pnpmCheck = RunCommand("pnpm -v", rootDir);
@@ -503,13 +590,13 @@ namespace UniversalFileToolkit.Installer
                 }
                 AppendLog(string.Format("Using package manager: {0}", pkgMgr));
 
-                // 2. Dependencies & Build
+                // 3. Dependencies & Build
                 if (doInstall)
                 {
                     bool hasModules = Directory.Exists(Path.Combine(rootDir, "node_modules"));
                     if (!hasModules)
                     {
-                        SetProgress(20, "Installing dependencies...");
+                        SetProgress(40, "Installing dependencies...");
                         AppendLog(string.Format("Running '{0} install'...", pkgMgr));
                         var installRes = RunCommand(string.Format("{0} install", pkgMgr), rootDir);
                         if (installRes.ExitCode != 0)
@@ -521,10 +608,10 @@ namespace UniversalFileToolkit.Installer
                     }
                     else
                     {
-                        AppendLog("Project dependencies already installed.");
+                        AppendLog("Dependencies are already installed.");
                     }
 
-                    SetProgress(50, "Verifying build packages...");
+                    SetProgress(65, "Verifying backend and engine build...");
                     bool hasBackendBuild = File.Exists(Path.Combine(rootDir, "packages", "backend", "dist", "index.js"));
                     if (!hasBackendBuild)
                     {
@@ -532,19 +619,19 @@ namespace UniversalFileToolkit.Installer
                         var buildRes = RunCommand(string.Format("{0} build", pkgMgr), rootDir);
                         if (buildRes.ExitCode == 0)
                         {
-                            AppendLog("Package build completed successfully.");
+                            AppendLog("Build completed successfully.");
                         }
                     }
                     else
                     {
-                        AppendLog("Compiled package dist verified.");
+                        AppendLog("Backend and engine build verified.");
                     }
                 }
 
-                // 3. Claude Desktop MCP Config (Optional)
+                // 4. Claude Desktop MCP Config (Optional)
                 if (doClaude)
                 {
-                    SetProgress(75, "Configuring Claude Desktop MCP connector...");
+                    SetProgress(80, "Configuring Claude Desktop MCP connector...");
                     ConfigureClaudeDesktop();
                 }
                 else
@@ -552,10 +639,10 @@ namespace UniversalFileToolkit.Installer
                     AppendLog("Claude Desktop connector skipped (Optional).");
                 }
 
-                // 4. Desktop and Start Menu Shortcuts (Searchable in Windows)
+                // 5. Desktop and Start Menu Shortcuts (Searchable in Windows)
                 if (doShortcut)
                 {
-                    SetProgress(88, "Registering Windows Start Menu and Desktop shortcuts...");
+                    SetProgress(90, "Registering Windows Start Menu and Desktop shortcuts...");
                     CreateAppShortcuts();
                 }
 
@@ -585,6 +672,27 @@ namespace UniversalFileToolkit.Installer
                     btnInstall.IsEnabled = true;
                     btnInstall.Content = "Retry Setup";
                 }));
+            }
+        }
+
+        private static void CopyDirectory(string sourceDir, string destinationDir)
+        {
+            var dir = new DirectoryInfo(sourceDir);
+            if (!dir.Exists) return;
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            Directory.CreateDirectory(destinationDir);
+
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath, true);
+            }
+
+            foreach (DirectoryInfo subDir in dirs)
+            {
+                string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                CopyDirectory(subDir.FullName, newDestinationDir);
             }
         }
 
@@ -623,10 +731,7 @@ namespace UniversalFileToolkit.Installer
                 string startMenuShortcut = Path.Combine(startMenuPath, "Universal File Toolkit.lnk");
 
                 string launcherExe = Path.Combine(rootDir, "UniversalFileToolkit.exe");
-                string fallbackBat = Path.Combine(rootDir, "launch.bat");
                 string iconPath = Path.Combine(rootDir, "assets", "app-icon.ico");
-
-                string target = File.Exists(launcherExe) ? launcherExe : fallbackBat;
 
                 Type shellType = Type.GetTypeFromProgID("WScript.Shell");
                 if (shellType != null)
@@ -636,7 +741,7 @@ namespace UniversalFileToolkit.Installer
                     // 1. Desktop Shortcut
                     object scDesktop = shellType.InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, shell, new object[] { desktopShortcut });
                     Type scType1 = scDesktop.GetType();
-                    scType1.InvokeMember("TargetPath", System.Reflection.BindingFlags.SetProperty, null, scDesktop, new object[] { target });
+                    scType1.InvokeMember("TargetPath", System.Reflection.BindingFlags.SetProperty, null, scDesktop, new object[] { launcherExe });
                     scType1.InvokeMember("WorkingDirectory", System.Reflection.BindingFlags.SetProperty, null, scDesktop, new object[] { rootDir });
                     scType1.InvokeMember("Description", System.Reflection.BindingFlags.SetProperty, null, scDesktop, new object[] { "Universal File Toolkit" });
                     if (File.Exists(iconPath))
@@ -648,7 +753,7 @@ namespace UniversalFileToolkit.Installer
                     // 2. Start Menu Shortcut (Makes app searchable in Windows Search)
                     object scStart = shellType.InvokeMember("CreateShortcut", System.Reflection.BindingFlags.InvokeMethod, null, shell, new object[] { startMenuShortcut });
                     Type scType2 = scStart.GetType();
-                    scType2.InvokeMember("TargetPath", System.Reflection.BindingFlags.SetProperty, null, scStart, new object[] { target });
+                    scType2.InvokeMember("TargetPath", System.Reflection.BindingFlags.SetProperty, null, scStart, new object[] { launcherExe });
                     scType2.InvokeMember("WorkingDirectory", System.Reflection.BindingFlags.SetProperty, null, scStart, new object[] { rootDir });
                     scType2.InvokeMember("Description", System.Reflection.BindingFlags.SetProperty, null, scStart, new object[] { "Universal File Toolkit" });
                     if (File.Exists(iconPath))
@@ -683,15 +788,28 @@ namespace UniversalFileToolkit.Installer
                 }
                 else
                 {
-                    var p = new Process();
-                    p.StartInfo.FileName = "cmd.exe";
-                    p.StartInfo.Arguments = "/c start \"\" launch.bat";
-                    p.StartInfo.WorkingDirectory = rootDir;
-                    p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    p.Start();
+                    // Direct node fallback if launcher is missing
+                    string startScript = Path.Combine(rootDir, "scripts", "start-services.js");
+                    if (File.Exists(startScript))
+                    {
+                        var p = new Process();
+                        p.StartInfo.FileName = "node";
+                        p.StartInfo.Arguments = string.Format("\"{0}\"", startScript);
+                        p.StartInfo.WorkingDirectory = rootDir;
+                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        p.StartInfo.CreateNoWindow = true;
+                        p.Start();
+
+                        Process.Start("http://localhost:3000");
+                    }
+                    else
+                    {
+                        AppendLog("Application executable not found. Please click 'Start Setup' first.");
+                        return;
+                    }
                 }
 
-                // Minimize Setup Wizard window so the launched app screen takes focus and pops up in front
+                // Minimize Setup Wizard window so the launched app screen pops up in front
                 Dispatcher.Invoke(new Action(() =>
                 {
                     this.WindowState = WindowState.Minimized;
