@@ -28,13 +28,13 @@ export function DocsPage() {
             <Shield size={32} className="text-emerald-600" />
             <div>
               <h1 className="text-2xl font-extrabold text-[#191b23] dark:text-white">Privacy Policy</h1>
-              <p className="text-xs text-[#505f76] dark:text-slate-400">100% Local Browser File Processing Guarantee</p>
+              <p className="text-xs text-[#505f76] dark:text-slate-400">Enterprise Data Privacy & Security Guarantee</p>
             </div>
           </div>
           <div className="space-y-4 text-xs text-[#434655] dark:text-slate-300 leading-relaxed">
-            <p className="font-semibold text-sm text-[#191b23] dark:text-white">1. Zero Cloud Upload Policy</p>
+            <p className="font-semibold text-sm text-[#191b23] dark:text-white">1. Data Privacy & Isolation</p>
             <p>
-              Universal File Toolkit is architected around browser-local web technology (WebAssembly, Sharp, pdf-lib). Your files are processed entirely in memory on your personal machine or private server instance. Files are never transmitted, stored, or logged on external servers.
+              Universal File Toolkit is architected around high-performance processing engines (WebAssembly, Sharp, pdf-lib). Your files are processed securely in memory with strict data isolation. Files are not permanently stored, sold, or shared with unauthorized third parties.
             </p>
             <p className="font-semibold text-sm text-[#191b23] dark:text-white">2. Data Storage & Tracking</p>
             <p>

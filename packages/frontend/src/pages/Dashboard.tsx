@@ -269,7 +269,7 @@ export function Dashboard() {
           </span>
         </h1>
         <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-xl mx-auto font-normal">
-          Process documents locally on your device. No cloud uploads required.
+          Fast, private, and secure file processing for documents, images, and data.
         </p>
       </section>
 

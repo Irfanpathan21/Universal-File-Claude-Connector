@@ -2121,9 +2121,9 @@ export function ToolPage() {
       return;
     } else if (tool.category === 'ai' || ['summarize_text', 'extract_keywords', 'sentiment_analysis'].includes(tool.id)) {
       // Create rich sample text for AI document analysis
-      const aiText = `Universal File Toolkit is an ultra-fast, 100% private document processing platform.
+      const aiText = `Universal File Toolkit is an ultra-fast, secure document processing platform.
 It performs Optical Character Recognition (OCR), document conversion, batch image optimization, and advanced natural language analysis.
-Because all processing is executed locally and securely, confidential records, invoices, and sensitive financial reports are never exposed to external cloud servers.
+With high-performance private processing engines, confidential records, invoices, and reports are processed securely with enterprise data protection.
 The platform delivers remarkable speed, exceptional data integrity, and positive user feedback across global developer communities.`;
       const sampleFile = new File([aiText], 'sample-ai-analysis.txt', { type: 'text/plain' });
       setFiles([sampleFile]);

@@ -2,11 +2,11 @@
 
 /**
  * Universal File Toolkit — Service Orchestrator
- * Starts both Fastify Backend (Port 3001) and Vite Frontend (Port 3000)
- * Works across Windows, macOS, and Linux on any PC/laptop.
+ * Ensures ports 3000 & 3001 are dedicated exclusively to Universal File Toolkit
+ * by terminating any lingering or conflicting processes before launch.
  */
 
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -17,9 +17,8 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 const logsDir = path.join(rootDir, 'logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
+if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+
 const logFile = fs.createWriteStream(path.join(logsDir, 'service.log'), { flags: 'a' });
 
 function log(msg) {
@@ -28,11 +27,23 @@ function log(msg) {
   try { logFile.write(line); } catch (e) {}
 }
 
+function freePort(port) {
+  if (process.platform === 'win32') {
+    try {
+      execSync(`for /f "tokens=5" %a in ('netstat -aon ^| findstr ":${port} " ^| findstr "LISTENING"') do taskkill /f /pid %a >nul 2>&1`, { stdio: 'ignore' });
+    } catch (e) {}
+  } else {
+    try {
+      execSync(`lsof -ti:${port} | xargs kill -9 >/dev/null 2>&1`, { stdio: 'ignore' });
+    } catch (e) {}
+  }
+}
+
 function checkPort(port) {
   return new Promise((resolve) => {
     const req = http.get(`http://127.0.0.1:${port}`, () => resolve(true));
     req.on('error', () => resolve(false));
-    req.setTimeout(800, () => {
+    req.setTimeout(600, () => {
       req.destroy();
       resolve(false);
     });
@@ -40,100 +51,82 @@ function checkPort(port) {
 }
 
 async function main() {
-  log('Starting Universal File Toolkit services...');
+  log('Initializing Universal File Toolkit services...');
+
+  // 1. Free ports 3000 & 3001 from any zombie/foreign processes
+  log('Ensuring ports 3000 and 3001 are clear...');
+  freePort(3001);
+  freePort(3000);
 
   const nodeBin = process.execPath;
 
-  // 1. Start Backend (Port 3001)
-  const isBackendUp = await checkPort(3001);
-  let backendProc = null;
-  if (!isBackendUp) {
-    const backendDir = path.join(rootDir, 'packages', 'backend');
-    const backendDist = path.join(backendDir, 'dist', 'index.js');
-    let backendCmd = nodeBin;
-    let backendArgs = [backendDist];
+  // 2. Start Backend (Port 3001)
+  const backendDir = path.join(rootDir, 'packages', 'backend');
+  const backendDist = path.join(backendDir, 'dist', 'index.js');
+  let backendCmd = nodeBin;
+  let backendArgs = [backendDist];
 
-    if (!fs.existsSync(backendDist)) {
-      log('Built backend not found, launching with tsx...');
-      const backendTs = path.join(backendDir, 'src', 'index.ts');
-      backendCmd = process.platform === 'win32' ? 'cmd.exe' : 'npx';
-      backendArgs = process.platform === 'win32'
-        ? ['/c', 'npx', 'tsx', backendTs]
-        : ['tsx', backendTs];
-    } else {
-      log('Launching backend from compiled dist...');
-    }
-
-    backendProc = spawn(backendCmd, backendArgs, {
-      cwd: backendDir,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, PORT: '3001', HOST: '0.0.0.0' },
-    });
-
-    backendProc.stdout.on('data', (d) => {
-      const text = d.toString();
-      process.stdout.write(text);
-      try { logFile.write(`[BACKEND] ${text}`); } catch (e) {}
-    });
-    backendProc.stderr.on('data', (d) => {
-      const text = d.toString();
-      process.stderr.write(text);
-      try { logFile.write(`[BACKEND ERR] ${text}`); } catch (e) {}
-    });
-    backendProc.on('exit', (code) => {
-      log(`Backend process exited with code ${code}`);
-    });
+  if (!fs.existsSync(backendDist)) {
+    log('Compiled backend not found, launching with tsx...');
+    const backendTs = path.join(backendDir, 'src', 'index.ts');
+    backendCmd = process.platform === 'win32' ? 'cmd.exe' : 'npx';
+    backendArgs = process.platform === 'win32'
+      ? ['/c', 'npx', 'tsx', backendTs]
+      : ['tsx', backendTs];
   } else {
-    log('Backend already running on port 3001.');
+    log('Launching backend on port 3001...');
   }
 
-  // 2. Start Frontend (Port 3000)
-  const isFrontendUp = await checkPort(3000);
-  let frontendProc = null;
-  if (!isFrontendUp) {
-    const frontendDir = path.join(rootDir, 'packages', 'frontend');
-    log('Launching Vite frontend on port 3000...');
-    const frontendCmd = process.platform === 'win32' ? 'cmd.exe' : 'npx';
-    const frontendArgs = process.platform === 'win32'
-      ? ['/c', 'npx', 'vite', '--port', '3000', '--host']
-      : ['vite', '--port', '3000', '--host'];
+  const backendProc = spawn(backendCmd, backendArgs, {
+    cwd: backendDir,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, PORT: '3001', HOST: '127.0.0.1' },
+  });
 
-    frontendProc = spawn(frontendCmd, frontendArgs, {
-      cwd: frontendDir,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env },
-    });
+  backendProc.stdout.on('data', (d) => {
+    const text = d.toString();
+    process.stdout.write(text);
+    try { logFile.write(`[BACKEND] ${text}`); } catch (e) {}
+  });
+  backendProc.stderr.on('data', (d) => {
+    const text = d.toString();
+    process.stderr.write(text);
+    try { logFile.write(`[BACKEND ERR] ${text}`); } catch (e) {}
+  });
 
-    frontendProc.stdout.on('data', (d) => {
-      const text = d.toString();
-      process.stdout.write(text);
-      try { logFile.write(`[FRONTEND] ${text}`); } catch (e) {}
-    });
-    frontendProc.stderr.on('data', (d) => {
-      const text = d.toString();
-      process.stderr.write(text);
-      try { logFile.write(`[FRONTEND ERR] ${text}`); } catch (e) {}
-    });
-    frontendProc.on('exit', (code) => {
-      log(`Frontend process exited with code ${code}`);
-    });
-  } else {
-    log('Frontend already running on port 3000.');
-  }
+  // 3. Start Frontend (Port 3000)
+  const frontendDir = path.join(rootDir, 'packages', 'frontend');
+  log('Launching Vite frontend on port 3000...');
+  const frontendCmd = process.platform === 'win32' ? 'cmd.exe' : 'npx';
+  const frontendArgs = process.platform === 'win32'
+    ? ['/c', 'npx', 'vite', '--port', '3000', '--host', '127.0.0.1']
+    : ['vite', '--port', '3000', '--host', '127.0.0.1'];
 
-  // Keep event loop alive
+  const frontendProc = spawn(frontendCmd, frontendArgs, {
+    cwd: frontendDir,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, PORT: '3000', BACKEND_PORT: '3001' },
+  });
+
+  frontendProc.stdout.on('data', (d) => {
+    const text = d.toString();
+    process.stdout.write(text);
+    try { logFile.write(`[FRONTEND] ${text}`); } catch (e) {}
+  });
+  frontendProc.stderr.on('data', (d) => {
+    const text = d.toString();
+    process.stderr.write(text);
+    try { logFile.write(`[FRONTEND ERR] ${text}`); } catch (e) {}
+  });
+
+  // Keep alive
   const keepAlive = setInterval(() => {}, 1000 * 60 * 60);
 
-  // Graceful shutdown
   const cleanup = () => {
-    log('Shutting down services...');
+    log('Stopping services...');
     clearInterval(keepAlive);
-    if (backendProc) {
-      try { backendProc.kill(); } catch (e) {}
-    }
-    if (frontendProc) {
-      try { frontendProc.kill(); } catch (e) {}
-    }
+    try { backendProc.kill(); } catch (e) {}
+    try { frontendProc.kill(); } catch (e) {}
     process.exit(0);
   };
 
@@ -142,5 +135,5 @@ async function main() {
 }
 
 main().catch((err) => {
-  log(`Service orchestrator error: ${err.message}`);
+  log(`Service error: ${err.message}`);
 });

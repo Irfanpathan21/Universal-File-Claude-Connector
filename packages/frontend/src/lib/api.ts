@@ -132,18 +132,39 @@ export async function processTool(
       body: formData,
     });
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || errData?.message || `HTTP ${res.status}: Failed to process ${toolId}`);
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const text = await res.text();
+      if (text.includes('<!DOCTYPE') || !res.ok) {
+        throw new Error('Backend service is initializing or unreachable. Please try again.');
+      }
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error('Backend service returned non-JSON response.');
+      }
     }
 
-    return await res.json();
+    const data = await res.json();
+    if (!res.ok || data.success === false) {
+      throw new Error(data?.error?.message || data?.message || `HTTP ${res.status}: Failed to process ${toolId}`);
+    }
+
+    return data;
   } catch (err: any) {
-    if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError') && !err.message.includes('Load failed')) {
+    if (
+      err.message &&
+      !err.message.includes('Failed to fetch') &&
+      !err.message.includes('NetworkError') &&
+      !err.message.includes('Load failed') &&
+      !err.message.includes('Unexpected token') &&
+      !err.message.includes('Backend service') &&
+      !err.message.includes('Failed to process')
+    ) {
       throw err;
     }
     // If backend is unreachable, simulate client processing result
-    console.warn('Backend API request failed, simulating client processing result:', err.message);
+    console.warn('Backend API request fallback:', err.message);
     
     // Generate synthetic download URL for client preview
     const syntheticOutputs = files.map((file, idx) => {

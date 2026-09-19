@@ -46,7 +46,7 @@ export function NoSettingsCard({ toolName, description, accentColor = '#004ac6' 
           </div>
           <div className="flex items-start gap-2 text-[11px] text-[#434655] dark:text-slate-400">
             <CheckCircle2 size={12} className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
-            <span>100% processed locally — your files never leave your device</span>
+            <span>Secure and private execution — files are processed directly</span>
           </div>
           <div className="flex items-start gap-2 text-[11px] text-[#434655] dark:text-slate-400">
             <CheckCircle2 size={12} className="mt-0.5 flex-shrink-0" style={{ color: accentColor }} />
