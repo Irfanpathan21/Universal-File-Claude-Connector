@@ -101,7 +101,7 @@ if ($p2.ExitCode -eq 0 -and (Test-Path $launcherOut)) {
   exit 1
 }
 
-# 5. Package for Web Download (both .exe and .zip)
+# 5. Package clean distribution for Web Download (.zip)
 $frontendPublic = Join-Path $RootDir "packages\frontend\public"
 if (-not (Test-Path $frontendPublic)) {
   New-Item -ItemType Directory -Path $frontendPublic -Force | Out-Null
@@ -109,15 +109,15 @@ if (-not (Test-Path $frontendPublic)) {
 
 Copy-Item -Path $setupOut -Destination (Join-Path $frontendPublic "Setup.exe") -Force -ErrorAction SilentlyContinue
 
-# Create clean ZIP package for safe download
 $zipOut = Join-Path $frontendPublic "UniversalFileToolkit-Setup.zip"
 $rootZipOut = Join-Path $RootDir "UniversalFileToolkit-Setup.zip"
-$tempPkgDir = Join-Path $env:TEMP "UFT-Package-$([Guid]::NewGuid().ToString('N'))"
+$tempPkgDir = Join-Path $env:TEMP "UFT-Dist-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $tempPkgDir -Force | Out-Null
 
-Copy-Item -Path $setupOut -Destination (Join-Path $tempPkgDir "Setup.exe") -Force
-Copy-Item -Path $launcherOut -Destination (Join-Path $tempPkgDir "UniversalFileToolkit.exe") -Force
-$readmeText = "Universal File Toolkit - Windows App`r`n`r`n1. Double-click Setup.exe to install and configure.`r`n2. Click 'Start Setup' to register desktop and start menu shortcuts.`r`n3. Launch and search 'Universal File Toolkit' from Windows Search anytime."
+# Use robocopy to mirror files excluding node_modules and git
+$null = robocopy $RootDir $tempPkgDir /E /XD node_modules .git dist .turbo /XF *.zip *.log *.tmp
+
+$readmeText = "Universal File Toolkit - Windows Edition`r`n`r`nQuick Start Options:`r`n1. Option A (Graphical): Double-click Setup.exe and click 'Start Setup'.`r`n2. Option B (Command Script): Double-click setup.bat to configure and launch.`r`n`r`nOnce setup completes, search 'Universal File Toolkit' from Windows Search anytime."
 Set-Content -Path (Join-Path $tempPkgDir "README.txt") -Value $readmeText
 
 if (Test-Path $zipOut) { Remove-Item $zipOut -Force -ErrorAction SilentlyContinue }
@@ -126,12 +126,11 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 Copy-Item -Path $zipOut -Destination $rootZipOut -Force -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force $tempPkgDir -ErrorAction SilentlyContinue
 
-Write-Host "[OK] Created safe download package: UniversalFileToolkit-Setup.zip" -ForegroundColor Green
+Write-Host "[OK] Created complete, clean package: UniversalFileToolkit-Setup.zip" -ForegroundColor Green
 
 # 6. Output Summary
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host " Build Complete! Created 2 Primary Windows Packages:" -ForegroundColor Green
-Write-Host " 1. UniversalFileToolkit-Setup.zip (Recommended Web Download)" -ForegroundColor White
-Write-Host " 2. Setup.exe                     (1-Click Windows Installer)" -ForegroundColor White
+Write-Host " Build Complete! Clean Package Ready:" -ForegroundColor Green
+Write-Host " -> UniversalFileToolkit-Setup.zip" -ForegroundColor White
 Write-Host "================================================================" -ForegroundColor Cyan
