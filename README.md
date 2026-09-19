@@ -1,150 +1,120 @@
-# 🚀 Universal File Claude Connector
+<p align="center">
+  <img src="assets/uftlogo.png" alt="Universal File Toolkit Logo" width="120" height="120" />
+</p>
 
-> **The Ultimate All-in-One Local 100-Tool File Processing Engine for Claude Desktop**
+<h1 align="center">Universal File Toolkit & Claude Connector</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![MCP Protocol](https://img.shields.io/badge/MCP-Protocol_v1.x-brightgreen.svg)](https://modelcontextprotocol.io/)
-[![Tools Count](https://img.shields.io/badge/Tools-100_Active_Tools-orange.svg)](#-tool-directory-100-tools)
+<p align="center">
+  <strong>The Ultimate All-in-One File Processing Engine, Web Application, and Claude Desktop MCP Suite</strong>
+</p>
+
+<p align="center">
+  <a href="https://uftapp.onrender.com"><img src="https://img.shields.io/badge/Live_Web_App-https%3A%2F%2Fuftapp.onrender.com-0052cc?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Web App" /></a>
+  <a href="UniversalFileToolkit-Setup.zip"><img src="https://img.shields.io/badge/Download-Windows_App_(.zip)-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows App" /></a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-Protocol_v1.x-brightgreen.svg" alt="MCP Protocol" /></a>
+  <a href="#-tool-directory-100-tools"><img src="https://img.shields.io/badge/Tools-100_Active_Tools-orange.svg" alt="100 Tools" /></a>
+</p>
 
 ---
 
-## 🎯 Aim & Mission
+## 🎯 Overview
 
-**Universal File Claude Connector** turns your Claude Desktop application into a powerful, local file-processing suite equivalent to iLovePDF, Smallpdf, TinyPNG, ImageMagick, and Pandoc combined — **without uploading any of your files to third-party cloud servers**.
+**Universal File Toolkit** provides an enterprise-grade, all-in-one file processing suite for **100+ file transformations** across PDFs, Images, Spreadsheets, Word documents, PowerPoints, Archives, OCR, and Data formats.
 
-When you ask Claude to merge PDFs, crop images, convert Excel files, or extract OCR text, **all operations execute 100% locally on your computer's CPU and disk** via standard Model Context Protocol (MCP) STDIO.
+Use it across 3 powerful modalities:
+1. 🌐 **Live Hosted Web App**: [https://uftapp.onrender.com](https://uftapp.onrender.com) (No installation required, in-browser execution)
+2. 💻 **Windows Desktop Application**: Native standalone application package with Start Menu search and isolated app window.
+3. 🤖 **Claude Desktop MCP Connector**: Extends Claude Desktop PC & Claude Web (`claude.ai`) with 100 direct file manipulation tools.
 
 ---
 
-## ✨ Key Highlights
+## 📦 Quick Downloads & Installation
 
-- 🔒 **100% Privacy & Local File Safety**: Your binary files (PDFs, DOCX, XLSX, Images, Documents) never leave your machine when using Claude Desktop.
-- 🌐 **Full Claude Web & Mobile Support**: Connect directly from **claude.ai** and mobile apps using Streamable HTTP (`/mcp`) or SSE (`/sse`) with automatic base64 chat file processing and inline image returns.
-- ⚡ **100 Active Professional Tools**: Manipulate documents, images, data structures, spreadsheets, archives, and AI analysis.
-- 🪄 **1-Click Auto Connector Setup**: Non-technical users can double-click `install.bat` to automatically configure `claude_desktop_config.json` with zero manual JSON editing.
+### Option 1: Download Windows Desktop App (1-Click Setup)
+
+1. **Download the Package**: [**Download `UniversalFileToolkit-Setup.zip`**](UniversalFileToolkit-Setup.zip)
+2. **Extract & Run**:
+   - Extract the `.zip` archive to any folder.
+   - Double-click **`Setup.exe`** (or `Setup.bat`).
+3. **What Setup Does Automatically**:
+   - 🔍 Dynamically checks and installs required dependencies (Node.js LTS, workspace packages).
+   - 🖥️ Registers **Desktop Shortcut** with official app icon.
+   - 🔍 Registers into **Windows Start Menu** (`Universal File Toolkit.lnk`) — you can press the Windows Key and search **"Universal File Toolkit"** anytime.
+   - 🌐 Launches the app in a dedicated Google Chrome / Edge App Mode window.
+   - 🔌 *(Optional)* Configures Claude Desktop MCP integration (`claude_desktop_config.json`).
+
+---
+
+### Option 2: Run Live on the Web (Zero Installation)
+
+Open **[https://uftapp.onrender.com](https://uftapp.onrender.com)** to run all tools directly in your browser. All file transformations (PDF merge/split/rotate, image resize/crop/convert, JSON/CSV/data parsing, hashing) execute directly in memory with real processing engines.
+
+---
+
+### Option 3: Developer & Claude MCP Setup
+
+To run from source or configure Claude Desktop manually:
+
+```bash
+# Clone the repository
+git clone https://github.com/Irfanpathan21/Universal-File-Claude-Connector.git
+cd Universal-File-Claude-Connector
+
+# Install dependencies and build
+npm install
+npm run build
+
+# Start services
+npm run start:web
+```
+
+#### Connect to Claude Desktop (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "universal-file-toolkit": {
+      "command": "node",
+      "args": [
+        "C:\\FULL\\PATH\\TO\\Universal-File-Claude-Connector\\packages\\mcp-server\\dist\\index.js"
+      ]
+    }
+  }
+}
+```
 
 ---
 
 ## 🛠️ Tool Directory (100 Tools Across 11 Categories)
 
-See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for the complete directory of all 100 tools with descriptions and supported formats:
+See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for full documentation of all 100 tools:
 
-| Category | Tools | Description & Capabilities |
+| Category | Tools | Capabilities |
 | :--- | :---: | :--- |
-| **📄 PDF Professional Toolkit** | **28** | Merge, split, compress, rotate, watermark, page numbers, password protect, **`insert_pages`**, **`duplicate_pages`**, **`swap_pages`**, **`reverse_pages`**, **`edit_pdf_metadata`**, **`flatten_pdf_form`**, **`extract_form_fields`**, **`pdf_to_txt`**, **`txt_to_pdf`**, **`crop_pdf`**, **`resize_pdf_pages`**, **`validate_pdf`** |
-| **🖼️ Image Processing Toolkit** | **21** | Resize, crop, rotate, flip, compress, format conversion, blur, sharpen, EXIF strip, thumbnails, **`invert_image`**, **`gamma_image`**, **`threshold_image`**, **`dominant_colors`**, **`trim_transparent_edges`** |
-| **📈 Excel & Spreadsheets** | **12** | Excel ↔ CSV, Excel ↔ JSON, **`excel_to_html`**, deduplication, sheet merging, transpose, **`protect_workbook`**, **`split_workbook`**, **`find_replace_excel`**, **`workbook_statistics`** |
+| **📄 PDF Toolkit** | **28** | Merge, split, compress, rotate, watermark, page numbering, protect/unlock, insert/delete/swap/rearrange pages, edit metadata, form flattening, PDF ↔ Images, PDF ↔ TXT, crop, resize |
+| **🖼️ Image Toolkit** | **21** | Resize, crop, rotate, flip, compress, format convert (PNG/JPG/WebP/GIF), blur, sharpen, EXIF strip, thumbnails, invert, gamma, threshold, dominant colors, trim transparent edges |
+| **📈 Excel & Spreadsheets** | **12** | Excel ↔ CSV, Excel ↔ JSON, Excel ↔ HTML, deduplication, sheet merging, transpose, password protection, split workbook, search & replace, statistics |
 | **📊 Data Interchange** | **12** | JSON ↔ CSV, JSON ↔ XML, JSON ↔ YAML, Markdown ↔ HTML, formatting, minification |
-| **📝 Word Documents** | **10** | Extract text/images/links, **`docx_to_html`**, **`docx_to_markdown`**, **`text_to_docx`**, **`merge_docx`**, **`replace_text_docx`**, **`extract_docx_comments`**, **`word_count_docx`** |
-| **🖥️ PowerPoint Presentation** | **6** | Extract slide text, speaker notes, images, **`pptx_to_pdf`**, **`pptx_to_html`**, **`read_pptx_metadata`** |
-| **📦 Archives & Compression** | **5** | Create ZIP, Extract ZIP, List contents, **`compress_gzip`**, **`decompress_gzip`** |
-| **🤖 AI Document Intelligence** | **3** | **`summarize_text`**, **`extract_keywords`**, **`sentiment_analysis`** |
-| **🔍 OCR Text Extraction** | **1** | **`extract_text_from_image_ocr`** (Tesseract OCR on PNG, JPG, TIFF) |
-| **🔒 Checksum & Security** | **1** | **`hash_file`** (MD5, SHA1, SHA256, SHA512) |
+| **📝 Word Documents** | **10** | Extract text/images/links, DOCX ↔ HTML, DOCX ↔ Markdown, TXT ↔ DOCX, merge DOCX, replace text, extract comments, word count |
+| **🖥️ PowerPoint Presentations** | **6** | Extract slide text, speaker notes, images, PPTX ↔ PDF, PPTX ↔ HTML, metadata extraction |
+| **📦 Archives & Compression** | **5** | Create ZIP, Extract ZIP, List contents, GZIP compress, GZIP decompress |
+| **🤖 AI Document Intelligence** | **3** | Text summarization, keyword extraction, sentiment analysis |
+| **🔍 OCR Text Extraction** | **1** | Tesseract OCR engine for PNG, JPG, and TIFF scans |
+| **🔒 Checksum & Security** | **1** | Multi-algorithm cryptographic hash generator (MD5, SHA-1, SHA-256, SHA-512) |
 | **✍️ Text Analytics** | **1** | Word count, character count, readability metrics, reading time |
 | **Total** | **100** | |
 
 ---
 
-## ⚙️ How It Works
+## 💻 Tech Stack
 
-```text
-┌─────────────────────────┐         STDIO MCP Protocol          ┌──────────────────────────────────┐
-│   Claude Desktop App    │ ◄─────────────────────────────────► │  Universal File Claude Connector │
-│ (Chat UI & Directives)  │                                     │     (Local Node.js Engine)       │
-└─────────────────────────┘                                     └──────────────────────────────────┘
-                                                                                 │
-                                                                   Reads & Writes Local Files Directly
-                                                                                 │
-                                                                                 ▼
-                                                                 ┌──────────────────────────────────┐
-                                                                 │      Your Local Computer Disk    │
-                                                                 │ (C:\Users\... / Documents / etc) │
-                                                                 └──────────────────────────────────┘
-```
-
-1. **Prompt Command**: You ask Claude: *"Merge these 3 PDFs"* or *"Convert this Excel spreadsheet to CSV"*.
-2. **Local MCP Request**: Claude Desktop sends a command payload over local STDIO to `Universal File Claude Connector`.
-3. **Local Execution**: Node.js processes the binary file directly on your hard drive.
-4. **Result Output**: The modified file is saved to your disk and reported back in chat!
-
----
-
-## 📥 Installation & Setup Guide
-
-### Option 1: 1-Click Windows App Setup Wizard (Recommended)
-
-1. **Download or Clone** this repository to any folder on your computer.
-2. **Launch Setup**:
-   - **Windows**: Double-click **`Setup.bat`** (or `install.bat`) to launch the native **Windows Setup Wizard GUI**.
-   - **macOS / Linux**: Open Terminal and run `node install.js`
-3. **What the Setup Wizard does automatically**:
-   - 🔨 Compiles and verifies all local workspace packages
-   - 🔌 Connects the local MCP server to Claude PC (`claude_desktop_config.json`)
-   - 🖥️ Creates a **"Universal File Toolkit" Desktop Shortcut** with custom application icon
-   - 🌐 Automatically launches the local backend and frontend in a dedicated **Google Chrome Application window** (`http://localhost:3000`)
-4. **Daily Use**: Simply double-click the **Universal File Toolkit** shortcut on your Windows Desktop anytime to start the toolkit!
-
----
-
-### Option 2: Manual Configuration
-
-If you prefer to configure your `claude_desktop_config.json` manually:
-
-1. **Clone Repository & Build**:
-   ```bash
-   git clone https://github.com/Irfanpathan21/Universal-File-Claude-Connector.git
-   cd Universal-File-Claude-Connector
-   npm run build
-   ```
-
-2. **Add to Claude Configuration File**:
-   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
-
-   Add the following under `"mcpServers"`:
-   ```json
-   {
-     "mcpServers": {
-       "universal-file-toolkit": {
-         "command": "node",
-         "args": [
-           "C:\\FULL\\PATH\\TO\\Universal-File-Claude-Connector\\packages\\mcp-server\\dist\\index.js"
-         ]
-       }
-     }
-   }
-   ```
-
-3. **Restart Claude Desktop**.
-
----
-
-### Option 3: Claude Web (claude.ai) & Mobile Setup (Zero Local Install)
-
-You can connect Claude directly from your browser or mobile phone:
-
-1. Deploy the MCP server to **Render** (or any cloud host with HTTPS).
-2. In **claude.ai**, go to **Settings** ➔ **Integrations / Connectors** ➔ **Add custom integration**.
-3. Enter your connector URL:
-   ```text
-   https://<your-mcp-subdomain>.onrender.com/mcp
-   ```
-4. Claude Web will immediately connect to all **100 tools**. Chat file uploads and base64 documents are processed seamlessly with inline preview images and downloadable output attachments!
-
-For step-by-step free deployment instructions, see [Free Hosting & Claude Guide](docs/FREE_HOSTING_AND_CLAUDE_GUIDE.md).
-
----
-
-## 💻 Technical Stack
-
-- **Core**: Node.js, TypeScript (ESM workspaces)
-- **PDF Engine**: `pdf-lib`, `pdf-parse`
-- **Image Engine**: `sharp`, `tesseract.js`
-- **Spreadsheet Engine**: `exceljs`, `papaparse`
-- **Document Engine**: `docx`, `mammoth`, `jszip`
-- **Protocol**: Official Model Context Protocol SDK (`@modelcontextprotocol/sdk` v1.x)
+- **Frontend**: React 18, Vite 5, Tailwind CSS, Radix UI, Framer Motion, `pdf-lib`
+- **Backend API**: Fastify, TypeScript, Sharp, ExcelJS, Mammoth, Archiver, Tesseract
+- **MCP Server**: Official Model Context Protocol SDK (`@modelcontextprotocol/sdk` v1.x)
+- **Windows Executables**: C# / WPF native installer & launcher with embedded manifest & metadata
 
 ---
 
