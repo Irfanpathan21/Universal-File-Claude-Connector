@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { VisualImageCropper } from '../components/tools/VisualImageCropper';
+import { getApiBaseUrl } from '../lib/api';
 
 export function InteractiveCropPopup() {
   const [searchParams] = useSearchParams();
@@ -28,7 +29,7 @@ export function InteractiveCropPopup() {
   useEffect(() => {
     if (filePath) {
       // Local backend preview endpoint
-      const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiBaseUrl();
       const previewUrl = `${apiUrl}/api/image/preview-local?path=${encodeURIComponent(filePath)}`;
       setImageSrc(previewUrl);
     }
@@ -37,7 +38,7 @@ export function InteractiveCropPopup() {
   const handleConfirmCrop = async () => {
     setLoading(true);
     try {
-      const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiBaseUrl();
 
       if (filePath) {
         // Direct crop via disk path

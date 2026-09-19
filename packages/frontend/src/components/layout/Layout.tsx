@@ -7,6 +7,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from './Header';
 import { CommandPalette } from '../common/CommandPalette';
+import { BackendStatusBadge } from '../common/BackendStatusBadge';
 import { Shield, Zap } from 'lucide-react';
 
 export function Layout() {
@@ -101,6 +102,7 @@ export function Layout() {
             <div className="flex items-center gap-5 flex-wrap">
               <span className="flex items-center gap-2 font-semibold"><Shield size={16} className="text-emerald-600" /> 100% Client Local Security</span>
               <span className="flex items-center gap-2 font-semibold"><Zap size={16} className="text-amber-500" /> Zero Cloud Uploads</span>
+              <BackendStatusBadge />
             </div>
             <div className="font-medium">
               Built for speed, security, and privacy.

@@ -12,7 +12,8 @@ import fastifyStatic from '@fastify/static';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import { join, resolve } from 'node:path';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { getConfig, TempFileManager } from '@uft/shared';
 import { registerPdfRoutes } from './routes/pdf.js';
 import { registerImageRoutes } from './routes/image.js';
@@ -71,8 +72,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   // CORS
   await app.register(cors, {
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin', 'Range'],
+    exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type'],
+    credentials: true,
     maxAge: 86400,
   });
 
@@ -142,29 +145,80 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(registerAiRoutes, { prefix: '/api/ai' });
   await app.register(registerUtilityRoutes, { prefix: '/api' });
 
-  // ── Root & Health check ───────────────────────────────────
-  app.get('/', async (req, reply) => {
+  // ── Frontend Static UI (when bundled) ──────────────────────
+  const candidateDirs = [
+    resolve(process.cwd(), 'packages/frontend/dist'),
+    resolve(process.cwd(), '../frontend/dist'),
+    resolve(process.cwd(), 'dist/packages/frontend/dist'),
+  ];
+  const frontendDist = candidateDirs.find(d => existsSync(join(d, 'index.html')));
+
+  if (frontendDist) {
+    app.log.info(`Serving static frontend UI from ${frontendDist}`);
+    await app.register(fastifyStatic, {
+      root: frontendDist,
+      prefix: '/',
+      decorateReply: false,
+    });
+
+    app.setNotFoundHandler(async (request, reply) => {
+      if (
+        request.url.startsWith('/api') ||
+        request.url.startsWith('/downloads') ||
+        request.url.startsWith('/health') ||
+        request.url.startsWith('/docs')
+      ) {
+        return reply.status(404).send({
+          success: false,
+          error: { code: 'NOT_FOUND', message: `Route ${request.method} ${request.url} not found` },
+        });
+      }
+
+      const indexPath = join(frontendDist, 'index.html');
+      const html = await readFile(indexPath, 'utf-8');
+      return reply.type('text/html').send(html);
+    });
+
+    app.get('/', async (req, reply) => {
+      const html = await readFile(join(frontendDist, 'index.html'), 'utf-8');
+      return reply.type('text/html').send(html);
+    });
+  } else {
+    // ── Root & Health check ───────────────────────────────────
+    app.get('/', async (req, reply) => {
+      return {
+        service: 'Universal File Toolkit REST API',
+        status: 'ok',
+        version: '1.0.0',
+        documentation: '/docs',
+        health: '/health',
+        endpoints: {
+          pdf: '/api/pdf',
+          image: '/api/image',
+          data: '/api/data',
+          document: '/api/document',
+          spreadsheet: '/api/spreadsheet',
+          presentation: '/api/presentation',
+          text: '/api/text',
+          archive: '/api/archive',
+          audio: '/api/audio',
+          video: '/api/video',
+          ocr: '/api/ocr',
+          ai: '/api/ai',
+          utility: '/api',
+        },
+        timestamp: new Date().toISOString(),
+      };
+    });
+  }
+
+  app.get('/api', async (req, reply) => {
     return {
       service: 'Universal File Toolkit REST API',
       status: 'ok',
       version: '1.0.0',
       documentation: '/docs',
       health: '/health',
-      endpoints: {
-        pdf: '/api/pdf',
-        image: '/api/image',
-        data: '/api/data',
-        document: '/api/document',
-        spreadsheet: '/api/spreadsheet',
-        presentation: '/api/presentation',
-        text: '/api/text',
-        archive: '/api/archive',
-        audio: '/api/audio',
-        video: '/api/video',
-        ocr: '/api/ocr',
-        ai: '/api/ai',
-        utility: '/api',
-      },
       timestamp: new Date().toISOString(),
     };
   });

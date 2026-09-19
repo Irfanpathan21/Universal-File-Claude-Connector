@@ -9,11 +9,17 @@ import { ImageHub } from './pages/ImageHub';
 import { DocsPage } from './pages/DocsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { useUIStore } from './stores/ui';
+import { pingBackend } from './lib/api';
 
 import { InteractiveCropPopup } from './pages/InteractiveCropPopup';
 
 export default function App() {
   const theme = useUIStore((s) => s.theme);
+
+  // Wake up backend service on initial load (Render free-tier warmup)
+  useEffect(() => {
+    pingBackend().catch(() => {});
+  }, []);
 
   // Initialize theme on mount & theme toggle update
   useEffect(() => {

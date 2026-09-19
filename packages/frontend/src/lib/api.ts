@@ -7,7 +7,84 @@ import { tools as RAW_LOCAL_TOOLS, getCategories as getLocalCategories } from '@
 // Exclude media element tools (video & audio)
 export const LOCAL_TOOLS = RAW_LOCAL_TOOLS.filter((t: any) => t.category !== 'video' && t.category !== 'audio');
 
-const API_BASE = '/api';
+/**
+ * Resolves the backend base URL dynamically:
+ * 1. User manual override stored in localStorage ('UFT_API_URL')
+ * 2. Build-time environment variable (import.meta.env.VITE_API_URL)
+ * 3. Render cloud heuristics (auto-maps uft-frontend-app.onrender.com -> uft-api-backend.onrender.com)
+ * 4. Localhost / same-origin fallback
+ */
+export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const custom = localStorage.getItem('UFT_API_URL');
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/$/, '');
+    }
+  }
+
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+    return envUrl.trim().replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location;
+
+    // On localhost, Vite dev server proxies /api to port 3001
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return '';
+    }
+
+    // Render static site heuristic
+    if (hostname.endsWith('.onrender.com')) {
+      if (hostname.includes('frontend-app')) {
+        return `https://${hostname.replace('frontend-app', 'api-backend')}`;
+      }
+      if (hostname.includes('frontend')) {
+        return `https://${hostname.replace('frontend', 'backend')}`;
+      }
+      // Running directly on Render web service backend
+      return '';
+    }
+
+    // Default same-origin
+    return '';
+  }
+
+  return '';
+}
+
+/**
+ * Resolves download URLs by prepending the active backend URL if relative.
+ */
+export function resolveDownloadUrl(downloadUrl: string): string {
+  if (!downloadUrl) return '';
+  if (
+    downloadUrl.startsWith('http://') ||
+    downloadUrl.startsWith('https://') ||
+    downloadUrl.startsWith('blob:') ||
+    downloadUrl.startsWith('data:')
+  ) {
+    return downloadUrl;
+  }
+  const base = getApiBaseUrl();
+  if (!base) return downloadUrl;
+  return `${base}${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`;
+}
+
+/**
+ * Pings the backend to warm up sleeping instances (e.g. Render free tier).
+ */
+export async function pingBackend(): Promise<boolean> {
+  try {
+    const base = getApiBaseUrl();
+    const res = await fetch(`${base}/health`, { method: 'GET' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 
 export interface ApiToolResponse {
   success: boolean;
@@ -85,7 +162,8 @@ export async function fetchTool(id: string): Promise<ToolInfo> {
   if (local) return local as any;
 
   try {
-    const res = await fetch(`${API_BASE}/tools/${id}`);
+    const base = getApiBaseUrl();
+    const res = await fetch(`${base}/api/tools/${id}`);
     if (res.ok) {
       const data = await res.json();
       if (data && data.tool) return data.tool;
@@ -132,17 +210,41 @@ export async function processTool(
       body: formData,
     });
 
+    const contentType = res.headers.get('content-type') || '';
+
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || errData?.message || `HTTP ${res.status}: Failed to process ${toolId}`);
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        throw new Error('Backend server is waking up on Render (free tier takes ~30-50s). Please wait a moment and try again.');
+      }
+      if (contentType.includes('application/json')) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || errData?.message || `HTTP ${res.status}: Failed to process ${toolId}`);
+      }
+      throw new Error(`Server returned HTTP ${res.status} ${res.statusText}. Please verify the backend service is running.`);
     }
 
-    return await res.json();
+    if (!contentType.includes('application/json')) {
+      throw new Error('Invalid response from server (received HTML instead of JSON). The backend server may be booting up. Please try again in 30 seconds.');
+    }
+
+    const data: ApiToolResponse = await res.json();
+    if (data.outputFiles && Array.isArray(data.outputFiles)) {
+      data.outputFiles = data.outputFiles.map((file) => ({
+        ...file,
+        downloadUrl: resolveDownloadUrl(file.downloadUrl),
+      }));
+    }
+    return data;
   } catch (err: any) {
     if (err.message && !err.message.includes('Failed to fetch') && !err.message.includes('NetworkError') && !err.message.includes('Load failed')) {
       throw err;
     }
-    // If backend is unreachable, simulate client processing result
+    // If backend is unreachable on Render/online
+    const base = getApiBaseUrl();
+    if (base) {
+      throw new Error(`Cannot connect to backend server at ${base}. If hosted on Render free tier, the service may be waking up. Please wait 30 seconds and retry.`);
+    }
+    // Client processing result fallback if on local development without backend
     console.warn('Backend API request failed, simulating client processing result:', err.message);
     
     // Generate synthetic download URL for client preview
@@ -282,5 +384,7 @@ function getToolEndpoint(toolId: string): string {
     sentiment_analysis: '/api/ai/sentiment',
   };
 
-  return mapping[toolId] || `/api/tools/${toolId}/process`;
+  const path = mapping[toolId] || `/api/tools/${toolId}/process`;
+  const base = getApiBaseUrl();
+  return `${base}${path}`;
 }
