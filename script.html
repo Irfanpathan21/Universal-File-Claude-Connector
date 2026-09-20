@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Universal File Toolkit — Presentation Script</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  @page {
+    size: A4;
+    margin: 16mm 14mm 16mm 14mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #1e293b;
+    background: #ffffff;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    font-size: 20pt;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 2.5px solid #3b82f6;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+
+  h2 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1e3a8a;
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-left: 5px solid #2563eb;
+    border-radius: 0 6px 6px 0;
+    margin-top: 24px;
+    margin-bottom: 12px;
+  }
+
+  .act-heading {
+    page-break-before: always;
+    margin-top: 0;
+    background: #eff6ff;
+    border-left: 5px solid #1d4ed8;
+    color: #1e40af;
+  }
+
+  /* Do not page-break before the first act */
+  .act-heading:first-of-type {
+    page-break-before: avoid;
+  }
+
+  h3 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #0f766e;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #cbd5e1;
+    padding-bottom: 4px;
+  }
+
+  h4 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #7c2d12;
+    margin-top: 12px;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin: 0 0 10px 0;
+    text-align: justify;
+  }
+
+  strong {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 9pt;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 5px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 18px 0;
+  }
+
+  /* Table styling */
+  .table-container {
+    margin: 14px 0;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+
+  th {
+    background: #1e293b;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 8px 10px;
+    text-align: left;
+    border: 1px solid #334155;
+  }
+
+  td {
+    padding: 7px 10px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+  }
+
+  tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  /* Visual Cue Box */
+  .visual-cue {
+    background: #fdf4ff;
+    border-left: 4px solid #c026d3;
+    padding: 8px 12px;
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 9.5pt;
+    color: #701a75;
+  }
+
+  .badge-cue {
+    font-weight: 700;
+    color: #a21caf;
+    text-transform: uppercase;
+    font-size: 8.5pt;
+  }
+
+  /* Speaker Tag */
+  .speaker-tag {
+    background: #ecfdf5;
+    border-left: 4px solid #059669;
+    padding: 5px 10px;
+    margin: 12px 0 6px 0;
+    color: #065f46;
+    font-weight: 600;
+    font-size: 10.5pt;
+    border-radius: 0 4px 4px 0;
+  }
+
+  ul, ol {
+    margin: 6px 0 12px 0;
+    padding-left: 22px;
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
+
+  /* Cover-like header banner */
+  .header-meta {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .header-meta h1 {
+    color: #ffffff;
+    border-bottom: 2px solid #38bdf8;
+    margin-bottom: 8px;
+  }
+
+  .header-meta p {
+    color: #cbd5e1;
+    font-size: 9.5pt;
+    margin: 3px 0;
+  }
+</style>
+</head>
+<body>
+<div class="header-meta">
+  <h1>Universal File Toolkit (UFT)</h1>
+  <p><strong>Official Master Video Presentation Script (Conversational Hinglish)</strong></p>
+  <p>Target Duration: 35 – 40 Minutes | Presenters: Host, Atharva, Irfan, Moksh</p>
+</div>
+<h1>🎬 Universal File Toolkit (UFT) — Master Video Presentation Script</h1>
+<p><strong>Total Run Time:</strong> 35 – 40 Minutes  </p>
+<p><strong>Language:</strong> Professional Conversational Hinglish (Word-for-Word Teleprompter Script)  </p>
+<p><strong>Speakers:</strong> Host / Team Lead, Atharva, Irfan, Moksh  </p>
+<hr/>
+<h2 class="">📋 Quick Video Flow &amp; Cue Sheet</h2>
+<div class="table-container"><table>
+<thead><tr><th>Act</th><th>Speaker</th><th>Topic</th><th>Target Time</th></tr></thead><tbody>
+<tr><td><strong>Act I</strong></td><td>Host / Team Lead</td><td>Project Intro, Problem, Why We Built It, Solution</td><td>00:00 – 07:00 (7 min)</td></tr>
+<tr><td><strong>Act II</strong></td><td>Atharva</td><td>Jira, Gmail, Discord, Stitch Design &amp; Frontend Engineering</td><td>07:00 – 17:30 (10.5 min)</td></tr>
+<tr><td><strong>Act III</strong></td><td>Irfan</td><td>Backend Engine, 100 Tools, MCP Deep-Dive &amp; Claude Live Demo</td><td>17:30 – 28:00 (10.5 min)</td></tr>
+<tr><td><strong>Act IV</strong></td><td>Moksh</td><td>QA Methodology &amp; The 9 Real-World Critical Bugs Solved</td><td>28:00 – 38:00 (10 min)</td></tr>
+<tr><td><strong>Act V</strong></td><td>All Team</td><td>Final Summary, Future Roadmap &amp; Wrap Up</td><td>38:00 – 40:00 (2 min)</td></tr>
+</tbody></table></div>
+<hr/>
+<h1>🎙️ ACT I: Introduction &amp; Project Vision (00:00 – 07:00)</h1>
+<p class="speaker-tag"><strong>Speaker:</strong> Host / Team Lead  </p>
+<p><strong>Visual Cue:</strong> Screen par split-screen view dikhao — ek taraf 10 alag-alag file converter websites (ads, paywalls, upload limits) aur doosri taraf Universal File Toolkit ka sleek dark glassmorphism dashboard.</p>
+<hr/>
+<h3>[00:00 - 02:00] The Hook: The Real-World Pain Points</h3>
+<p>"Hello everyone! Welcome to our comprehensive project presentation.</p>
+<p>Aaj hum aapke samne present karne ja rahe hain ek aisa solution jo hum sabki daily digital life ki sabse badi frustration ko permanently solve karta hai — <strong>Universal File Toolkit</strong>, or <strong>UFT</strong>.</p>
+<p>Chaliye pehle ek simple sawal se shuru karte hain:</p>
+<p>Aapko ek PDF merge karni hai, ek Word document ko PDF banana hai, kisi receipt ka OCR karke text nikalna hai, ya ek image ka background remove karna hai. Aap normally kya karte hain?</p>
+<p>Aap Google par search karte hain: <em>'merge pdf online'</em>, <em>'convert docx to pdf'</em>, <em>'compress image'</em>. </p>
+<p>Aur wahan se shuru hota hai asli headache:</p>
+<ol>
+<li><strong>Ad Overload &amp; Popups:</strong> Har website par 50 ads, confusing download buttons aur fake virus warnings.</li>
+<li><strong>Subscription Fatigue:</strong> 2 files convert karne ke baad popup aata hai: <em>'Daily limit reached! Pay $15/month for Premium'</em>.</li>
+<li><strong>Huge Data Privacy &amp; Security Risk:</strong> Aap apni private bank statements, legal contracts, medical reports ya business spreadsheets kisi unknown third-party server par upload kar dete hain! Wo servers kahan hain? Aapka data kiske paas save ho raha hai? Kisi ko nahi pata.</li>
+<li><strong>Scattered Ecosystem:</strong> PDF ke liye alag tool, Excel ke liye alag, image ke liye alag, aur audio-video ke liye alag software install karna padta hai.</li>
+</ol>
+<p>Is pure chaos ko dekh kar humne ek clear goal banaya: <strong>Kyun na ek aisa platform banaya jaye jo 100% open-source ho, 100% local chale bina internet ke, jisme 100 se zyada tools ek hi chhat ke niche hon, aur jo modern AI ke sath directly connect ho sake?</strong>"</p>
+<hr/>
+<h3>[02:00 - 04:30] The Solution: What is Universal File Toolkit?</h3>
+<p>"Aur isi thought se janam hua <strong>Universal File Toolkit</strong> ka!</p>
+<p>Universal File Toolkit ek unified, local-first file productivity workstation aur AI Connector hai. </p>
+<p>UFT basically do powerful tareeqon se kaam karta hai:</p>
+<p><strong>Pehla Tareeqa: Standalone Desktop &amp; Web App:</strong></p>
+<p>Aap ise apne browser me open kar sakte hain ya fir ek single click se Windows par install karke offline app ki tarah chala sakte hain. Yahan aapko milte hain <strong>100+ native file tools across 10 major categories</strong>:</p>
+<ul>
+<li>Complete PDF manipulation suite (Merge, Split, Compress, Protect, Watermark, Reorder)</li>
+<li>Image Processing &amp; Conversion (WebP, PNG, JPG, Resizing, Filters)</li>
+<li>Office Documents (Word, Excel, PowerPoint conversion &amp; extraction)</li>
+<li>Data Formatting (JSON to CSV, XML, YAML, Schema validation)</li>
+<li>Text Utilities, Hash generation, OCR, aur AI-powered Sentiment &amp; Emotion Analysis.</li>
+</ul>
+<p>Sabse important baat — <strong>Zero Cloud Uploads</strong>. Saara processing aapke apne computer ke CPU aur RAM par local chal raha hai. No server sees your data!</p>
+<p><strong>Doosra Tareeqa: The Claude AI Connector (Model Context Protocol - MCP):</strong></p>
+<p>Ye hamara sabse revolutionary feature hai. Aaj tak LLMs jaise Claude sirf chat box me text reply karte the. Agar aap Claude ko bolo ki <em>'mere Downloads folder me se do PDF files merge karke final.pdf bana do'</em>, Claude pehle bolta tha: <em>'I cannot read your computer's drive'</em>.</p>
+<p>Lekin UFT ke MCP Connector ke sath, humne Claude ko <strong>100 tools ka direct local access</strong> de diya hai! Claude ab directly aapke <code>C:\</code> drive se files read kar sakta hai, convert kar sakta hai, aur local disk par hi save kar sakta hai — completely autonomous!"</p>
+<hr/>
+<h3>[04:30 - 07:00] Architecture Overview &amp; Agenda</h3>
+<p>"Is pure ecosystem ko humne ek production-grade <strong>TypeScript Monorepo</strong> architecture par design kiya hai:</p>
+<ul>
+<li><code>@uft/shared</code>: Jahan hamara core file processing logic aur 100 tool micro-services hain.</li>
+<li><code>@uft/backend</code>: Fastify-powered ultra-low-latency local server.</li>
+<li><code>@uft/frontend</code>: Modern, accessible, fluid dark-mode web application.</li>
+<li><code>@uft/mcp-server</code>: Model Context Protocol server jo Claude Desktop aur Claude Web ke sath link hota hai.</li>
+</ul>
+<p>Aaj ke is detailed presentation me, hamari team ke har member ne is project me kya build kiya, unke technical contributions aur edge-case problem-solving ko deep dive karenge:</p>
+<ul>
+<li><strong>Atharva</strong> aapko dikhayenge hamari project management pipeline — kaise humne Jira, Gmail aur Discord ke sath seamless agile collaboration banaya, aur kaise StitchMCP se design karke Antigravity IDE me pixel-perfect frontend develop kiya.</li>
+<li><strong>Irfan</strong> aapko backend architecture explain karenge — kaise 100 open-source libraries ko bina kisi bloat ke merge kiya, MCP protocol ka deep dive denge, aur Claude Desktop ke sath live local file processing demo karke dikhayenge.</li>
+<li><strong>Moksh</strong> aapko hamari testing strategy samjhayenge — unit tests, integration tests aur wo 9 critical real-world bugs jo humne testing ke dauraan pakde aur solve kiye, taaki ye app kisi bhi user ke PC par zero-error chale!</li>
+</ul>
+<p>So without any delay, let me invite <strong>Atharva</strong> to take you through the Frontend and Project Management architecture!"</p>
+<hr/>
+<h1>🎨 ACT II: Project Management, Design &amp; Frontend Architecture (07:00 – 17:30)</h1>
+<p class="speaker-tag"><strong>Speaker:</strong> Atharva  </p>
+<p><strong>Visual Cue:</strong> Screen share Jira Kanban Board, Discord notification channel, StitchMCP design mockups, aur Antigravity IDE code editor.</p>
+<hr/>
+<h3>[07:00 - 09:30] Agile Workflow: Jira, Discord Webhooks &amp; Gmail Integration</h3>
+<p>"Thank you! Hello everyone, I am Atharva, aur main aapko hamari project planning, team collaboration aur Frontend engineering ke baare me detail me bataunga.</p>
+<p>Kisi bhi bade project me sabse bada challenge hota hai: <strong>Team Synchronization</strong>. Jab ek team member backend par kaam kar raha hai, doosra frontend par, aur teesra QA testing kar raha hai, to agar proper tracking na ho to project collapse ho jata hai.</p>
+<p>Isliye day-one se humne enterprise-level agile workflow setup kiya:</p>
+<p><strong>1. Jira Dashboard &amp; Sprints:</strong></p>
+<ul>
+<li>Humne Jira par hamare project ko 4 core Epics me divide kiya:</li>
+<li><em>Epic 1:</em> Core Engine &amp; Service Unification</li>
+<li><em>Epic 2:</em> Frontend UI/UX &amp; Responsive Components</li>
+<li><em>Epic 3:</em> Model Context Protocol (MCP) Integration</li>
+<li><em>Epic 4:</em> QA, Boundary Testing &amp; Deployment</li>
+<li>Har feature ki ek specific Jira user story thi, with clear Acceptance Criteria.</li>
+<li>Daily standups aur sprint backlog grooming ke through humne track kiya ki kaun sa ticket 'In Progress' hai, kaun sa 'In Review' aur kaun sa 'Done'.</li>
+</ul>
+<p><strong>2. Discord &amp; GitHub Webhook Automation:</strong></p>
+<ul>
+<li>Humne hamare development Discord server me GitHub webhooks integrate kiye.</li>
+<li>Jaise hi koi teammate branch create karta, PR raise karta ya commit push karta, Discord ke <code>#build-alerts</code> channel me real-time alert trigger hota tha with commit hash and message.</li>
+<li>Isse hamare beech zero communication gap raha.</li>
+</ul>
+<p><strong>3. Gmail Milestone Alerts:</strong></p>
+<ul>
+<li>Important release updates, automated build failures aur task reviews ke liye humne automated email triggers configure kiye, taaki testing reports turant test leads tak deliver ho sakein."</li>
+</ul>
+<hr/>
+<h3>[09:30 - 13:00] UI/UX Prototyping: Stitch to Antigravity IDE</h3>
+<p>"Ab aate hain UI/UX design aur frontend architecture par.</p>
+<p>Hamara goal tha ki website sirf functional na ho, balki uska look-and-feel <strong>Apple aur Linear-grade ultra-premium</strong> hona chahiye. Boring form-fields aur generic blue-buttons hume bilkul nahi chahiye the.</p>
+<p><strong>Step 1: Prototyping with Stitch:</strong></p>
+<ul>
+<li>Humne Stitch tool ka use karke wireframes aur layout design system generate kiya.</li>
+<li>Stitch me humne design system define kiya:</li>
+<li>Color Tokens: Deep Obsidian dark backgrounds (<code>#0B0F19</code>), subtle violet/cyan gradient accents, aur glassmorphic surface borders.</li>
+<li>Typography: Modern clean sans-serif pairing with optimal line-heights.</li>
+<li>Grid &amp; Component Structure: Category pill tabs, dynamic dropzone area, aur tool grid cards.</li>
+</ul>
+<p><strong>Step 2: Implementation in Antigravity IDE:</strong></p>
+<ul>
+<li>Stitch se design concepts ko humne Antigravity IDE me laakar vanilla web components aur modular modern CSS me translate kiya.</li>
+<li>Koi heavy bulky UI library use karne ke bajaye, humne lightweight, high-performance CSS architecture banaya jo 60 FPS animations aur instant load times deliver karta hai.</li>
+<li>Har component ko modular rakha:</li>
+<li><code>HeaderComponent</code>: Dynamic navigation bar with active category indicators.</li>
+<li><code>DropZoneComponent</code>: Universal drag-and-drop file receiver with auto-detection.</li>
+<li><code>ToolCardComponent</code>: Hover-glow micro-interactions aur clear action badges."</li>
+</ul>
+<hr/>
+<h3>[13:00 - 17:30] Live Frontend Walkthrough &amp; User Flow</h3>
+<div class="visual-cue"><span class="badge-cue">🎬 Visual Cue:</span> Browser me UFT app open karo aur screen recording me click-through dikhao</div>
+<p>"Chaliye ab live interface dekhte hain!</p>
+<ol>
+<li><strong>Header &amp; Category Bar:</strong></li>
+<li>Yahan top par aap dekh sakte hain hamari categories: <em>ALL, PDF, Word, Excel, PowerPoint, OCR/AI, Images, Audio/Video, Archives, Extra Tools</em>.</li>
+<li>Kisi bhi category par click karne par zero-latency filtering hoti hai bina page reload ke.</li>
+</ol>
+<ol>
+<li><strong>Smart Global Search (<code>Ctrl + K</code>):</strong></li>
+<li>User ko 100 tools me scroll karne ki zaroorat nahi hai. Simply keyboard par <code>Ctrl + K</code> press kijiye — ek spotlight modal open hota hai.</li>
+<li>Aap type kijiye 'merge' ya 'watermark' ya 'sentiment' — real-time fuzzy search se exact tool aapke samne spotlight ho jata hai!</li>
+</ol>
+<ol>
+<li><strong>Universal Drag-and-Drop Area:</strong></li>
+<li>User kisi bhi format ki file (chahe PDF ho, Excel sheet ho ya Image ho) seedha dropzone me drop karta hai.</li>
+<li>System automatically file extension inspect karta hai aur sirf wahi relevant tools screen par filter karke suggest karta hai jo us file ke sath compatible hain!</li>
+</ol>
+<ol>
+<li><strong>Interactive Processing &amp; Output Card:</strong></li>
+<li>Jaise hi user tool select karta hai, file retain hoti hai, parameters set hote hain (jaise compression level ya watermark text), aur 'Proceed' par click karte hi visual loading skeleton chalta hai aur instant download card reveal hota hai.</li>
+</ol>
+<p>Frontend fast hai, intuitive hai aur har screen size par perfectly responsive hai.</p>
+<p>Ab backend me ye 100 tools kaise work karte hain aur Claude MCP engine kaise operate karta hai, ye explain karne ke liye main call hand over karta hoon <strong>Irfan</strong> ko!"</p>
+<hr/>
+<h1>⚙️ ACT III: Backend Architecture, Open-Source Engines &amp; Claude MCP (17:30 – 28:00)</h1>
+<p class="speaker-tag"><strong>Speaker:</strong> Irfan  </p>
+<p><strong>Visual Cue:</strong> Screen share architecture diagram, <code>packages/mcp-server/src/index.ts</code> code, terminal, aur Claude Desktop app window.</p>
+<hr/>
+<h3>[17:30 - 20:30] Backend Architecture: Consolidating 100+ Open-Source Tools</h3>
+<p>"Thank you Atharva! Hello everyone, I am Irfan. Main aapko UFT ke core backend engine aur hamare revolutionary <strong>Model Context Protocol (MCP)</strong> architecture ke baare me batane ja raha hoon.</p>
+<p>Sabse pehle baat karte hain backend core ki: <strong>100 tools ko ek single reliable platform me kaise pack kiya gaya?</strong></p>
+<p>Aksar log sochte hain ki 100 file operations ke liye 100 alag-alag heavy software chahiye honge. Lekin humne ek ultra-modular, stream-based backend architecture design kiya:</p>
+<ol>
+<li><strong>PDF Engine (<code>@uft/shared/pdf</code>):</strong></li>
+<li>Humne use kiya <code>pdf-lib</code> aur native byte-stream manipulation.</li>
+<li>Ye engine directly binary PDF tree ko parse karta hai — splitting, merging, page rotation, watermarking, encryption aur metadata manipulation bina Adobe Acrobat ya kisi cloud binary ke local perform karta hai.</li>
+</ol>
+<ol>
+<li><strong>Image Processing Engine (<code>@uft/shared/image</code>):</strong></li>
+<li>Humne incorporate kiya <code>sharp</code> (libvips C++ binding).</li>
+<li>Sharp multi-threaded C++ speed deta hai. Ek 20MB image ko WebP me convert karna ya thumbnail banana fractions of a millisecond me ho jata hai, with 90% memory reduction compared to ImageMagick.</li>
+</ol>
+<ol>
+<li><strong>Spreadsheets &amp; Documents (<code>@uft/shared/spreadsheet</code>, <code>document</code>):</strong></li>
+<li>Excel sheets ke liye <code>exceljs</code> aur Word files ke liye <code>docx</code> / <code>mammoth</code>.</li>
+<li>Data sheets ko dynamically JSON, CSV, aur XML me parse kiya jata hai in-memory stream buffers ke sath.</li>
+</ol>
+<ol>
+<li><strong>OCR &amp; AI Services (<code>@uft/shared/ocr</code>, <code>ai</code>):</strong></li>
+<li>Images aur scanned documents se text extract karne ke liye embedded <code>tesseract.js</code> OCR engine.</li>
+<li>Text files, feedback aur transcripts ka emotional tone analyze karne ke liye dedicated local NLP Sentiment Analysis engine.</li>
+</ol>
+<p>Saare micro-services ek strict contract follow karte hain: <strong>Buffer in, Buffer out</strong>. Iska matlab memory leaks zero hain, aur process complete hote hi garbage collector instantly RAM release kar deta hai."</p>
+<hr/>
+<h3>[20:30 - 23:30] Deep Dive: The Model Context Protocol (MCP)</h3>
+<p>"Ab aate hain hamare project ke sabse cutting-edge pillar par: <strong>Model Context Protocol (MCP)</strong>.</p>
+<p><strong>MCP kya hai aur ye itna important kyun hai?</strong></p>
+<p>Traditional AI chat applications me LLM ek 'walled garden' me band hota hai. Aap Claude ya ChatGPT ko bolte hain ki <em>'merge these files'</em>, to LLM code likh sakta hai, lekin aapke computer par chalakar file save nahi kar sakta.</p>
+<p>Anthropic ne launch kiya <strong>Model Context Protocol (MCP)</strong> — ek open standard jo AI models ko external tools, filesystems aur APIs se safely connect karta hai via JSON-RPC 2.0.</p>
+<p>Humne banaya <code>@uft/mcp-server</code>, jo do modes me operate karta hai:</p>
+<p><strong>1. Local Mode (STDIO Transport):</strong></p>
+<ul>
+<li>Jab aap hamara <code>Setup.bat</code> run karte hain, ye automatically Claude Desktop ke configuration file (<code>claude_desktop_config.json</code>) me UFT ko register kar deta hai.</li>
+<li>Claude Desktop seedha background me hamare Node.js engine ko STDIO pipe ke through spawn karta hai.</li>
+<li>Iska sabse bada advantage: <strong>Full Local Disk Access!</strong> Claude ko internet par file bhejne ki zaroorat nahi hai. Claude aapke <code>C:\Users\...\Downloads</code> se direct file padh sakta hai aur direct likh sakta hai!</li>
+</ul>
+<p><strong>2. Remote Cloud Mode (Streamable HTTP / SSE):</strong></p>
+<ul>
+<li>Humne is server ko Render cloud par bhi deploy kiya hai (<code>https://uft-mcp-server.onrender.com/sse</code>).</li>
+<li>Agar koi user Claude Web (browser) ya kisi remote environment me UFT connect karna chahe, to wo URL endpoint daalkar cloud tools use kar sakta hai via Base64 data URIs aur public URLs.</li>
+</ul>
+<p><strong>A Critical Engineering Challenge We Solved:</strong></p>
+<p>Testing ke dauraan humne ek dangerous bug discover kiya — Claude Desktop achanak bolta tha: <em>'Error: Server disconnected local mcp'</em>.</p>
+<p>Jab humne Claude ke raw logs check kiye, to wahan error tha: <code>ReadBuffer exceeded maximum size of 33554432 bytes</code> (32MB limit)!</p>
+<p>Pehle tool merge hone ke baad pure 20-30MB PDF ka Base64 string stdio pipe me bhej raha tha. Humne architecture optimize kiya: Local mode me file already user ke disk par likhi ja chuki hai, isliye humne duplicate heavy Base64 dump ko eliminate kiya aur clean confirmation message return kiya. Isse server rock-solid stable ho gaya!"</p>
+<hr/>
+<h3>[23:30 - 28:00] Live Demonstration: Claude Desktop MCP in Action</h3>
+<div class="visual-cue"><span class="badge-cue">🎬 Visual Cue:</span> 50/50 Split Screen. Left side: Claude Desktop App. Right side: Windows File Explorer open to Downloads folder</div>
+<p>"Ab chaliye live dekhte hain iska magic!</p>
+<ol>
+<li><strong>Claude Desktop Hammer Icon:</strong></li>
+<li>Yahan aap Claude Desktop me chat prompt ke paas ye <strong>Hammer Icon</strong> dekh sakte hain.</li>
+<li>Is par click karte hi dekhiye — <strong>All 100 Universal File Toolkit tools are loaded and ready!</strong> <code>merge_pdf</code>, <code>split_pdf</code>, <code>compress_image</code>, <code>convert_document</code>, <code>hash_file</code>, <code>ocr_extract</code> — sab active hain.</li>
+</ol>
+<ol>
+<li><strong>Executing a Real Command:</strong></li>
+<li>Main Claude me type karta hoon:</li>
+</ol>
+<p>     <em>'Hey Claude, please merge two PDF files present in my downloads folder: sample1.pdf and sample2.pdf, and save the result as merged_presentation.pdf'</em>.</p>
+<ul>
+<li>Ab notice kijiye: Maine koi file chat me upload nahi ki!</li>
+<li>Claude tool description read karta hai: <em>'Local tool with direct filesystem access to local drives'</em>.</li>
+<li>Claude automatically trigger karta hai <code>merge_pdf</code> tool with local paths: <code>C:\Users\ashup\Downloads\sample1.pdf</code> aur <code>sample2.pdf</code>.</li>
+<li><strong>Look at the right side of the screen in File Explorer:</strong> Within 1.5 seconds, <code>merged_presentation.pdf</code> generate ho chuki hai!</li>
+<li>Claude response deta hai: <em>'✅ Merged 2 PDFs → C:\Users\ashup\Downloads\merged_presentation.pdf. Total pages: 12'</em>.</li>
+</ul>
+<p>Ye hai true agentic AI! Zero cloud leaks, zero manual uploading, 100% autonomous local execution.</p>
+<p>Lekin is level ka system banana aasan nahi tha. Testing ke dauraan hamare samne bohot saare tricky edge cases aaye. Ab <strong>Moksh</strong> aapko batayenge hamari testing methodology aur wo saare critical bugs jo unhone find aur fix kiye!"</p>
+<hr/>
+<h1>🧪 ACT IV: Quality Assurance, Testing &amp; Critical Bug Fixes (28:00 – 38:00)</h1>
+<p class="speaker-tag"><strong>Speaker:</strong> Moksh  </p>
+<p><strong>Visual Cue:</strong> Testing test-cases sheet, Before/After screen recordings of fixed bugs, code diffs, and the final 1-click Setup.bat running smoothly.</p>
+<hr/>
+<h3>[28:00 - 30:30] QA Methodology &amp; Continuous Testing Strategy</h3>
+<p>"Thank you Irfan! Hello everyone, I am Moksh. </p>
+<p>Mera primary contribution is project me raha hai <strong>End-to-End Quality Assurance, Rigorous Testing aur System Reliability</strong>.</p>
+<p>Ek file toolkit me testing sabse critical part hota hai. Kyun? Kyunki agar ek accounting sheet corrupt ho gayi, ya ek legal PDF galat merge ho gaya, to user ka massive data loss ho sakta hai.</p>
+<p>Isliye humne 4 levels of testing implement ki:</p>
+<ol>
+<li><strong>Unit Testing:</strong> Har individual tool ko mock buffers ke sath test karna.</li>
+<li><strong>Boundary &amp; Malicious Input Testing:</strong> Kya PDF tool me koi <code>.exe</code> ya <code>.zip</code> daal dega to server crash hoga? Humne boundary validation verify kiya ki har tool strictly correct MIME-type enforce kare.</li>
+<li><strong>UI/UX Workflow Testing:</strong> Drag-and-drop mechanics, shortcut listeners, responsive viewports aur navigation routing.</li>
+<li><strong>Cross-Environment Integration Testing:</strong> Localhost se lekar external laptops, fresh Windows installations aur cloud environments tak.</li>
+</ol>
+<p>Hamara standard protocol tha: <strong>Test $\to$ Fail $\to$ Log Analysis $\to$ Root-Cause Fix $\to$ Retest $\to$ Verified Pass</strong>.</p>
+<p>Ab main aapko step-by-step wo <strong>critical bugs</strong> explain karta hoon jo maine project testing ke dauraan pakde aur jinka humne permanent solution nikala!"</p>
+<hr/>
+<h3>[30:30 - 36:00] Deep Dive: The Real-World Bugs We Solved</h3>
+<div class="visual-cue"><span class="badge-cue">🎬 Visual Cue:</span> Show slides/screen captures corresponding to each bug as Moksh speaks</div>
+<h4>1. Drag-and-Drop Workflow &amp; File Retention Bug:</h4>
+<ul>
+<li><strong>The Bug:</strong> Dashboard par jab user file drag-and-drop karta tha, to file options show hote the. Lekin jaise hi user kisi specific option (jaise Compress ya Convert) par click karta tha, UI wapas se <em>'Upload File'</em> maangne lagti thi! User ko same file do-do baar select karni pad rahi thi.</li>
+<li><strong>The Fix:</strong> Humne global frontend state management me <code>selectedFile</code> buffer retain logic fix kiya. Ab user jaise hi drag-and-drop karta hai, file state memory me persist hoti hai, tool options open hote hain, aur tool select karte hi directly <em>'Proceed'</em> button appear hota hai. User ek click me output receive kar leta hai!</li>
+</ul>
+<h4>2. Global Shortcut (<code>Ctrl + K</code>) Listener Bug:</h4>
+<ul>
+<li><strong>The Bug:</strong> Users ke quick navigation ke liye <code>Ctrl + K</code> spotlight search banaya tha. Lekin windows par <code>Ctrl + K</code> press karne par modal open hi nahi ho raha tha, ya browser ka default search bar trigger ho raha tha.</li>
+<li><strong>The Fix:</strong> Humne <code>window.addEventListener('keydown')</code> me <code>e.preventDefault()</code> properly enforce kiya aur event listener ko top-level mount par attach kiya with auto-focus on input field. Ab chahe aap page ke kisi bhi kone me hon, <code>Ctrl + K</code> press karte hi instant fuzzy search dialog open ho jata hai.</li>
+</ul>
+<h4>3. AI Tools &amp; Extra Tools Categorization Conflict:</h4>
+<ul>
+<li><strong>The Bug:</strong> Kuch extra tools aur AI tools (jaise Sentiment Analysis) backend me ban chuke the, lekin UI me wo ya to gayab the ya galti se PDF category ke andar label hoke display ho rahe the! PDF category kholne par AI tools dikh rahe the jo user ko confuse kar rahe the.</li>
+<li><strong>The Fix:</strong> Humne category mapping taxonomy ko overhaul kiya. Humne do dedicated categories introduce keen — <strong>'OCR / AI'</strong> aur <strong>'Extra Tools'</strong>. Har tool ke metadata tags ko re-map kiya, jisse tools apni respective categories me clean display hone lage.</li>
+</ul>
+<h4>4. The Viewport CSS Shrink &amp; Font Scale Regression:</h4>
+<ul>
+<li><strong>The Bug:</strong> Ek CSS fix apply karne ke baad achanak ek strange visual bug trigger hua — poori website ka font size, cards, aur container shrink ho gaya! Poori website 70% scale jaisi choti dikhne lagi.</li>
+<li><strong>The Fix:</strong> Debugging ke dauraan humne dekha ki root <code>:root</code> aur <code>html</code> selector par nested <code>font-size: 62.5%</code> aur relative <code>rem</code> calculations me conflict tha. Humne typography scale ko CSS variables ke through normalize kiya aur base container width ko reset kiya, jisse desktop aur mobile dono par perfect scaling restore ho gayi.</li>
+</ul>
+<h4>5. Header Navigation &amp; Tab Routing Bug:</h4>
+<ul>
+<li><strong>The Bug:</strong> Header bar par sirf <em>ALL, PDF, Word, Excel</em> dikh rahe the, jabki hamare paas <em>PowerPoint, OCR/AI, Extra Tools</em> bhi the. Aur jab header tab ko expand kiya, to ek naya bug aaya: kisi category par click karne par active tab to highlight hota tha lekin niche tool cards filter hi nahi ho rahe the!</li>
+<li><strong>The Fix:</strong> Humne Header component aur ToolGrid component ke beech custom event dispatcher aur state-sync logic banaya. Ab jaise hi user kisi bhi header tab par click karta hai, active category state instantly propagate hoti hai aur filtered cards smooth fade-in animation ke sath render hote hain.</li>
+</ul>
+<h4>6. 'Works on My Machine' vs Universal Portability:</h4>
+<ul>
+<li><strong>The Bug:</strong> Jab project mere local developer machine par chal raha tha, to sab perfect tha. Lekin jaise hi humne is project ko kisi doosre fresh laptop par clone kiya, to bohot saare errors aaye: <em>Node environment missing, tsc compiler missing, Claude connector link nahi ho raha tha!</em></li>
+<li><strong>The Fix:</strong> Is issue ko permanently eradicate karne ke liye humne banaya <strong><code>Setup.bat</code></strong>!</li>
+<li>Ye script user ke machine par Node.js detect karta hai; agar nahi hai to winget se silently install karta hai.</li>
+<li>Pre-built distribution folders compile karta hai.</li>
+<li>Aur sabse badhiya — <code>node scripts/configure-claude.js</code> run karke user ke Claude Desktop configuration me UFT ko 1-click me automatically connect kar deta hai! Ab kisi bhi fresh laptop par sirf <code>Setup.bat</code> par double-click karna hai aur poora system ready to run ho jata hai."</li>
+</ul>
+<hr/>
+<h3>[36:00 - 38:00] Testing Summary: 100% Production Ready</h3>
+<p>"In saare rigorous testing cycles, bug fixes aur boundary checks ke baad, hum confident hain ki Universal File Toolkit:</p>
+<ul>
+<li>Web Browser par flawless chalta hai</li>
+<li>Render Cloud par remote MCP support ke sath live hai</li>
+<li>Windows Desktop application ke roop me <code>UniversalFileToolkit.exe</code> ke sath completely self-contained hai</li>
+<li>Aur Claude Desktop ke sath 100% stable local disk processing deliver karta hai!</li>
+</ul>
+<p>Ab main poori team ko call back karta hoon final conclusion aur roadmap ke liye!"</p>
+<hr/>
+<h1>🚀 ACT V: Conclusion &amp; Future Roadmap (38:00 – 40:00)</h1>
+<p class="speaker-tag"><strong>Speaker:</strong> All Team Members (Host / Team Lead, Atharva, Irfan, Moksh)  </p>
+<p><strong>Visual Cue:</strong> Full team camera view ya combined split-screen grid, with GitHub repository and release download link on screen.</p>
+<hr/>
+<h3>[38:00 - 39:15] Business Impact &amp; Summary (Team Lead / Host)</h3>
+<p>"Thank you Moksh, and thank you Atharva and Irfan!</p>
+<p>Dosto, summarize karein to <strong>Universal File Toolkit</strong> ne 4 sabse badi problems ko ek sath conquer kiya hai:</p>
+<ol>
+<li><strong>Zero Subscriptions:</strong> 100 tools bilkul free aur open-source.</li>
+<li><strong>Absolute Privacy:</strong> Aapka confidential data aapke computer ke bahar ek inch bhi travel nahi karta.</li>
+<li><strong>Single Unified Hub:</strong> PDF, Word, Excel, Images, Code, Audio, Video — sab ek jagah.</li>
+<li><strong>First-Class AI Integration:</strong> Claude Desktop ke sath direct hardware disk access, making AI truly actionable.</li>
+</ol>
+<p>Chahe aap ek student hon jisko daily assignments convert karne hain, ek developer hon jisko data formats parse karne hain, ya ek corporate enterprise jahan data privacy non-negotiable hai — UFT is the ultimate file companion."</p>
+<hr/>
+<h3>[39:15 - 40:00] Future Roadmap &amp; Call to Action (Atharva, Irfan, Moksh)</h3>
+<p class="speaker-tag"><strong>Atharva:</strong>  </p>
+<p>"Aage aane wale versions me hum introduce kar rahe hain <strong>Local Whisper AI Integration</strong> — jisse aap bina kisi cloud API ke kisi bhi audio ya video file ka accurate subtitle aur transcript generate kar sakenge local machine par!"</p>
+<p class="speaker-tag"><strong>Irfan:</strong>  </p>
+<p>"Aur sath hi sath, hum <strong>Ollama aur Local LLMs</strong> ka direct support la rahe hain, taaki agar kisi user ke paas internet na ho ya Claude na ho, tab bhi unke local open-source models UFT ke 100 tools ko use kar sakein."</p>
+<p class="speaker-tag"><strong>Moksh:</strong>  </p>
+<p>"Hum macOS aur Linux ke liye bhi one-click installers release kar rahe hain, taaki cross-platform portability 100% ho sake."</p>
+<p class="speaker-tag"><strong>Host / Team Lead:</strong>  </p>
+<p>"Aap hamare GitHub repository par jaakar <strong>UniversalFileToolkit-Setup.zip</strong> download kar sakte hain, release inspect kar sakte hain, aur apna feedback share kar sakte hain.</p>
+<p><em>Link is right here on the screen and in the video description!</em></p>
+<p>Thank you so much for watching our presentation! If you loved this project, please give it a star on GitHub. Have a great day!"</p>
+<hr/>
+<p><em>(Video Ends with Outro Animation &amp; GitHub Repository Link)</em></p>
+
+</body>
+</html>
