@@ -30,10 +30,11 @@ import {
   GetPromptRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { tmpdir } from 'node:os';
+import { tmpdir, homedir } from 'node:os';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { join, dirname, resolve, basename, extname } from 'node:path';
 import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   pdfService,
   imageService,
@@ -52,6 +53,13 @@ import {
 } from '@uft/shared';
 
 // ─── Server Setup ────────────────────────────────────────────
+
+const isRemoteServer =
+  process.argv.includes('--sse') ||
+  process.argv.includes('--http') ||
+  process.env.TRANSPORT === 'sse' ||
+  process.env.TRANSPORT === 'http' ||
+  !!process.env.PORT;
 
 const server = new Server(
   {
@@ -119,8 +127,10 @@ function isDataUri(str: string): boolean {
 
 function isLikelyBase64(str: string): boolean {
   if (typeof str !== 'string') return false;
-  // If it's a file path (starts with / or has path like /mnt/ or file extension), it is NOT base64
+  // If it's a file path or URL, it is NOT base64
   if (
+    str.startsWith('http://') ||
+    str.startsWith('https://') ||
     str.startsWith('/mnt/') ||
     str.startsWith('/home/') ||
     str.startsWith('C:') ||
@@ -134,6 +144,61 @@ function isLikelyBase64(str: string): boolean {
   return clean.length >= 40 && /^[A-Za-z0-9+/=]+$/.test(clean);
 }
 
+function cleanPath(raw: string): string {
+  if (typeof raw !== 'string') return '';
+  let p = raw.trim();
+
+  // Strip surrounding quotes
+  if ((p.startsWith('"') && p.endsWith('"')) || (p.startsWith("'") && p.endsWith("'"))) {
+    p = p.slice(1, -1).trim();
+  }
+
+  // Handle file:// URI
+  if (p.startsWith('file://')) {
+    try {
+      p = fileURLToPath(p);
+    } catch {
+      p = p.replace(/^file:\/\/\/?/, '');
+      if (process.platform === 'win32' && /^[A-Za-z]:/.test(p.replace(/^\//, ''))) {
+        p = p.replace(/^\//, '');
+      }
+    }
+  }
+
+  // Expand ~ to user homedir
+  if (p === '~' || p.startsWith('~/') || p.startsWith('~\\')) {
+    p = join(homedir(), p.slice(1).replace(/^[\\/]/, ''));
+  }
+
+  return p;
+}
+
+function resolveExistingFilePath(raw: string): string | null {
+  const p = cleanPath(raw);
+  if (!p) return null;
+
+  // Direct check
+  if (existsSync(p)) return resolve(p);
+  if (existsSync(resolve(p))) return resolve(p);
+
+  // Check common user directories if a relative path or filename was given
+  const home = homedir();
+  const searchDirs = [
+    join(home, 'Downloads'),
+    join(home, 'Documents'),
+    join(home, 'Desktop'),
+    home,
+    process.cwd(),
+  ];
+
+  for (const dir of searchDirs) {
+    const candidate = join(dir, p);
+    if (existsSync(candidate)) return candidate;
+  }
+
+  return null;
+}
+
 async function saveInputToTemp(input: string | any, preferredName?: string): Promise<string> {
   const uploadDir = join(tmpdir(), 'uft_remote_uploads');
   await mkdir(uploadDir, { recursive: true });
@@ -145,24 +210,36 @@ async function saveInputToTemp(input: string | any, preferredName?: string): Pro
   }
 
   if (typeof input === 'string') {
-    // 1. Existing local file path on this server
-    if (existsSync(resolve(input))) {
-      return resolve(input);
+    // 1. Existing local file path on this computer
+    const existing = resolveExistingFilePath(input);
+    if (existing) {
+      return existing;
     }
 
-    // 2. Client-side path that does NOT exist on this remote server (e.g. /mnt/user-data/uploads/...)
-    const isPathLike =
-      input.startsWith('/mnt/') ||
-      input.startsWith('/home/') ||
-      input.startsWith('/') ||
-      /^[A-Za-z]:[\\/]/.test(input) ||
-      input.includes('\\') ||
-      (input.length < 300 && /\.[A-Za-z0-9]{2,5}$/i.test(input.trim()));
-
-    if (isPathLike) {
-      throw new Error(
-        `Remote MCP server cannot access file path "${input}". In Claude Web, files uploaded to chat are stored in your container (/mnt/user-data/...) and cannot be reached by remote servers. You must encode the file to base64 using bash (base64 -w0 "${input}") and pass the base64 string directly in the 'file' parameter.`
-      );
+    // 2. Public HTTP / HTTPS URL
+    if (input.startsWith('http://') || input.startsWith('https://')) {
+      try {
+        const res = await fetch(input);
+        if (!res.ok) {
+          throw new Error(`Failed to download URL (${res.status} ${res.statusText})`);
+        }
+        const arrayBuf = await res.arrayBuffer();
+        const buffer = Buffer.from(arrayBuf);
+        let filename = preferredName;
+        if (!filename) {
+          try {
+            const u = new URL(input);
+            filename = basename(u.pathname) || `download_${Date.now()}.bin`;
+          } catch {
+            filename = `download_${Date.now()}.bin`;
+          }
+        }
+        const filePath = join(uploadDir, filename);
+        await writeFile(filePath, buffer);
+        return filePath;
+      } catch (err: any) {
+        throw new Error(`Failed to fetch file from URL "${input}": ${err?.message || err}`);
+      }
     }
 
     // 3. Data URI (e.g. data:application/pdf;base64,...)
@@ -191,12 +268,39 @@ async function saveInputToTemp(input: string | any, preferredName?: string): Pro
       return filePath;
     }
 
-    throw new Error(
-      `Invalid file input. Expected base64-encoded file content or data URI, but received: ${input.slice(0, 100)}`
-    );
+    // 5. If input looks like a filesystem path but was not found
+    const isPathLike =
+      input.startsWith('/mnt/') ||
+      input.startsWith('/home/') ||
+      input.startsWith('/') ||
+      /^[A-Za-z]:[\\/]/.test(input) ||
+      input.includes('\\') ||
+      (input.length < 300 && /\.[A-Za-z0-9]{2,5}$/i.test(input.trim()));
+
+    if (isPathLike) {
+      if (!isRemoteServer) {
+        throw new Error(
+          `File not found: "${cleanPath(input)}". Please verify that the file exists at this path on your computer.`
+        );
+      } else {
+        throw new Error(
+          `Cloud MCP Server cannot access client-local path "${input}". As this server is running remotely in the cloud, please provide the file content directly (as base64 data URI, public URL, or raw content). Alternatively, install Universal File Toolkit locally via Setup.bat for direct 1-click access to all your local files.`
+        );
+      }
+    }
+
+    // 6. Direct text/content string (for markdown, text, csv, json, sentiment, etc.)
+    if (input.length > 0) {
+      const filename = preferredName || `input_${Date.now()}.txt`;
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, Buffer.from(input, 'utf-8'));
+      return filePath;
+    }
+
+    throw new Error(`Invalid file input: ${input.slice(0, 100)}`);
   }
 
-  throw new Error('Invalid file input: expected string (base64 or data URI) or file object');
+  throw new Error('Invalid file input: expected local file path, base64 string, URL, or content string');
 }
 
 function enhanceToolDefinition(tool: any): any {
@@ -208,37 +312,76 @@ function enhanceToolDefinition(tool: any): any {
     },
   };
 
-  // Clean description: remove local disk restrictions and instruct Claude Web
+  if (!isRemoteServer) {
+    // ── LOCAL MCP MODE (Claude Desktop, Claude Code, Cursor) ──
+    // Instruct Claude with complete clarity that it HAS direct filesystem access on this machine
+    let desc = enhanced.description || '';
+    desc = desc.replace(/NOTE FOR CLAUDE WEB:.*$/gi, '').trim();
+    if (!desc.includes('Local tool with direct filesystem access')) {
+      desc = `${desc.replace(/\.?\s*$/, '')}. Local tool with direct filesystem access to local drives (C:\\, /Users, ~, etc.). You MUST call this tool directly whenever local file paths are provided. Do NOT refuse or claim you cannot access local drives.`;
+    }
+    enhanced.description = desc;
+
+    if (enhanced.inputSchema.properties.file) {
+      enhanced.inputSchema.properties.file = {
+        type: 'string',
+        description: 'Local file path on disk (e.g. "C:\\path\\to\\file.ext", "~/Documents/file.ext", or filename in Downloads). Local tool reads directly from disk.',
+      };
+      if (!enhanced.inputSchema.properties.outputPath) {
+        enhanced.inputSchema.properties.outputPath = {
+          type: 'string',
+          description: 'Optional destination file path on local disk.',
+        };
+      }
+    }
+
+    if (enhanced.inputSchema.properties.files) {
+      enhanced.inputSchema.properties.files = {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'Array of local file paths on disk (e.g. ["C:\\path\\file1.pdf", "C:\\path\\file2.pdf"]). Local tool reads directly from disk.',
+      };
+      if (!enhanced.inputSchema.properties.outputPath) {
+        enhanced.inputSchema.properties.outputPath = {
+          type: 'string',
+          description: 'Optional destination file path on local disk.',
+        };
+      }
+    }
+
+    return enhanced;
+  }
+
+  // ── REMOTE CLOUD MCP MODE (Claude Web, SSE, HTTP) ──
   let desc = enhanced.description || '';
   desc = desc.replace(/Local MCP tool with full disk access to [A-Za-z]:\\? file paths\. Call this tool directly when requested\./gi, '');
   desc = desc.replace(/Local MCP tool with (full )?disk access\.?/gi, '');
   desc = desc.replace(/Local MCP tool\.?/gi, '');
+  desc = desc.replace(/Local tool with direct filesystem access.*?cannot access local drives\./gi, '');
   desc = desc.trim();
-  desc += ' NOTE FOR CLAUDE WEB: Remote server cannot read /mnt/user-data/ container paths. Run `base64 -w0 <file>` in bash first and pass the base64 content in "file" or "fileData".';
+  desc += ' [Cloud Tool: pass file content as base64 data URI, public URL, or raw content]';
   enhanced.description = desc;
 
-  // Single file parameters: teach Claude Web to send base64
   if (enhanced.inputSchema.properties.file) {
     enhanced.inputSchema.properties.file = {
       type: 'string',
-      description: 'Base64 file data or data URI (data:application/pdf;base64,...). CRITICAL IN CLAUDE WEB: Remote server cannot read /mnt/user-data/ or /home/ paths. Use bash to encode the file (base64 -w0 <path>) and pass the base64 string here.',
+      description: 'Base64 data URI (data:...;base64,...), raw base64 string, or public http/https URL.',
     };
     enhanced.inputSchema.properties.fileData = {
       type: 'string',
-      description: 'Optional base64-encoded file data or data URI (alternative to file for Claude Web)',
+      description: 'Optional base64 file data or data URI.',
     };
     enhanced.inputSchema.properties.fileName = {
       type: 'string',
-      description: 'Optional filename with extension (e.g. "document.pdf", "receipt.pdf")',
+      description: 'Optional filename with extension (e.g. "document.pdf", "image.png").',
     };
   }
 
-  // Multi file parameters: support base64 array
   if (enhanced.inputSchema.properties.files) {
     enhanced.inputSchema.properties.files = {
       type: 'array',
       items: { type: 'string' },
-      description: 'Array of base64 data URIs or base64 strings (or server file paths). In Claude Web, pass base64 data URIs.',
+      description: 'Array of base64 data URIs, raw base64 strings, or public http/https URLs.',
     };
     enhanced.inputSchema.properties.fileList = {
       type: 'array',
@@ -249,7 +392,7 @@ function enhanceToolDefinition(tool: any): any {
           data: { type: 'string' },
         },
       },
-      description: 'Optional array of base64 file objects [{ name, data }] for Claude Web',
+      description: 'Optional array of base64 file objects [{ name, data }].',
     };
   }
 
@@ -259,20 +402,33 @@ function enhanceToolDefinition(tool: any): any {
 // ─── Helper Functions ────────────────────────────────────────
 
 async function readInputFile(filePath: string): Promise<Buffer> {
-  const resolved = resolve(filePath);
-  if (!existsSync(resolved)) {
-    if (filePath.startsWith('/mnt/') || filePath.startsWith('/home/') || filePath.includes('user-data')) {
-      throw new Error(
-        `Remote MCP server cannot access local container path "${filePath}". In Claude Web, uploaded files reside in your sandbox (/mnt/user-data/...) and cannot be reached across the network. Encode the file to base64 using bash (\`base64 -w0 "${filePath}"\`) and pass the resulting base64 string directly in the 'file' parameter.`
-      );
-    }
-    throw new Error(`File not found: ${resolved}`);
+  const resolved = resolveExistingFilePath(filePath);
+  if (resolved) {
+    return readFile(resolved);
   }
-  return readFile(resolved);
+
+  // If not found as local path, check if dataUri, base64, or URL
+  if (typeof filePath === 'string') {
+    if (isDataUri(filePath) || isLikelyBase64(filePath) || filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      const tmp = await saveInputToTemp(filePath);
+      return readFile(tmp);
+    }
+  }
+
+  if (!isRemoteServer) {
+    throw new Error(
+      `File not found: "${cleanPath(filePath)}". Please verify that the file exists on your local drive.`
+    );
+  } else {
+    throw new Error(
+      `Cloud MCP server cannot access file path "${cleanPath(filePath)}". In Claude Web, please pass the file content directly as base64 or a public URL.`
+    );
+  }
 }
 
 async function writeOutputFile(data: Buffer | Uint8Array, outputPath: string): Promise<string> {
-  const resolved = resolve(outputPath);
+  const cleaned = cleanPath(outputPath);
+  const resolved = resolve(cleaned);
   await mkdir(dirname(resolved), { recursive: true });
   await writeFile(resolved, data);
   const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
@@ -1392,14 +1548,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const args: Record<string, any> = request.params.arguments || {};
 
   try {
-    // 1. Normalize single-file inputs from base64/data URIs to temporary files
+    // Clean string arguments (paths)
+    if (typeof args.outputPath === 'string') args.outputPath = cleanPath(args.outputPath);
+    if (typeof args.outputDir === 'string') args.outputDir = cleanPath(args.outputDir);
+    if (typeof args.directory === 'string') args.directory = cleanPath(args.directory);
+
+    // 1. Normalize single-file inputs
     if (args.fileData && typeof args.fileData === 'string') {
       args.file = await saveInputToTemp(args.fileData, (args.fileName as string) || 'document.bin');
     } else if (typeof args.file === 'string') {
-      args.file = await saveInputToTemp(args.file, (args.fileName as string) || 'document.bin');
+      const existing = resolveExistingFilePath(args.file);
+      if (existing) {
+        args.file = existing;
+      } else {
+        args.file = await saveInputToTemp(args.file, (args.fileName as string) || 'document.bin');
+      }
     }
 
-    // 2. Normalize multi-file inputs from base64/data URIs to temporary files
+    // 2. Normalize multi-file inputs
     if (Array.isArray(args.fileList) && args.fileList.length > 0) {
       const files: string[] = [];
       for (let i = 0; i < args.fileList.length; i++) {
@@ -1412,10 +1578,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const files: string[] = [];
       for (let i = 0; i < args.files.length; i++) {
         const item = args.files[i];
-        if (typeof item === 'string' && (isDataUri(item) || isLikelyBase64(item))) {
-          const p = await saveInputToTemp(item, `file_${i + 1}`);
-          files.push(p);
-        } else if (typeof item === 'object' && item?.data) {
+        if (typeof item === 'string') {
+          if (isDataUri(item) || isLikelyBase64(item) || item.startsWith('http://') || item.startsWith('https://')) {
+            const p = await saveInputToTemp(item, `file_${i + 1}`);
+            files.push(p);
+          } else {
+            const resolved = resolveExistingFilePath(item);
+            files.push(resolved || cleanPath(item));
+          }
+        } else if (typeof item === 'object' && item !== null && item?.data) {
           const p = await saveInputToTemp(item, item.name || `file_${i + 1}`);
           files.push(p);
         } else {
@@ -2437,7 +2608,7 @@ function cloneServer(source: Server): Server {
 }
 
 async function main() {
-  const isHttp = process.argv.includes('--sse') || process.argv.includes('--http') || process.env.TRANSPORT === 'sse' || process.env.TRANSPORT === 'http' || !!process.env.PORT;
+  const isHttp = isRemoteServer;
 
   if (isHttp) {
     const port = parseInt(process.env.PORT || '3002', 10);
