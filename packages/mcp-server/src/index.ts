@@ -2335,27 +2335,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     });
 
-    // Attach captured output files (images as direct MCP image blocks, other files as resources)
+    // Attach previews with strict buffer safety (prevents Claude Desktop 32MB ReadBuffer crash)
     if (capturedOutputs.length > 0 && toolResult && !toolResult.isError) {
       toolResult.content = toolResult.content || [];
       for (const out of capturedOutputs) {
         const isImage = out.mimeType.startsWith('image/') && out.mimeType !== 'image/svg+xml';
-        if (isImage) {
-          toolResult.content.push({
-            type: 'image',
-            data: out.data.toString('base64'),
-            mimeType: out.mimeType,
-          });
-        } else {
-          toolResult.content.push({
-            type: 'resource',
-            resource: {
-              uri: `data:${out.mimeType};base64,${out.data.toString('base64')}`,
+
+        if (!isRemoteServer) {
+          // In Local Mode, files are already written directly to the user's hard drive.
+          // Only attach small images (< 1.5MB) for quick visual preview in chat.
+          // NEVER pump large duplicate base64 payloads into stdio pipe (which crashes Claude with 32MB buffer limit).
+          if (isImage && out.data.length <= 1.5 * 1024 * 1024) {
+            toolResult.content.push({
+              type: 'image',
+              data: out.data.toString('base64'),
               mimeType: out.mimeType,
-              text: basename(out.path),
-              blob: out.data.toString('base64'),
-            },
-          });
+            });
+          }
+        } else {
+          // In Remote Cloud Mode, attach image or resource only if under 4MB
+          if (isImage && out.data.length <= 4 * 1024 * 1024) {
+            toolResult.content.push({
+              type: 'image',
+              data: out.data.toString('base64'),
+              mimeType: out.mimeType,
+            });
+          } else if (out.data.length <= 4 * 1024 * 1024) {
+            toolResult.content.push({
+              type: 'resource',
+              resource: {
+                uri: `toolkit://output/${encodeURIComponent(basename(out.path))}`,
+                mimeType: out.mimeType,
+                text: basename(out.path),
+                blob: out.data.toString('base64'),
+              },
+            });
+          }
         }
       }
     }
