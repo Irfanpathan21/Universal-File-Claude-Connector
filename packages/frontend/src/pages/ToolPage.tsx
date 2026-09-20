@@ -247,7 +247,56 @@ export function ToolPage() {
     load();
   }, [id]);
 
+  // Build accept map from tool's inputFormats for the dropzone file picker filter
+  const buildAcceptMap = useCallback((formats: string[]): Record<string, string[]> => {
+    const mimeMap: Record<string, string[]> = {
+      '.pdf': ['application/pdf'],
+      '.jpg': ['image/jpeg'], '.jpeg': ['image/jpeg'],
+      '.png': ['image/png'], '.webp': ['image/webp'],
+      '.gif': ['image/gif'], '.bmp': ['image/bmp'],
+      '.tiff': ['image/tiff'], '.tif': ['image/tiff'],
+      '.svg': ['image/svg+xml'], '.avif': ['image/avif'],
+      '.heif': ['image/heif'], '.heic': ['image/heic'],
+      '.mp3': ['audio/mpeg'], '.wav': ['audio/wav'],
+      '.aac': ['audio/aac'], '.ogg': ['audio/ogg'],
+      '.flac': ['audio/flac'], '.m4a': ['audio/mp4'],
+      '.wma': ['audio/x-ms-wma'], '.opus': ['audio/opus'],
+      '.mp4': ['video/mp4'], '.mkv': ['video/x-matroska'],
+      '.avi': ['video/x-msvideo'], '.mov': ['video/quicktime'],
+      '.webm': ['video/webm'], '.wmv': ['video/x-ms-wmv'],
+      '.docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+      '.doc': ['application/msword'],
+      '.odt': ['application/vnd.oasis.opendocument.text'],
+      '.rtf': ['application/rtf'],
+      '.xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+      '.xls': ['application/vnd.ms-excel'],
+      '.csv': ['text/csv'], '.tsv': ['text/tab-separated-values'],
+      '.pptx': ['application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+      '.ppt': ['application/vnd.ms-powerpoint'],
+      '.json': ['application/json'], '.xml': ['text/xml', 'application/xml'],
+      '.yaml': ['application/x-yaml', 'text/yaml'], '.yml': ['application/x-yaml', 'text/yaml'],
+      '.md': ['text/markdown'], '.markdown': ['text/markdown'],
+      '.html': ['text/html'], '.htm': ['text/html'],
+      '.txt': ['text/plain'], '.text': ['text/plain'],
+      '.zip': ['application/zip'],
+      '.gz': ['application/gzip'], '.gzip': ['application/gzip'],
+    };
+    const accept: Record<string, string[]> = {};
+    for (const fmt of formats) {
+      const ext = fmt.toLowerCase().startsWith('.') ? fmt.toLowerCase() : `.${fmt.toLowerCase()}`;
+      const mimes = mimeMap[ext];
+      if (mimes) {
+        for (const mime of mimes) {
+          if (!accept[mime]) accept[mime] = [];
+          if (!accept[mime].includes(ext)) accept[mime].push(ext);
+        }
+      }
+    }
+    return Object.keys(accept).length > 0 ? accept : {};
+  }, []);
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Check for empty files
     const empty = acceptedFiles.find((f) => f.size === 0);
     if (empty) {
       const warningMsg = 'The File You have uploaded is empty';
@@ -256,10 +305,46 @@ export function ToolPage() {
     } else {
       setError(null);
     }
-    setFiles((prev) => [...prev, ...acceptedFiles]);
-  }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, maxFiles: tool?.maxFiles || 100 });
+    // Validate file types against tool's inputFormats
+    if (tool?.inputFormats && tool.inputFormats.length > 0) {
+      const allowedExts = tool.inputFormats.map(f => f.toLowerCase().startsWith('.') ? f.toLowerCase() : `.${f.toLowerCase()}`);
+      const rejected: string[] = [];
+      const valid: File[] = [];
+
+      for (const file of acceptedFiles) {
+        const dotIdx = file.name.lastIndexOf('.');
+        const ext = dotIdx >= 0 ? file.name.slice(dotIdx).toLowerCase() : '';
+        if (ext && allowedExts.includes(ext)) {
+          valid.push(file);
+        } else {
+          rejected.push(file.name);
+        }
+      }
+
+      if (rejected.length > 0) {
+        const formatsDisplay = allowedExts.join(', ');
+        const rejectedDisplay = rejected.length <= 3 ? rejected.join(', ') : `${rejected.slice(0, 3).join(', ')} and ${rejected.length - 3} more`;
+        const errorMsg = `This tool only accepts ${formatsDisplay} files. Rejected: ${rejectedDisplay}`;
+        toast.error(errorMsg);
+        setError(errorMsg);
+      }
+
+      if (valid.length > 0) {
+        setFiles((prev) => [...prev, ...valid]);
+      }
+      return;
+    }
+
+    setFiles((prev) => [...prev, ...acceptedFiles]);
+  }, [tool]);
+
+  const acceptMap = tool?.inputFormats && tool.inputFormats.length > 0 ? buildAcceptMap(tool.inputFormats) : undefined;
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    maxFiles: tool?.maxFiles || 100,
+    ...(acceptMap && Object.keys(acceptMap).length > 0 ? { accept: acceptMap } : {}),
+  });
 
   const removeFile = (index: number) => {
     setFiles((prev) => {

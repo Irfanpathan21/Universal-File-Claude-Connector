@@ -19,6 +19,30 @@ import {
 } from '@uft/shared';
 
 /**
+ * Validate that uploaded files match the allowed file types for a tool.
+ * Throws ValidationError with a user-friendly message if any file doesn't match.
+ */
+export function validateFileTypes(
+  files: { name: string }[],
+  allowedExtensions: string[],
+  toolLabel: string
+): void {
+  const normalizedAllowed = allowedExtensions.map(ext => ext.toLowerCase().replace(/^\.?/, '.'));
+
+  for (const file of files) {
+    const dotIdx = file.name.lastIndexOf('.');
+    const ext = dotIdx >= 0 ? file.name.slice(dotIdx).toLowerCase() : '';
+
+    if (!ext || !normalizedAllowed.includes(ext)) {
+      const formatsDisplay = normalizedAllowed.join(', ');
+      throw new ValidationError(
+        `${toolLabel} tools only accept ${formatsDisplay} files. You uploaded "${file.name}" which is a ${ext || 'unknown'} file.`
+      );
+    }
+  }
+}
+
+/**
  * Extract uploaded files from a multipart request.
  */
 export async function extractUploadedFiles(

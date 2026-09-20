@@ -4,7 +4,7 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { spreadsheetService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
 
 export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -16,6 +16,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Excel to CSV');
       const result = await spreadsheetService.excelToCsv(files[0].data, files[0].name, {
         sheetName: params.sheetName,
         delimiter: params.delimiter,
@@ -30,6 +31,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A CSV file is required');
+      validateFileTypes(files, ['.csv', '.tsv'], 'CSV to Excel');
       const result = await spreadsheetService.csvToExcel(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -41,6 +43,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'JSON to Excel');
       const result = await spreadsheetService.jsonToExcel(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -52,6 +55,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Excel to JSON');
       const result = await spreadsheetService.excelToJson(files[0].data, files[0].name, {
         sheetName: params.sheetName,
       });
@@ -65,6 +69,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 20);
       if (files.length < 2) throw new ValidationError('At least 2 Excel files are required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Merge Excel');
       const result = await spreadsheetService.mergeExcelSheets(
         files.map(f => ({ data: f.data, name: f.name })),
         {
@@ -82,6 +87,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A CSV file is required');
+      validateFileTypes(files, ['.csv', '.tsv'], 'Remove CSV Duplicates');
       const result = await spreadsheetService.removeCsvDuplicates(files[0].data, files[0].name, {
         columnHeader: params.columnHeader,
       });
@@ -95,6 +101,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A CSV file is required');
+      validateFileTypes(files, ['.csv', '.tsv', '.xlsx', '.xls'], 'Transpose Sheet');
       const result = await spreadsheetService.transposeSheet(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -106,6 +113,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Excel to HTML');
       const result = await spreadsheetService.excelToHtml(files[0].data, files[0].name, { sheetName: params.sheetName });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -117,6 +125,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Protect Workbook');
       const password = params.password || params.userPassword;
       if (!password) throw new ValidationError('Password is required');
       const result = await spreadsheetService.protectWorkbook(files[0].data, files[0].name, {
@@ -133,6 +142,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Split Workbook');
       const result = await spreadsheetService.splitExcelWorkbook(files[0].data, files[0].name, {
         sheetName: params.sheetName,
       });
@@ -146,6 +156,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Find Replace Excel');
       const result = await spreadsheetService.findReplaceExcel(files[0].data, files[0].name, {
         targetValue: params.targetValue,
         replacementValue: params.replacementValue,
@@ -160,6 +171,7 @@ export const registerSpreadsheetRoutes: FastifyPluginCallback = (app: FastifyIns
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An Excel file is required');
+      validateFileTypes(files, ['.xlsx', '.xls', '.xlsm'], 'Workbook Statistics');
       const result = await spreadsheetService.workbookStatistics(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

@@ -4,7 +4,7 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { pdfService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
 
 export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -22,6 +22,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 50);
       if (files.length < 2) throw new ValidationError('At least 2 PDF files required');
+      validateFileTypes(files, ['.pdf'], 'PDF Merge');
 
       const result = await pdfService.mergePdf(
         files.map(f => ({ data: f.data, name: f.name })),
@@ -41,6 +42,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Split');
 
       const result = await pdfService.splitPdf(
         files[0].data,
@@ -64,6 +66,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Compress');
 
       const result = await pdfService.compressPdf(
         files[0].data,
@@ -84,6 +87,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Rotate');
 
       const angle = parseInt(params.angle || '90');
       const pages = params.pages ? params.pages.split(',').map(p => parseInt(p.trim())) : undefined;
@@ -107,6 +111,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Extract Pages');
       if (!params.pages) throw new ValidationError('Page numbers are required');
 
       const pages = params.pages.split(',').map(p => parseInt(p.trim()));
@@ -125,6 +130,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Delete Pages');
       if (!params.pages) throw new ValidationError('Page numbers to delete are required');
 
       const pages = params.pages.split(',').map(p => parseInt(p.trim()));
@@ -143,6 +149,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Rearrange');
 
       const rawOrder = params.order || params.pages || params.sequence || params.newOrder;
       if (!rawOrder || !rawOrder.trim()) throw new ValidationError('New page order is required (e.g. 3, 1, 2)');
@@ -170,6 +177,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Rearrange');
 
       const rawOrder = params.order || params.pages || params.sequence || params.newOrder;
       if (!rawOrder || !rawOrder.trim()) throw new ValidationError('New page order is required (e.g. 3, 1, 2)');
@@ -198,6 +206,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Extract Text');
 
       const result = await pdfService.extractText(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
@@ -213,6 +222,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Watermark');
       if (!params.text) throw new ValidationError('Watermark text is required');
 
       const result = await pdfService.addWatermark(
@@ -240,6 +250,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Page Numbers');
 
       const result = await pdfService.addPageNumbers(
         files[0].data,
@@ -265,6 +276,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Protect');
       const password = params.password || params.userPassword;
       if (!password) throw new ValidationError('Password is required');
 
@@ -287,6 +299,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Metadata');
 
       // If any edit params provided, edit metadata; otherwise just read
       if (params.title || params.author || params.subject) {
@@ -312,6 +325,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 100);
       if (files.length < 1) throw new ValidationError('At least one image is required');
+      validateFileTypes(files, ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tiff', '.tif', '.bmp', '.avif'], 'Images to PDF');
 
       const result = await pdfService.imagesToPdf(
         files.map(f => ({ data: f.data, name: f.name })),
@@ -331,6 +345,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF to Word');
       const result = await pdfService.pdfToDocx(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -342,6 +357,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF to Word');
       const result = await pdfService.pdfToDocx(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -354,6 +370,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF to HTML');
       const result = await pdfService.pdfToHtml(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -366,6 +383,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF to Images');
       const result = await pdfService.pdfToImages(files[0].data, files[0].name, {
         mode: (params.mode as string) || 'auto',
         format: (params.format as string) || 'png',
@@ -381,6 +399,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Duplicate Pages');
       const pageInput = params.pages || params.page || params.pageNumber || '1';
       const result = await pdfService.duplicatePages(files[0].data, files[0].name, {
         pages: pageInput as any,
@@ -396,6 +415,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Swap Pages');
       const result = await pdfService.swapPages(files[0].data, files[0].name, {
         pageA: parseInt(params.pageA as string || '1'),
         pageB: parseInt(params.pageB as string || '2'),
@@ -411,6 +431,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Reverse Pages');
       const result = await pdfService.reversePages(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -423,6 +444,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Edit Metadata');
       const result = await pdfService.editPdfMetadata(files[0].data, files[0].name, {
         title: params.title as string,
         author: params.author as string,
@@ -438,6 +460,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Flatten Form');
       const result = await pdfService.flattenPdfForm(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -450,6 +473,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF to Text');
       const result = await pdfService.pdfToTxt(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -462,6 +486,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A TXT file is required');
+      validateFileTypes(files, ['.txt', '.text'], 'Text to PDF');
       const result = await pdfService.txtToPdf(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -474,6 +499,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Validate');
       const result = await pdfService.validatePdf(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -486,6 +512,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Crop');
       const cropBox = (params.x || params.y || params.width || params.height) ? {
         x: parseInt(params.x || '20'),
         y: parseInt(params.y || '20'),
@@ -504,6 +531,7 @@ export const registerPdfRoutes: FastifyPluginCallback = (app: FastifyInstance, _
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PDF file is required');
+      validateFileTypes(files, ['.pdf'], 'PDF Resize Pages');
       const result = await pdfService.resizePdfPages(files[0].data, files[0].name, {
         size: (params.size as any) || 'A4',
       });

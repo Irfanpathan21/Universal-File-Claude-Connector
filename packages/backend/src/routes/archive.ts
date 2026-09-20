@@ -4,7 +4,7 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { archiveService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
 
 export const registerArchiveRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -30,6 +30,7 @@ export const registerArchiveRoutes: FastifyPluginCallback = (app: FastifyInstanc
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A ZIP file is required');
+      validateFileTypes(files, ['.zip'], 'Extract ZIP');
       const result = await archiveService.extractZip(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -41,6 +42,7 @@ export const registerArchiveRoutes: FastifyPluginCallback = (app: FastifyInstanc
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A ZIP file is required');
+      validateFileTypes(files, ['.zip', '.tar', '.tar.gz', '.tgz'], 'List Archive');
       const result = await archiveService.listArchiveContents(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -63,6 +65,7 @@ export const registerArchiveRoutes: FastifyPluginCallback = (app: FastifyInstanc
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A GZIP file is required');
+      validateFileTypes(files, ['.gz', '.gzip'], 'Decompress GZIP');
       const result = await archiveService.decompressGzip(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

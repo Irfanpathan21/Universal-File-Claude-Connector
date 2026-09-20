@@ -36,19 +36,19 @@ jobs:
           body: |
             ## 🚀 Universal File Toolkit ${{ github.ref_name }}
             
-            ### ✨ What's Included:
-            - **Windows Setup Package**: Double-click `Setup.exe` to configure and launch.
-            - **Searchable Desktop App**: Registers into Windows Search and Desktop.
-            - **100 Active Tools**: PDF, Image, Spreadsheet, Document, OCR, Data, and AI processing.
-            - **Claude Desktop Integration**: Connects seamlessly via Model Context Protocol.
-            - **Live Web App**: [https://uftapp.onrender.com](https://uftapp.onrender.com)
+            ### ✨ What's New in this Release:
+            - 🛡️ **Strict File Type Validation**: Both frontend dropzones and backend endpoints now strictly enforce allowed file formats across all 100 tools (e.g. PDF tools accept only `.pdf`, image tools accept only `.png`/`.jpg`/`.webp`, etc.), preventing invalid file uploads and runtime processing errors.
+            - ⚡ **Defender & SmartScreen-Safe 1-Click Setup**: Added `Setup-OneClick.cmd` & `setup.ps1` that run seamlessly without triggering Windows Defender or SmartScreen false-positive warnings.
+            - 🖥️ **Searchable Desktop App**: Auto-configures Desktop and Start Menu shortcuts, indexed in Windows Search.
+            - 🤖 **Claude Desktop MCP Integration**: 100 active tools seamlessly accessible through Model Context Protocol.
+            - 🌐 **Live Web App**: [https://uftapp.onrender.com](https://uftapp.onrender.com)
             
             ### 📦 Download:
             - **`UniversalFileToolkit-Setup.zip`**: Complete Windows setup & launcher bundle.
             
             ### 🛠️ How to Install on Windows:
-            1. **Option 1 (GUI Wizard)**: Double-click `Setup.exe`.
-            2. **Option 2 (1-Click Script)**: Double-click `Install.cmd` (or `setup.bat`).
+            1. **Option 1 (Recommended — Defender-Safe 1-Click Setup)**: Extract zip and double-click `Setup-OneClick.cmd` (or `Install.cmd`).
+            2. **Option 2 (GUI Setup Wizard)**: Double-click `Setup.exe` and follow wizard.
             3. **Option 3 (CLI Package)**: Run `npm start` or `node bin/uft.js`.
           files: |
             UniversalFileToolkit-Setup.zip

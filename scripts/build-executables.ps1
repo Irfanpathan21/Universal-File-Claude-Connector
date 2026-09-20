@@ -116,6 +116,9 @@ try {
     if (Test-Path "$RootDir\Install-App.ps1") {
       Set-AuthenticodeSignature -FilePath "$RootDir\Install-App.ps1" -Certificate $cert | Out-Null
     }
+    if (Test-Path "$RootDir\setup.ps1") {
+      Set-AuthenticodeSignature -FilePath "$RootDir\setup.ps1" -Certificate $cert | Out-Null
+    }
     Write-Host "[OK] Digitally signed executables and installation scripts with Authenticode." -ForegroundColor Green
   }
 } catch {
@@ -145,11 +148,13 @@ $readmeText = @"
 
 How to Run & Install on Windows:
 
-Option 1 (Recommended - 1-Click GUI Wizard):
-  - Double-click 'Setup.exe' and click 'Start Setup'.
+Option 1 (Recommended - 1-Click Defender-Safe Setup):
+  - Double-click 'Setup-OneClick.cmd' (or 'Install.cmd').
+  - Installs dependencies, registers shortcuts, and launches the app.
+  - Does NOT trigger Windows Defender or SmartScreen warnings.
 
-Option 2 (1-Click Command Script):
-  - Double-click 'Install.cmd' (or 'setup.bat').
+Option 2 (GUI Wizard):
+  - Double-click 'Setup.exe' and click 'Start Setup'.
 
 Option 3 (Direct Node CLI):
   - Run 'npm start' or 'node bin/uft.js'.

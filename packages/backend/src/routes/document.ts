@@ -4,7 +4,9 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { documentService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
+
+const DOCX_EXTENSIONS = ['.docx', '.doc', '.odt', '.rtf'];
 
 export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -16,6 +18,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.extractDocxText(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -27,6 +30,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.docxToHtml(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -38,6 +42,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.extractDocxImages(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -49,6 +54,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.extractDocxHyperlinks(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -60,6 +66,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.docxToMarkdown(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -71,6 +78,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A text file is required');
+      validateFileTypes(files, ['.txt', '.text', '.md', '.rtf'], 'Text to DOCX');
       const result = await documentService.textToDocx(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -98,6 +106,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.replaceTextDocx(files[0].data, files[0].name, {
         targetText: params.targetText,
         replacementText: params.replacementText,
@@ -112,6 +121,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.extractDocxComments(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -123,6 +133,7 @@ export const registerDocumentRoutes: FastifyPluginCallback = (app: FastifyInstan
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A DOCX file is required');
+      validateFileTypes(files, DOCX_EXTENSIONS, 'Document');
       const result = await documentService.wordCountDocx(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

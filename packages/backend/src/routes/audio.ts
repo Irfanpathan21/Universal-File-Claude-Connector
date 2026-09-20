@@ -4,7 +4,9 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { audioService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
+
+const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.aac', '.ogg', '.flac', '.m4a', '.wma', '.opus', '.aiff'];
 
 export const registerAudioRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -16,6 +18,7 @@ export const registerAudioRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An audio file is required');
+      validateFileTypes(files, AUDIO_EXTENSIONS, 'Audio');
       const result = await audioService.convertAudio(files[0].data, files[0].name, {
         targetFormat: params.targetFormat as any,
         bitrate: params.bitrate,
@@ -30,6 +33,7 @@ export const registerAudioRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A video file is required');
+      validateFileTypes(files, ['.mp4', '.mkv', '.avi', '.mov', '.webm', '.wmv', '.flv', '.m4v'], 'Audio Extract');
       const result = await audioService.extractAudioFromVideo(files[0].data, files[0].name, {
         targetFormat: params.targetFormat as any,
       });
@@ -43,6 +47,7 @@ export const registerAudioRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An audio file is required');
+      validateFileTypes(files, AUDIO_EXTENSIONS, 'Audio');
       const result = await audioService.trimAudio(files[0].data, files[0].name, {
         startTime: params.startTime,
         endTime: params.endTime,
@@ -57,6 +62,7 @@ export const registerAudioRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An audio file is required');
+      validateFileTypes(files, AUDIO_EXTENSIONS, 'Audio');
       const result = await audioService.changeAudioSpeed(files[0].data, files[0].name, {
         speed: params.speed ? parseFloat(params.speed) : undefined,
       });
@@ -70,6 +76,7 @@ export const registerAudioRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An audio file is required');
+      validateFileTypes(files, AUDIO_EXTENSIONS, 'Audio');
       const result = await audioService.audioToWaveform(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

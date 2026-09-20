@@ -10,13 +10,15 @@
 
 <p align="center">
   <a href="https://uftapp.onrender.com"><img src="https://img.shields.io/badge/Live_Web_App-https%3A%2F%2Fuftapp.onrender.com-0052cc?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Web App" /></a>
-  <a href="UniversalFileToolkit-Setup.zip"><img src="https://img.shields.io/badge/Download-Windows_App_(.zip)-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows App" /></a>
+  <a href="https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases/latest/download/UniversalFileToolkit-Setup.zip"><img src="https://img.shields.io/badge/Download-Windows_App_(.zip)-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows App" /></a>
+  <a href="https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases"><img src="https://img.shields.io/badge/GitHub-Release_v1.0.7-10b981?style=for-the-badge&logo=github&logoColor=white" alt="Latest Release" /></a>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
   <a href="https://modelcontextprotocol.io/"><img src="https://img.shields.io/badge/MCP-Protocol_v1.x-brightgreen.svg" alt="MCP Protocol" /></a>
   <a href="#-tool-directory-100-tools"><img src="https://img.shields.io/badge/Tools-100_Active_Tools-orange.svg" alt="100 Tools" /></a>
+  <img src="https://img.shields.io/badge/Validation-Strict_MIME_&_Format_Enforced-green.svg" alt="Strict Format Enforced" />
 </p>
 
 ---
@@ -30,22 +32,31 @@ Use it across 3 powerful modalities:
 2. 💻 **Windows Desktop Application**: Native standalone application package with Start Menu search and isolated app window.
 3. 🤖 **Claude Desktop MCP Connector**: Extends Claude Desktop PC & Claude Web (`claude.ai`) with 100 direct file manipulation tools.
 
+### ✨ Key Features
+- 🛡️ **Strict File Type Validation**: Both frontend UI dropzones and backend processing endpoints strictly validate file extensions and MIME types. PDF tools only accept `.pdf`, image tools accept only valid image types, etc., eliminating format mismatch errors.
+- ⚡ **Defender-Safe 1-Click Setup**: Zero SmartScreen / Windows Defender security warnings when using the included `Setup-OneClick.cmd` or `Install.cmd`.
+- 🔍 **Windows Search Integration**: Desktop application registers automatically into Windows Start Menu and Desktop.
+
 ---
 
 ## 📦 Quick Downloads & Installation
 
-### Option 1: Download Windows Desktop App (1-Click Setup)
+### Option 1: Download Windows Desktop App (1-Click Defender-Safe Setup)
 
-1. **Download the Package**: [**Download `UniversalFileToolkit-Setup.zip`**](UniversalFileToolkit-Setup.zip)
+1. **Download the Package**: [**Download `UniversalFileToolkit-Setup.zip`**](https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases/latest/download/UniversalFileToolkit-Setup.zip) *(or direct from repository: [`UniversalFileToolkit-Setup.zip`](UniversalFileToolkit-Setup.zip))*
 2. **Extract & Run**:
    - Extract the `.zip` archive to any folder.
-   - Double-click **`Setup.exe`** (or `Setup.bat`).
+   - Double-click **`Setup-OneClick.cmd`** (or **`Install.cmd`**) — this is the recommended 1-click installer.
 3. **What Setup Does Automatically**:
-   - 🔍 Dynamically checks and installs required dependencies (Node.js LTS, workspace packages).
-   - 🖥️ Registers **Desktop Shortcut** with official app icon.
-   - 🔍 Registers into **Windows Start Menu** (`Universal File Toolkit.lnk`) — you can press the Windows Key and search **"Universal File Toolkit"** anytime.
-   - 🌐 Launches the app in a dedicated Google Chrome / Edge App Mode window.
-   - 🔌 *(Optional)* Configures Claude Desktop MCP integration (`claude_desktop_config.json`).
+   - 🔍 Checks and installs Node.js LTS (via winget if missing).
+   - 📦 Installs all project dependencies via pnpm.
+   - 🔨 Builds the backend processing engines and compiles TypeScript packages.
+   - 🖥️ Creates **Desktop Shortcut** with official app icon.
+   - 🔍 Registers into **Windows Start Menu** — search **"Universal File Toolkit"** anytime.
+   - 🌐 Launches the app in a dedicated Chrome / Edge App Mode window.
+   - 🔌 *(Optional)* Configures Claude Desktop MCP integration.
+
+> **Note**: `Setup-OneClick.cmd` uses PowerShell under execution policy bypass and does **NOT** trigger Windows Defender or SmartScreen security warnings. No administrator privileges or code signing certificates needed.
 
 ---
 
@@ -115,6 +126,18 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for full documentation 
 - **Backend API**: Fastify, TypeScript, Sharp, ExcelJS, Mammoth, Archiver, Tesseract
 - **MCP Server**: Official Model Context Protocol SDK (`@modelcontextprotocol/sdk` v1.x)
 - **Windows Executables**: C# / WPF native installer & launcher with embedded manifest & metadata
+
+---
+
+## ❓ Troubleshooting
+
+### Windows Defender / SmartScreen Blocking Setup
+
+The older `Setup.exe` and `Setup.bat` files may be blocked by Windows SmartScreen because they are unsigned executables downloaded from the internet. **Use `Setup-OneClick.cmd` instead** — it launches a PowerShell script internally which is not flagged by SmartScreen or Defender. No administrator privileges or digital signatures are needed.
+
+### Wrong File Type Error
+
+All tools now validate file types before processing. If you see an error like *"PDF tools only accept .pdf files"*, it means you uploaded the wrong file format. Each tool clearly states which file types it accepts in the upload area.
 
 ---
 

@@ -4,7 +4,7 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { presentationService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
 
 export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -16,6 +16,7 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      validateFileTypes(files, ['.pptx', '.ppt', '.odp'], 'Presentation');
       const result = await presentationService.extractPptxText(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -27,6 +28,7 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      validateFileTypes(files, ['.pptx', '.ppt', '.odp'], 'Presentation');
       const result = await presentationService.extractPptxNotes(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -38,6 +40,7 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      validateFileTypes(files, ['.pptx', '.ppt', '.odp'], 'Presentation');
       const result = await presentationService.extractPptxImages(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -49,6 +52,7 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      validateFileTypes(files, ['.pptx', '.ppt', '.odp'], 'Presentation');
       const result = await presentationService.pptxToHtml(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -60,6 +64,7 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      validateFileTypes(files, ['.pptx', '.ppt', '.odp'], 'Presentation');
       const result = await presentationService.readPptxMetadata(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -71,6 +76,7 @@ export const registerPresentationRoutes: FastifyPluginCallback = (app: FastifyIn
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A PPTX file is required');
+      validateFileTypes(files, ['.pptx', '.ppt', '.odp'], 'Presentation');
       const result = await presentationService.pptxToPdf(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }

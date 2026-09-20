@@ -7,7 +7,9 @@ import { imageService, ValidationError } from '@uft/shared';
 import { existsSync, createReadStream } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, extname, join, dirname, basename } from 'node:path';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
+
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tiff', '.tif', '.bmp', '.svg', '.avif', '.heif', '.heic'];
 
 export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -20,6 +22,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.resizeImage(files[0].data, files[0].name, {
         width: params.width ? parseInt(params.width) : undefined,
@@ -40,6 +43,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const left = parseInt(params.left || '0', 10);
       const top = parseInt(params.top || '0', 10);
@@ -65,6 +69,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const left = parseInt(params.left || '0', 10);
       const top = parseInt(params.top || '0', 10);
@@ -91,6 +96,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.rotateImage(files[0].data, files[0].name, {
         angle: parseInt(params.angle || '90'),
@@ -109,6 +115,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.flipImage(
         files[0].data, files[0].name,
@@ -128,6 +135,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.compressImage(files[0].data, files[0].name, {
         quality: params.quality ? parseInt(params.quality) : 80,
@@ -147,6 +155,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       if (!params.format) throw new ValidationError('Target format is required');
 
       const result = await imageService.convertImage(files[0].data, files[0].name, {
@@ -167,6 +176,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.blurImage(
         files[0].data, files[0].name,
@@ -186,6 +196,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.sharpenImage(files[0].data, files[0].name, {
         sigma: params.sigma ? parseFloat(params.sigma) : undefined,
@@ -204,6 +215,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.adjustImage(files[0].data, files[0].name, {
         brightness: params.brightness ? parseFloat(params.brightness) : undefined,
@@ -223,6 +235,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.grayscaleImage(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
@@ -238,6 +251,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.getImageMetadata(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
@@ -253,6 +267,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.removeExif(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
@@ -268,6 +283,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.generateThumbnail(files[0].data, files[0].name, {
         width: params.width ? parseInt(params.width) : undefined,
@@ -287,6 +303,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 50);
       if (files.length < 1) throw new ValidationError('At least one image is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image Batch Resize');
 
       const result = await imageService.batchResize(
         files.map(f => ({ data: f.data, name: f.name })),
@@ -310,6 +327,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       const result = await imageService.invertImage(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -322,6 +340,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       const result = await imageService.gammaImage(files[0].data, files[0].name, {
         gamma: params.gamma ? parseFloat(params.gamma) : undefined,
       });
@@ -336,6 +355,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       const result = await imageService.thresholdImage(files[0].data, files[0].name, {
         threshold: (params.threshold !== undefined && params.threshold !== '') ? parseInt(params.threshold, 10) : 128,
         invert: params.invert === 'true',
@@ -352,6 +372,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       const result = await imageService.dominantColorsImage(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -364,6 +385,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       const result = await imageService.trimTransparentEdges(files[0].data, files[0].name, {
         threshold: params.threshold !== undefined && params.threshold !== '' ? parseInt(params.threshold, 10) : 10,
         padding: params.padding !== undefined && params.padding !== '' ? parseInt(params.padding, 10) : 0,
@@ -380,6 +402,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 2);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
       const watermarkData = files.length > 1 ? files[1].data : undefined;
       const result = await imageService.addImageWatermark(files[0].data, files[0].name, {
         watermarkData,
@@ -472,6 +495,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.removeBackground(files[0].data, files[0].name, {
         model: (params.model as any) || 'u2net',
@@ -491,6 +515,7 @@ export const registerImageRoutes: FastifyPluginCallback = (app: FastifyInstance,
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An image file is required');
+      validateFileTypes(files, IMAGE_EXTENSIONS, 'Image');
 
       const result = await imageService.removeBackground(files[0].data, files[0].name, {
         model: (params.model as any) || 'u2net',

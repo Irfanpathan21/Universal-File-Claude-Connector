@@ -4,7 +4,7 @@
 
 import { FastifyInstance, FastifyPluginCallback } from 'fastify';
 import { dataService, ValidationError } from '@uft/shared';
-import { extractFilesAndParams, sendProcessingResult, handleRouteError } from './helpers.js';
+import { extractFilesAndParams, sendProcessingResult, handleRouteError, validateFileTypes } from './helpers.js';
 
 export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, _opts, done) => {
   const outputDir: string = (app as any).outputDir;
@@ -16,6 +16,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'JSON to CSV');
       const result = await dataService.jsonToCsv(files[0].data, files[0].name, { delimiter: params.delimiter });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -27,6 +28,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A CSV file is required');
+      validateFileTypes(files, ['.csv', '.tsv'], 'CSV to JSON');
       const result = await dataService.csvToJson(files[0].data, files[0].name, {
         header: params.header !== 'false',
       });
@@ -40,6 +42,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'JSON to XML');
       const result = await dataService.jsonToXml(files[0].data, files[0].name, { rootName: params.rootName });
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -51,6 +54,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An XML file is required');
+      validateFileTypes(files, ['.xml'], 'XML to JSON');
       const result = await dataService.xmlToJson(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -62,6 +66,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'JSON to YAML');
       const result = await dataService.jsonToYaml(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -73,6 +78,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A YAML file is required');
+      validateFileTypes(files, ['.yaml', '.yml'], 'YAML to JSON');
       const result = await dataService.yamlToJson(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -84,6 +90,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'Validate JSON');
       const result = await dataService.validateJson(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -95,6 +102,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'Format JSON');
       const result = await dataService.formatJson(files[0].data, files[0].name, {
         indent: params.indent ? parseInt(params.indent) : undefined,
       });
@@ -108,6 +116,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A JSON file is required');
+      validateFileTypes(files, ['.json'], 'Minify JSON');
       const result = await dataService.minifyJson(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -119,6 +128,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An XML file is required');
+      validateFileTypes(files, ['.xml'], 'Format XML');
       const result = await dataService.formatXml(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
@@ -130,6 +140,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files, params } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('A Markdown file is required');
+      validateFileTypes(files, ['.md', '.markdown', '.mdx'], 'Markdown to HTML');
       const result = await dataService.markdownToHtml(files[0].data, files[0].name, {
         wrapInHtml: params.wrapInHtml !== 'false',
       });
@@ -143,6 +154,7 @@ export const registerDataRoutes: FastifyPluginCallback = (app: FastifyInstance, 
     try {
       const { files } = await extractFilesAndParams(request, uploadDir, 1);
       if (files.length < 1) throw new ValidationError('An HTML file is required');
+      validateFileTypes(files, ['.html', '.htm'], 'HTML to Markdown');
       const result = await dataService.htmlToMarkdown(files[0].data, files[0].name);
       await sendProcessingResult(reply, result, outputDir);
     } catch (error) { handleRouteError(reply, error); }
