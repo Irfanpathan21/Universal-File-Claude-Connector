@@ -69,7 +69,7 @@ export function Layout() {
                   GitHub Repo
                 </a>
                 <a
-                  href="/UniversalFileToolkit-Setup.zip"
+                  href="https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases/latest/download/UniversalFileToolkit-Setup.zip"
                   download="UniversalFileToolkit-Setup.zip"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/50 dark:hover:bg-blue-900/50 text-[#004ac6] dark:text-blue-400 transition-colors border border-blue-200/60 dark:border-blue-800/60"
                 >
@@ -117,7 +117,7 @@ export function Layout() {
               <ul className="space-y-2.5 text-sm sm:text-[15px] text-[#434655] dark:text-slate-300 font-medium">
                 <li><Link to="/help" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Contact Us</Link></li>
                 <li><Link to="/help" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Help Center</Link></li>
-                <li><a href="/UniversalFileToolkit-Setup.zip" download="UniversalFileToolkit-Setup.zip" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Download Windows Package (.zip)</a></li>
+                <li><a href="https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases/latest/download/UniversalFileToolkit-Setup.zip" download="UniversalFileToolkit-Setup.zip" className="hover:text-[#004ac6] dark:hover:text-blue-400 transition-colors">Download Windows Package (.zip)</a></li>
               </ul>
             </div>
 
