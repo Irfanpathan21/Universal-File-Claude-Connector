@@ -5,6 +5,24 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-Protocol_v1.x-brightgreen.svg)](https://modelcontextprotocol.io/)
 [![Tools Count](https://img.shields.io/badge/Tools-100_Active_Tools-orange.svg)](#-tool-directory-100-tools)
+[![YouTube Demo](https://img.shields.io/badge/YouTube-Watch%20Demo-red.svg?logo=youtube&logoColor=white)](https://youtu.be/Gh2mvUagWaM?si=vTlXuQqIL8w8T_5N)
+
+---
+
+## 🎬 Video Walkthrough & Live Demo
+
+Watch the complete video demonstration of **Universal File Toolkit** in action:
+
+<div align="center">
+  <a href="https://youtu.be/Gh2mvUagWaM?si=vTlXuQqIL8w8T_5N" target="_blank" rel="noopener noreferrer">
+    <img src="docs/images/video_thumbnail.jpg" alt="Universal File Toolkit — Watch Video Demo" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);" />
+  </a>
+  <p align="center">
+    <a href="https://youtu.be/Gh2mvUagWaM?si=vTlXuQqIL8w8T_5N" target="_blank" rel="noopener noreferrer">
+      <b>▶️ Click here or on the video frame above to watch the full walkthrough on YouTube</b>
+    </a>
+  </p>
+</div>
 
 ---
 
