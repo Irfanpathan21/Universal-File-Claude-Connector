@@ -54,7 +54,7 @@ Use it across 3 powerful modalities:
    - 🖥️ Creates **Desktop Shortcut** with official app icon.
    - 🔍 Registers into **Windows Start Menu** — search **"Universal File Toolkit"** anytime.
    - 🌐 Launches the app in a dedicated Chrome / Edge App Mode window.
-   - 🔌 *(Optional)* Configures Claude Desktop MCP integration.
+   - 🔌 **Auto-Configures Claude Desktop**: Automatically connects all 100 tools to Claude Desktop MCP (`claude_desktop_config.json`) if Claude is installed!
 
 ---
 

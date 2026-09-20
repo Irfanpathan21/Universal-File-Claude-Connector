@@ -47,6 +47,11 @@ echo.
 echo [*] Creating Desktop and Start Menu shortcuts...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $d = [Environment]::GetFolderPath('Desktop'); $sm = [Environment]::GetFolderPath('Programs'); $target = Join-Path (Get-Location) 'launch.bat'; $icon = Join-Path (Get-Location) 'assets\app-icon.ico'; $s1 = $ws.CreateShortcut((Join-Path $d 'Universal File Toolkit.lnk')); $s1.TargetPath = $target; $s1.WorkingDirectory = (Get-Location).Path; if (Test-Path $icon) { $s1.IconLocation = $icon }; $s1.Save(); $s2 = $ws.CreateShortcut((Join-Path $sm 'Universal File Toolkit.lnk')); $s2.TargetPath = $target; $s2.WorkingDirectory = (Get-Location).Path; if (Test-Path $icon) { $s2.IconLocation = $icon }; $s2.Save();"
 
+:: 5. Auto-configure Claude Desktop MCP
+echo.
+echo [*] Checking Claude Desktop MCP integration...
+node -e "const fs=require('fs'),path=require('path');const cDir=path.join(process.env.APPDATA||'','Claude'),cP=path.join(cDir,'claude_desktop_config.json');if(fs.existsSync(cDir)){let cfg={};try{if(fs.existsSync(cP))cfg=JSON.parse(fs.readFileSync(cP,'utf8'));}catch(e){}if(!cfg.mcpServers)cfg.mcpServers={};const sP=path.resolve('.','packages','mcp-server','dist','index.js').replace(/\\/g,'/');cfg.mcpServers['universal-file-toolkit']={command:'node',args:[sP]};fs.writeFileSync(cP,JSON.stringify(cfg,null,2),'utf8');console.log('    [OK] Claude Desktop MCP configured: ' + sP);}else{console.log('    [*] Claude Desktop not detected (skipping MCP auto-link).');}"
+
 echo.
 echo ================================================================
 echo  [OK] Setup Completed Successfully!
