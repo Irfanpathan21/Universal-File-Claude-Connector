@@ -21,13 +21,16 @@
   <img src="https://img.shields.io/badge/Validation-Strict_MIME_&_Format_Enforced-green.svg" alt="Strict Format Enforced" />
 </p>
 
-<p align="center">
-  <a href="https://youtu.be/Gh2mvUagWaM?si=tD484AonzIn70dB2" target="_blank">
-    <img src="https://img.youtube.com/vi/Gh2mvUagWaM/maxresdefault.jpg" alt="Universal File Toolkit Explanation Video" width="100%" style="max-width: 820px; border-radius: 8px;" />
+<div align="center">
+  <a href="https://youtu.be/Gh2mvUagWaM?si=vTlXuQqIL8w8T_5N" target="_blank" rel="noopener noreferrer">
+    <img src="docs/images/video_thumbnail.jpg" alt="Universal File Toolkit — Watch Video Demo" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);" />
   </a>
-  <br />
-  <sub>🎬 <strong>Watch Project Explanation & Demo Video</strong>: <a href="https://youtu.be/Gh2mvUagWaM?si=tD484AonzIn70dB2">https://youtu.be/Gh2mvUagWaM?si=tD484AonzIn70dB2</a></sub>
-</p>
+  <p align="center">
+    <a href="https://youtu.be/Gh2mvUagWaM?si=vTlXuQqIL8w8T_5N" target="_blank" rel="noopener noreferrer">
+      <b>▶️ Click here or on the video frame above to watch the full walkthrough on YouTube</b>
+    </a>
+  </p>
+</div>
 
 ---
 
