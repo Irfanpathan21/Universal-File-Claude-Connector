@@ -116,10 +116,7 @@ try {
     if (Test-Path "$RootDir\Install-App.ps1") {
       Set-AuthenticodeSignature -FilePath "$RootDir\Install-App.ps1" -Certificate $cert | Out-Null
     }
-    if (Test-Path "$RootDir\setup.ps1") {
-      Set-AuthenticodeSignature -FilePath "$RootDir\setup.ps1" -Certificate $cert | Out-Null
-    }
-    Write-Host "[OK] Digitally signed executables and installation scripts with Authenticode." -ForegroundColor Green
+    Write-Host "[OK] Digitally signed executables with Authenticode." -ForegroundColor Green
   }
 } catch {
   Write-Warning "Authenticode signing notice: $($_.Exception.Message)"

@@ -34,7 +34,7 @@ Use it across 3 powerful modalities:
 
 ### ✨ Key Features
 - 🛡️ **Strict File Type Validation**: Both frontend UI dropzones and backend processing endpoints strictly validate file extensions and MIME types. PDF tools only accept `.pdf`, image tools accept only valid image types, etc., eliminating format mismatch errors.
-- ⚡ **Defender-Safe 1-Click Setup**: Zero SmartScreen / Windows Defender security warnings when using the included `Setup-OneClick.cmd` or `Install.cmd`.
+- ⚡ **Defender-Safe 1-Click Setup**: Zero SmartScreen / Windows Defender security warnings when using the included `setup.cmd`, `Setup-OneClick.cmd`, or `Install.cmd`.
 - 🔍 **Windows Search Integration**: Desktop application registers automatically into Windows Start Menu and Desktop.
 
 ---
@@ -46,7 +46,7 @@ Use it across 3 powerful modalities:
 1. **Download the Package**: [**Download `UniversalFileToolkit-Setup.zip`**](https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases/latest/download/UniversalFileToolkit-Setup.zip) *(or direct from repository: [`UniversalFileToolkit-Setup.zip`](UniversalFileToolkit-Setup.zip))*
 2. **Extract & Run**:
    - Extract the `.zip` archive to any folder.
-   - Double-click **`Setup-OneClick.cmd`** (or **`Install.cmd`**) — this is the recommended 1-click installer.
+   - Double-click **`setup.cmd`** (or **`Setup-OneClick.cmd`** / **`Install.cmd`**) — this is the recommended 1-click installer.
 3. **What Setup Does Automatically**:
    - 🔍 Checks and installs Node.js LTS (via winget if missing).
    - 📦 Installs all project dependencies via pnpm.
@@ -56,7 +56,7 @@ Use it across 3 powerful modalities:
    - 🌐 Launches the app in a dedicated Chrome / Edge App Mode window.
    - 🔌 *(Optional)* Configures Claude Desktop MCP integration.
 
-> **Note**: `Setup-OneClick.cmd` uses PowerShell under execution policy bypass and does **NOT** trigger Windows Defender or SmartScreen security warnings. No administrator privileges or code signing certificates needed.
+> **Note**: `setup.cmd` / `Setup-OneClick.cmd` use PowerShell under execution policy bypass and do **NOT** trigger Windows Defender or SmartScreen security warnings. No administrator privileges or code signing certificates needed.
 
 ---
 
@@ -133,7 +133,7 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for full documentation 
 
 ### Windows Defender / SmartScreen Blocking Setup
 
-The older `Setup.exe` and `Setup.bat` files may be blocked by Windows SmartScreen because they are unsigned executables downloaded from the internet. **Use `Setup-OneClick.cmd` instead** — it launches a PowerShell script internally which is not flagged by SmartScreen or Defender. No administrator privileges or digital signatures are needed.
+The older `Setup.exe` and `Setup.bat` files may be blocked by Windows SmartScreen because they are unsigned executables downloaded from the internet. **Use `setup.cmd` or `Setup-OneClick.cmd` instead** — they launch the clean PowerShell script internally which is not flagged by SmartScreen or Defender. No administrator privileges or digital signatures are needed.
 
 ### Wrong File Type Error
 
