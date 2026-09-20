@@ -37,18 +37,18 @@ jobs:
             ## 🚀 Universal File Toolkit ${{ github.ref_name }}
             
             ### ✨ What's New in this Release:
-            - 🛡️ **Strict File Type Validation**: Both frontend dropzones and backend endpoints now strictly enforce allowed file formats across all 100 tools (e.g. PDF tools accept only `.pdf`, image tools accept only `.png`/`.jpg`/`.webp`, etc.), preventing invalid file uploads and runtime processing errors.
-            - ⚡ **Defender & SmartScreen-Safe 1-Click Setup**: Added `Setup-OneClick.cmd` & `setup.ps1` that run seamlessly without triggering Windows Defender or SmartScreen false-positive warnings.
+            - 🛡️ **Strict File Type Validation**: Both frontend dropzones and backend endpoints strictly enforce allowed file formats across all 100 tools (e.g. PDF tools accept only `.pdf`, image tools accept only `.png`/`.jpg`/`.webp`, etc.), preventing invalid file uploads and runtime processing errors.
+            - ⚡ **1-Click Setup (`Setup.bat`)**: Streamlined setup down to a single `Setup.bat` script. Zero confusion, zero Defender blocks, and automatic dependency installation.
             - 🖥️ **Searchable Desktop App**: Auto-configures Desktop and Start Menu shortcuts, indexed in Windows Search.
             - 🤖 **Claude Desktop MCP Integration**: 100 active tools seamlessly accessible through Model Context Protocol.
             - 🌐 **Live Web App**: [https://uftapp.onrender.com](https://uftapp.onrender.com)
             
             ### 📦 Download:
-            - **`UniversalFileToolkit-Setup.zip`**: Complete Windows setup & launcher bundle.
+            - **`UniversalFileToolkit-Setup.zip`**: Complete Windows application & setup package.
             
             ### 🛠️ How to Install on Windows:
-            1. **Option 1 (Recommended — Defender-Safe 1-Click Setup)**: Extract zip and double-click `Setup-OneClick.cmd` (or `Install.cmd`).
-            2. **Option 2 (GUI Setup Wizard)**: Double-click `Setup.exe` and follow wizard.
-            3. **Option 3 (CLI Package)**: Run `npm start` or `node bin/uft.js`.
+            1. Extract `UniversalFileToolkit-Setup.zip` to any folder.
+            2. Double-click **`Setup.bat`**.
+            3. Universal File Toolkit configures everything, registers shortcuts, and launches automatically!
           files: |
             UniversalFileToolkit-Setup.zip

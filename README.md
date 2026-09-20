@@ -34,19 +34,19 @@ Use it across 3 powerful modalities:
 
 ### ✨ Key Features
 - 🛡️ **Strict File Type Validation**: Both frontend UI dropzones and backend processing endpoints strictly validate file extensions and MIME types. PDF tools only accept `.pdf`, image tools accept only valid image types, etc., eliminating format mismatch errors.
-- ⚡ **Defender-Safe 1-Click Setup**: Zero SmartScreen / Windows Defender security warnings when using the included `setup.cmd`, `Setup-OneClick.cmd`, or `Install.cmd`.
+- ⚡ **1-Click Setup (`Setup.bat`)**: Single, straightforward setup script that configures dependencies, builds engines, and creates shortcuts automatically.
 - 🔍 **Windows Search Integration**: Desktop application registers automatically into Windows Start Menu and Desktop.
 
 ---
 
 ## 📦 Quick Downloads & Installation
 
-### Option 1: Download Windows Desktop App (1-Click Defender-Safe Setup)
+### Option 1: Download Windows Desktop App (1-Click Setup)
 
 1. **Download the Package**: [**Download `UniversalFileToolkit-Setup.zip`**](https://github.com/Irfanpathan21/Universal-File-Claude-Connector/releases/latest/download/UniversalFileToolkit-Setup.zip) *(or direct from repository: [`UniversalFileToolkit-Setup.zip`](UniversalFileToolkit-Setup.zip))*
 2. **Extract & Run**:
    - Extract the `.zip` archive to any folder.
-   - Double-click **`setup.cmd`** (or **`Setup-OneClick.cmd`** / **`Install.cmd`**) — this is the recommended 1-click installer.
+   - Double-click **`Setup.bat`**.
 3. **What Setup Does Automatically**:
    - 🔍 Checks and installs Node.js LTS (via winget if missing).
    - 📦 Installs all project dependencies via pnpm.
@@ -55,8 +55,6 @@ Use it across 3 powerful modalities:
    - 🔍 Registers into **Windows Start Menu** — search **"Universal File Toolkit"** anytime.
    - 🌐 Launches the app in a dedicated Chrome / Edge App Mode window.
    - 🔌 *(Optional)* Configures Claude Desktop MCP integration.
-
-> **Note**: `setup.cmd` / `Setup-OneClick.cmd` use PowerShell under execution policy bypass and do **NOT** trigger Windows Defender or SmartScreen security warnings. No administrator privileges or code signing certificates needed.
 
 ---
 
@@ -131,9 +129,9 @@ See [`docs/AVAILABLE_TOOLS.md`](docs/AVAILABLE_TOOLS.md) for full documentation 
 
 ## ❓ Troubleshooting
 
-### Windows Defender / SmartScreen Blocking Setup
+### Windows SmartScreen Note
 
-The older `Setup.exe` and `Setup.bat` files may be blocked by Windows SmartScreen because they are unsigned executables downloaded from the internet. **Use `setup.cmd` or `Setup-OneClick.cmd` instead** — they launch the clean PowerShell script internally which is not flagged by SmartScreen or Defender. No administrator privileges or digital signatures are needed.
+When running `Setup.bat` after downloading the zip file, Windows may show a standard SmartScreen notice (*"Windows protected your PC"*). Simply click **"More info"** and then **"Run anyway"**. Alternatively, right-click `Setup.bat` -> Properties -> check **Unblock** -> OK.
 
 ### Wrong File Type Error
 

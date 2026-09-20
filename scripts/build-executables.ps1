@@ -47,34 +47,7 @@ if (Test-Path $manifestPath) {
 
 $assemblyInfo = Join-Path $RootDir "src-installer\AssemblyInfo.cs"
 
-# 3. Compile Setup Wizard (Setup.exe)
-Write-Host "[*] Compiling Setup.exe with embedded Manifest & ASLR flags..." -ForegroundColor Yellow
-$setupSrc = Join-Path $RootDir "src-installer\SetupWizard.cs"
-$setupOut = Join-Path $RootDir "Setup.exe"
-
-$wpfRefs = "/r:`"$wpfDir\WindowsBase.dll`" /r:`"$wpfDir\PresentationCore.dll`" /r:`"$wpfDir\PresentationFramework.dll`" /r:`"$frameworkDir\System.Xaml.dll`" /r:System.dll /r:System.Core.dll /r:System.Xml.dll /r:Microsoft.CSharp.dll"
-
-$pInfo = New-Object System.Diagnostics.ProcessStartInfo
-$pInfo.FileName = $cscPath
-$pInfo.Arguments = "/target:winexe /nologo /optimize+ /highentropyva+ /platform:anycpu $iconArg $manifestArg $wpfRefs /out:`"$setupOut`" `"$setupSrc`" `"$assemblyInfo`""
-$pInfo.UseShellExecute = $false
-$pInfo.RedirectStandardOutput = $true
-$pInfo.RedirectStandardError = $true
-$p = [System.Diagnostics.Process]::Start($pInfo)
-$out = $p.StandardOutput.ReadToEnd()
-$err = $p.StandardError.ReadToEnd()
-$p.WaitForExit()
-
-if ($p.ExitCode -eq 0 -and (Test-Path $setupOut)) {
-  Write-Host "[OK] Successfully compiled Setup.exe" -ForegroundColor Green
-} else {
-  Write-Host $out
-  Write-Host $err -ForegroundColor Red
-  Write-Error "Failed to compile Setup.exe"
-  exit 1
-}
-
-# 4. Compile App Launcher (UniversalFileToolkit.exe)
+# 3. Compile App Launcher (UniversalFileToolkit.exe)
 Write-Host "[*] Compiling UniversalFileToolkit.exe (App Launcher)..." -ForegroundColor Yellow
 $launcherSrc = Join-Path $RootDir "src-installer\AppLauncher.cs"
 $launcherOut = Join-Path $RootDir "UniversalFileToolkit.exe"
@@ -101,7 +74,7 @@ if ($p2.ExitCode -eq 0 -and (Test-Path $launcherOut)) {
   exit 1
 }
 
-# 5. Authenticode Digital Signing
+# 4. Authenticode Digital Signing
 Write-Host "[*] Applying Authenticode Digital Signatures..." -ForegroundColor Yellow
 try {
   $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Select-Object -First 1
@@ -111,24 +84,18 @@ try {
   }
   
   if ($cert) {
-    Set-AuthenticodeSignature -FilePath $setupOut -Certificate $cert | Out-Null
     Set-AuthenticodeSignature -FilePath $launcherOut -Certificate $cert | Out-Null
-    if (Test-Path "$RootDir\Install-App.ps1") {
-      Set-AuthenticodeSignature -FilePath "$RootDir\Install-App.ps1" -Certificate $cert | Out-Null
-    }
     Write-Host "[OK] Digitally signed executables with Authenticode." -ForegroundColor Green
   }
 } catch {
   Write-Warning "Authenticode signing notice: $($_.Exception.Message)"
 }
 
-# 6. Package clean distribution for Web Download (.zip)
+# 5. Package clean distribution for Web Download (.zip)
 $frontendPublic = Join-Path $RootDir "packages\frontend\public"
 if (-not (Test-Path $frontendPublic)) {
   New-Item -ItemType Directory -Path $frontendPublic -Force | Out-Null
 }
-
-Copy-Item -Path $setupOut -Destination (Join-Path $frontendPublic "Setup.exe") -Force -ErrorAction SilentlyContinue
 
 $zipOut = Join-Path $frontendPublic "UniversalFileToolkit-Setup.zip"
 $rootZipOut = Join-Path $RootDir "UniversalFileToolkit-Setup.zip"
@@ -136,24 +103,22 @@ $tempPkgDir = Join-Path $env:TEMP "UFT-Dist-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $tempPkgDir -Force | Out-Null
 
 # Mirror files excluding node_modules and git
-$null = robocopy $RootDir $tempPkgDir /E /XD node_modules .git dist .turbo /XF *.zip *.log *.tmp
+$null = robocopy $RootDir $tempPkgDir /E /XD node_modules .git dist .turbo /XF *.zip *.log *.tmp Setup.exe
 
 $readmeText = @"
 ================================================================
- UNIVERSAL FILE TOOLKIT (UFT) — WINDOWS APPLICATION PACKAGE
+ UNIVERSAL FILE TOOLKIT (UFT) - WINDOWS APPLICATION PACKAGE
 ================================================================
 
 How to Run & Install on Windows:
 
-Option 1 (Recommended - 1-Click Defender-Safe Setup):
-  - Double-click 'Setup-OneClick.cmd' (or 'Install.cmd').
-  - Installs dependencies, registers shortcuts, and launches the app.
-  - Does NOT trigger Windows Defender or SmartScreen warnings.
+1-Click Setup:
+  - Double-click 'Setup.bat'.
+  - Automatically verifies Node.js, installs dependencies, and builds packages.
+  - Registers Desktop and Start Menu shortcuts.
+  - Launches Universal File Toolkit.
 
-Option 2 (GUI Wizard):
-  - Double-click 'Setup.exe' and click 'Start Setup'.
-
-Option 3 (Direct Node CLI):
+Alternative (Direct Node CLI):
   - Run 'npm start' or 'node bin/uft.js'.
 
 After setup, Universal File Toolkit will be searchable from Windows Search bar!
@@ -167,13 +132,13 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 Copy-Item -Path $zipOut -Destination $rootZipOut -Force -ErrorAction SilentlyContinue
 Remove-Item -Recurse -Force $tempPkgDir -ErrorAction SilentlyContinue
 
-Write-Host "[OK] Created complete, compliant package: UniversalFileToolkit-Setup.zip" -ForegroundColor Green
+Write-Host "[OK] Created complete package: UniversalFileToolkit-Setup.zip" -ForegroundColor Green
 
-# 7. Output Summary
+# 6. Output Summary
 Write-Host ""
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host " Build & Packaging Complete! Ready for Deployment:" -ForegroundColor Green
 Write-Host " 1. UniversalFileToolkit-Setup.zip" -ForegroundColor White
-Write-Host " 2. Authenticode Signed Setup.exe" -ForegroundColor White
-Write-Host " 3. 1-Click Install.cmd & Install-App.ps1" -ForegroundColor White
+Write-Host " 2. Setup.bat (1-Click Windows Setup)" -ForegroundColor White
+Write-Host " 3. UniversalFileToolkit.exe (App Launcher)" -ForegroundColor White
 Write-Host "================================================================" -ForegroundColor Cyan
