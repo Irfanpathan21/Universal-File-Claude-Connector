@@ -102,8 +102,8 @@ $rootZipOut = Join-Path $RootDir "UniversalFileToolkit-Setup.zip"
 $tempPkgDir = Join-Path $env:TEMP "UFT-Dist-$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $tempPkgDir -Force | Out-Null
 
-# Mirror files excluding node_modules and git
-$null = robocopy $RootDir $tempPkgDir /E /XD node_modules .git dist .turbo /XF *.zip *.log *.tmp Setup.exe
+# Mirror files excluding node_modules and git (dist is included so app is pre-built)
+$null = robocopy $RootDir $tempPkgDir /E /XD node_modules .git .turbo /XF *.zip *.log *.tmp Setup.exe
 
 $readmeText = @"
 ================================================================
@@ -114,9 +114,16 @@ How to Run & Install on Windows:
 
 1-Click Setup:
   - Double-click 'Setup.bat'.
-  - Automatically verifies Node.js, installs dependencies, and builds packages.
+  - Automatically verifies Node.js, installs dependencies.
+  - Pre-built packages are ready to run instantly!
+  - Automatically connects all 100 tools to Claude Desktop MCP!
   - Registers Desktop and Start Menu shortcuts.
   - Launches Universal File Toolkit.
+
+Claude Desktop Integration:
+  - 'Setup.bat' automatically configures Claude Desktop MCP.
+  - To re-configure Claude anytime, run: node scripts/configure-claude.js
+  - In Claude Desktop, click the hammer icon in the chat prompt!
 
 Alternative (Direct Node CLI):
   - Run 'npm start' or 'node bin/uft.js'.

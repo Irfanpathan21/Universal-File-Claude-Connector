@@ -66,29 +66,27 @@ Open **[https://uftapp.onrender.com](https://uftapp.onrender.com)** to run all t
 
 ### Option 3: Developer & Claude MCP Setup
 
-To run from source or configure Claude Desktop manually:
-
+#### 1-Command Claude Auto-Configuration:
 ```bash
-# Clone the repository
-git clone https://github.com/Irfanpathan21/Universal-File-Claude-Connector.git
-cd Universal-File-Claude-Connector
-
-# Install dependencies and build
-npm install
-npm run build
-
-# Start services
-npm run start:web
+# Connects to Claude Desktop AND Claude Code automatically:
+npm run setup:claude
+# Or directly:
+node scripts/configure-claude.js
 ```
 
-#### Connect to Claude Desktop (`claude_desktop_config.json`):
+> **Note about Claude CLI**:
+> You do **NOT** need `claude` as a terminal command to use this toolkit!
+> - **Claude Desktop App** connects directly via `%APPDATA%\Claude\claude_desktop_config.json` (auto-configured by `Setup.bat`). Simply open Claude Desktop and look for the **hammer 🔨 icon** in your chat.
+> - **Claude Code CLI** users (`@anthropic-ai/claude-code`): our setup script also automatically registers into `~/.claude.json`.
+
+#### Manual Claude Desktop Config (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
     "universal-file-toolkit": {
-      "command": "node",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
       "args": [
-        "C:\\FULL\\PATH\\TO\\Universal-File-Claude-Connector\\packages\\mcp-server\\dist\\index.js"
+        "C:\\path\\to\\Universal-File-Claude-Connector\\packages\\mcp-server\\dist\\index.js"
       ]
     }
   }
